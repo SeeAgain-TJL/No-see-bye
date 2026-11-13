@@ -43,8 +43,8 @@ npm run assets:cleanup
 
 见 [ECS 部署说明](docs/deployment.md) 与 [模块设计](docs/memories-design.md)。采用 Linux 发布包 + systemd，包内含 Node.js 24 运行时，无需容器和服务器端 npm 安装。GitHub Actions 构建 Linux x64 包并验证解压后的独立运行环境；也可在目标平台执行 npm run build 和 npm run release:pack。Windows 包仅用于本机验证，不能上传到 Linux。
 
-数据库、上传文件、密钥放在独立持久化目录；systemd 管理开机启动、异常重启、日志和定时附件清理。具体安装、备份、升级、回退步骤见部署说明。本地生产预览可先初始化数据库，再 npm run build、npm start。
+默认用 root 直接部署到 /opt/no-see-bye：解压、chmod +x runtime/node、生成 config.env、安装 systemd 服务即可。通过 EIP:3000 访问，安全组需放行 TCP 3000。数据库和上传文件保存在应用目录下的 data/，升级保留 data/ 和 config.env。附件清理定时器可选。已下载旧版安装包也可按部署说明替换 service，无需重新下载应用。本地生产预览可先初始化数据库，再 npm run build、npm start。
 
 当前仅 local 驱动；微信、找回密码、后台管理、永久删除、转码和断点续传尚未实现。草稿只保存文字，刷新后需重新选择附件。MOV 编码不一定被浏览器支持，优先 MP4/H.264 或 WebM。公开原图可能含 EXIF 位置等信息。
 
-部署为单进程单实例。应用认证限流在内存中，Nginx 另加 IP 限流；ALLOW_REGISTRATION=false 可关闭注册。数据库、媒体和密钥单独备份，不进入 Git。
+部署为单进程单实例。应用认证限流在内存中；可选的 Nginx 配置另加 IP 限流；ALLOW_REGISTRATION=false 可关闭注册。数据库、媒体和密钥单独备份，不进入 Git。

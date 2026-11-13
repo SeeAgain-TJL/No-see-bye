@@ -63,3 +63,6 @@ dev.db-journal
 
 # Local deployment bundles (contain a runtime, never user data)
 /dist/
+
+# Direct deployment credentials
+config.env

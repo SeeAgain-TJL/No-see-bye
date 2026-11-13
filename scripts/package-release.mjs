@@ -16,7 +16,7 @@ await rm(release, { recursive: true, force: true });
 await mkdir(release, { recursive: true });
 const excludePrivateFiles = (source) => {
   const name = path.basename(source);
-  return !name.startsWith(".env") && source !== path.join(standalone, "data") &&
+  return !name.startsWith(".env") && name !== "config.env" && source !== path.join(standalone, "data") &&
     !/\.(db|sqlite)(-|$)/i.test(name);
 };
 await cp(standalone, release, { recursive: true, dereference: true, filter: excludePrivateFiles });
@@ -49,7 +49,7 @@ await writeFile(path.join(release, "release.json"), JSON.stringify(manifest, nul
 // Never ship Next's copied env files, SQLite files, or local uploads.
 for (const file of await readdir(release, { recursive: true })) {
   const name = path.basename(file);
-  if ((name.startsWith(".env") && name !== ".env.example") || /\.(db|sqlite)(-|$)/i.test(name))
+  if ((name.startsWith(".env") && name !== ".env.example") || name === "config.env" || /\.(db|sqlite)(-|$)/i.test(name))
     throw new Error("Private data found in release: " + file);
 }
 const archive = path.join(dist, "no-see-bye-" + process.platform + "-" + process.arch + ".tar.gz");
