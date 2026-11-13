@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
 import { MediaGrid } from "./media";
+import { EmptyTrash } from "./empty-trash";
 export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -116,16 +117,17 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
             {trash
               ? "回收站"
               : scope === "public"
-                ? "公开的片刻"
-                : "记忆手札"}
+                ? "发现日常"
+                : "我的日常"}
 
           </h1>
 
         </div>
+        {trash && user && <EmptyTrash onDone={() => setRefreshKey(v => v + 1)} />}
         {!trash && (
           <Link className="button" href="/memories/new">
             <Icon name="plus" size={18} />
-            记一笔
+            记录一下
           </Link>
         )}
       </section>
@@ -168,7 +170,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           )}
           {trash && (
             <div className="notice">
-              记录可恢复，附件仍占用空间。
+              还没想好？可以恢复。确定不要了？清空后会永久删除记录和附件。
             </div>
           )}
           <div className="feed-toolbar">
@@ -470,13 +472,13 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 disabled={moreBusy}
                 onClick={loadMore}
               >
-                {moreBusy ? "正在翻开下一页…" : "再看看更早的记忆"}
+                {moreBusy ? "加载中…" : "再看一点"}
                 <Icon name="arrow" size={16} />
               </button>
             </div>
           )}
           {data && data.items.length > 0 && !data.nextCursor && (
-            <div className="feed-end">· 记忆有起点，生活还在继续 ·</div>
+            <div className="feed-end">已经到底啦，等你更新下一条 ✦</div>
           )}
         </>
       )}
@@ -517,7 +519,7 @@ export function DeleteDialog({
       }}
     >
       <Icon name="trash" size={27} />
-      <h2 id="delete-title">先把这段记忆收起来？</h2>
+      <h2 id="delete-title">移到回收站？</h2>
       <p>
         「{memory.title || "这段日常"}
         」会移到回收站。你可以随时恢复，公开访问也会同时关闭。
@@ -532,7 +534,7 @@ export function DeleteDialog({
           再想想
         </button>
         <button disabled={busy} className="button danger" onClick={confirm}>
-          {busy ? "处理中…" : "移到回收站"}
+                {busy ? "处理中…" : "移到回收站"}
         </button>
       </div>
     </dialog>

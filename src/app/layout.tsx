@@ -4,7 +4,7 @@ import "./globals.css";
 import "./journal.css";
 export const metadata: Metadata = {
   title: { default: "不说再见 · 我的生活门户", template: "%s · 不说再见" },
-  description: "用文字、照片和影像，收藏生活里值得记住的片刻。",
+  description: "好玩的、热爱的、随手拍的。用照片、视频和文字，记录你的日常。",
 };
 export default function RootLayout({
   children,

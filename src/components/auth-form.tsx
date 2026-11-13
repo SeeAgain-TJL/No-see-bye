@@ -24,7 +24,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         body: JSON.stringify(fields),
       });
       await refresh();
-      router.push("/memories");
+      router.push("/");
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -36,22 +36,22 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     <main id="main" className="auth-page">
       <Link className="auth-back text-link" href="/">
         <Icon name="back" size={17} />
-        回到门户
+        返回首页
       </Link>
       <div className="auth-card">
         <div className="auth-story">
           <MemoryScene />
           <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
-          <div className="auth-story-copy"><span className="auth-kicker">属于你的，私人记忆空间</span><h2>此刻。<br /><em>值得留住。</em></h2></div>
+          <div className="auth-story-copy"><span className="auth-kicker">LESS SCROLLING. MORE LIVING.</span><h2>你的日常，<br /><em>自带高光。</em><Icon name="spark" size={36} /></h2></div>
           <span className="auth-edition">NO SEE BYE / 01</span>
         </div>
         <form className="auth-form" onSubmit={submit}>
-          <span className="auth-form-kicker">不说再见</span>
-          <h1>{register ? "创建账号" : "欢迎回来"}</h1>
+          <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "NICE TO MEET YOU" : "HEY, YOU’RE BACK"}</span>
+          <h1>{register ? "开启你的主场" : "嗨，又见面啦！"}</h1>
           <p className="muted">
             {register
-              ? "从今天，开始记录。"
-              : "登录，继续你的故事。"}
+              ? "新鲜日常，从这一条开始。"
+              : "今天有什么新鲜事？登录聊聊。"}
           </p>
           {register ? (
             <>

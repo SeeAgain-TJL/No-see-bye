@@ -41,7 +41,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             className={path === "/" ? "nav-link active" : "nav-link"}
           >
             <Icon name="home" />
-            我的门户
+            我的主页
           </Link>
           <Link
             href="/memories"
@@ -52,16 +52,16 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             }
           >
             <Icon name="book" />
-            记忆手札
+            我的日常
 
           </Link>
           <Link href="/memories?scope=public" className={publicScope ? "nav-link active" : "nav-link"}>
             <Icon name="globe" />
-            公开的片刻
+            发现日常
           </Link>
         </nav>
         <div className="sidebar-bottom">
-          <Link className="nav-link" href="/memories/trash">
+          <Link className={path.includes("trash") ? "nav-link active" : "nav-link"} href="/memories/trash">
             <Icon name="trash" />
             回收站
           </Link>
@@ -72,7 +72,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         <header className="topbar">
           <span className="breadcrumb">
             我的空间 <span>/</span>{" "}
-            {path === "/settings" ? "设置" : path.startsWith("/memories") ? (publicScope ? "公开的片刻" : "记忆手札") : "首页"}
+            {path === "/settings" ? "设置" : path.includes("trash") ? "回收站" : path.startsWith("/memories") ? (publicScope ? "发现日常" : "我的日常") : "首页"}
           </span>
           <Link href="/" className="mobile-brand">
             <BrandMark />不说再见
@@ -109,18 +109,18 @@ function ShellContent({ children }: { children: React.ReactNode }) {
       <nav className="mobile-nav" aria-label="移动导航">
         <Link href="/">
           <Icon name="home" size={20} />
-          门户
+          首页
         </Link>
         <Link href="/memories">
           <Icon name="book" size={20} />
-          记忆
+          日常
         </Link>
         <Link href="/memories/new" className="mobile-add" aria-label="新建记录">
           <Icon name="plus" size={24} />
         </Link>
         <Link href="/memories?scope=public">
           <Icon name="globe" size={20} />
-          公开
+          发现
         </Link>
         <Link href="/settings">
           <Icon name="settings" size={20} />
