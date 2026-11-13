@@ -93,4 +93,4 @@ systemctl enable --now no-see-bye-cleanup.timer
 
 若启用了清理定时器，备份/更新前一起停止 no-see-bye-cleanup.timer、no-see-bye-cleanup.service，完成后重新启动 timer。
 
-当前包面向 Ubuntu 22.04 / 24.04、Linux x86_64。其他架构需要对应构建产物。当前 HTTP 配置可直接用 EIP 验证功能；HTTP 下账号密码未加密传输，后续正式使用时再接入 HTTPS，并将 APP_ORIGIN 改为实际 HTTPS 来源、COOKIE_SECURE 改为 true。
+Linux x64 包同时携带 Debian/Ubuntu 和 RHEL/Alibaba Cloud Linux 所需的 OpenSSL 1.1/3.0 Prisma 引擎，已在 Alibaba Cloud Linux 3 + OpenSSL 1.1 实机验证数据库连接。其他架构需要对应构建产物。当前 HTTP 配置可直接用 EIP 验证功能；HTTP 下账号密码未加密传输，后续正式使用时再接入 HTTPS，并将 APP_ORIGIN 改为实际 HTTPS 来源、COOKIE_SECURE 改为 true。
