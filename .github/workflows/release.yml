@@ -1,0 +1,55 @@
+name: Linux deployment bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    # Match the ECS architecture and glibc/OpenSSL family. This job targets x86_64.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_URL: file:/tmp/no-see-bye-build.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.18.0"
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run check
+      - run: npm run release:pack
+      # Test the extracted archive outside the checkout so missing dependencies
+      # cannot be resolved accidentally from the source node_modules directory.
+      - name: Verify isolated deployment archive
+        shell: bash
+        run: |
+          bundle_dir=$(mktemp -d)
+          trap 'rm -rf "$bundle_dir"' EXIT
+          cd dist
+          sha256sum -c no-see-bye-linux-x64.tar.gz.sha256
+          tar -xzf no-see-bye-linux-x64.tar.gz -C "$bundle_dir"
+          cd ..
+          TEST_RELEASE_DIR="$bundle_dir/no-see-bye" npm run test:integration
+          sudo install -d /opt/no-see-bye
+          sudo ln -s "$bundle_dir/no-see-bye" /opt/no-see-bye/current
+          systemd-analyze verify --man=no "$bundle_dir/no-see-bye"/deploy/systemd/no-see-bye*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no-see-bye-linux-x64
+          path: |
+            dist/no-see-bye-linux-x64.tar.gz
+            dist/no-see-bye-linux-x64.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: true

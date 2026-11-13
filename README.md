@@ -41,7 +41,9 @@ npm run assets:cleanup
 
 ## 部署和边界
 
-见 [ECS 部署说明](docs/deployment.md) 与 [模块设计](docs/memories-design.md)。也可初始化后 npm run build，再 npm start。Docker 配置已提供，本次尚未在 Linux Docker 实际构建；本机已运行 Node 生产构建。
+见 [ECS 部署说明](docs/deployment.md) 与 [模块设计](docs/memories-design.md)。采用 Linux 发布包 + systemd，包内含 Node.js 24 运行时，无需容器和服务器端 npm 安装。GitHub Actions 构建 Linux x64 包并验证解压后的独立运行环境；也可在目标平台执行 npm run build 和 npm run release:pack。Windows 包仅用于本机验证，不能上传到 Linux。
+
+数据库、上传文件、密钥放在独立持久化目录；systemd 管理开机启动、异常重启、日志和定时附件清理。具体安装、备份、升级、回退步骤见部署说明。本地生产预览可先初始化数据库，再 npm run build、npm start。
 
 当前仅 local 驱动；微信、找回密码、后台管理、永久删除、转码和断点续传尚未实现。草稿只保存文字，刷新后需重新选择附件。MOV 编码不一定被浏览器支持，优先 MP4/H.264 或 WebM。公开原图可能含 EXIF 位置等信息。
 

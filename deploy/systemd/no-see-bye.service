@@ -1,0 +1,39 @@
+[Unit]
+Description=No See Bye personal portal
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=no-see-bye
+Group=no-see-bye
+WorkingDirectory=/opt/no-see-bye/current
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3000
+EnvironmentFile=/etc/no-see-bye/environment
+ExecStartPre=/opt/no-see-bye/current/runtime/node /opt/no-see-bye/current/scripts/check-runtime.mjs
+ExecStartPre=/opt/no-see-bye/current/runtime/node /opt/no-see-bye/current/scripts/init-db.mjs
+ExecStart=/opt/no-see-bye/current/runtime/node /opt/no-see-bye/current/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=120
+TimeoutStopSec=45
+UMask=0077
+StateDirectory=no-see-bye
+StateDirectoryMode=0700
+CacheDirectory=no-see-bye
+CacheDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/no-see-bye /var/cache/no-see-bye
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=no-see-bye
+
+[Install]
+WantedBy=multi-user.target

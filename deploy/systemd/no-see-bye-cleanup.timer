@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily No See Bye orphan media cleanup
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=no-see-bye-cleanup.service
+
+[Install]
+WantedBy=timers.target

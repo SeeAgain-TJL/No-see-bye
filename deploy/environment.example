@@ -1,0 +1,9 @@
+# systemd EnvironmentFile syntax, not a shell script; do not add export.
+DATABASE_URL=file:/var/lib/no-see-bye/app.db
+STORAGE_DRIVER=local
+STORAGE_LOCAL_DIR=/var/lib/no-see-bye/uploads
+JWT_SECRET=replace-with-a-random-secret-at-least-32-characters
+USER_QUOTA_MB=2048
+ALLOW_REGISTRATION=true
+APP_ORIGIN=https://memories.example.com
+COOKIE_SECURE=true

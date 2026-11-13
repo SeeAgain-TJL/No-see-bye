@@ -11,7 +11,8 @@
     "test:integration": "node scripts/integration.mjs",
     "db:generate": "prisma generate",
     "check": "tsc --noEmit",
-    "assets:cleanup": "node scripts/cleanup-assets.mjs"
+    "assets:cleanup": "node scripts/cleanup-assets.mjs",
+    "release:pack": "node scripts/package-release.mjs"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",

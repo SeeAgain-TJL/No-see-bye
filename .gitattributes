@@ -1,0 +1,7 @@
+* text=auto
+*.service text eol=lf
+*.timer text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.mjs text eol=lf
+deploy/environment.example text eol=lf

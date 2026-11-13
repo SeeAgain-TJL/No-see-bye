@@ -4,7 +4,11 @@ import { randomUUID, randomBytes } from "node:crypto";
 import { mkdir, rm, readdir } from "node:fs/promises";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-const workspace = process.cwd();
+const releaseMode = Boolean(process.env.TEST_RELEASE_DIR);
+const workspace = path.resolve(process.env.TEST_RELEASE_DIR || process.cwd());
+const runtime = releaseMode
+  ? path.join(workspace, "runtime", process.platform === "win32" ? "node.exe" : "node")
+  : process.execPath;
 const testRoot = path.resolve("data", "integration-" + randomUUID());
 assert(testRoot.startsWith(path.resolve("data") + path.sep));
 await mkdir(testRoot, { recursive: true });
@@ -21,8 +25,24 @@ const env = {
   APP_ORIGIN: base,
   USER_QUOTA_MB: "1",
   ALLOW_REGISTRATION: "true",
+  HOSTNAME: "127.0.0.1",
+  PORT: String(port),
 };
-const initialized = spawnSync(process.execPath, ["scripts/init-db.mjs"], {
+if (releaseMode) {
+  const preflight = spawnSync(runtime, ["scripts/check-runtime.mjs"], { cwd: workspace, env, encoding: "utf8" });
+  assert.equal(preflight.status, 0, preflight.stderr);
+  for (const invalid of [
+    { JWT_SECRET: "replace-with-a-secret" },
+    { DATABASE_URL: "file:../data/relative.db" },
+    { STORAGE_LOCAL_DIR: "relative/uploads" },
+    { APP_ORIGIN: base + "/" },
+    { COOKIE_SECURE: "true" },
+  ]) {
+    const rejected = spawnSync(runtime, ["scripts/check-runtime.mjs"], { cwd: workspace, env: { ...env, ...invalid }, encoding: "utf8" });
+    assert.notEqual(rejected.status, 0, "Unsafe production config was accepted");
+  }
+}
+const initialized = spawnSync(runtime, ["scripts/init-db.mjs"], {
   cwd: workspace,
   env,
   encoding: "utf8",
@@ -30,7 +50,7 @@ const initialized = spawnSync(process.execPath, ["scripts/init-db.mjs"], {
 assert.equal(initialized.status, 0, initialized.stderr);
 // Running setup twice must preserve records and remain safe.
 assert.equal(
-  spawnSync(process.execPath, ["scripts/init-db.mjs"], { cwd: workspace, env })
+  spawnSync(runtime, ["scripts/init-db.mjs"], { cwd: workspace, env })
     .status,
   0,
 );
@@ -43,7 +63,7 @@ INSERT INTO User VALUES ('legacy-user','legacy@example.test','legacy_user','test
 INSERT INTO Entry VALUES ('legacy-entry','legacy-user','preserve this record','[]','private',1000000,1000000);`);
 legacy.close();
 assert.equal(
-  spawnSync(process.execPath, ["scripts/init-db.mjs"], {
+  spawnSync(runtime, ["scripts/init-db.mjs"], {
     cwd: workspace,
     env: { ...env, DATABASE_URL: "file:" + legacyPath.replaceAll("\\", "/") },
   }).status,
@@ -64,8 +84,8 @@ assert.equal(
 upgraded.close();
 let output = "";
 const server = spawn(
-  process.execPath,
-  ["node_modules/next/dist/bin/next", "start", "-p", String(port)],
+  runtime,
+  releaseMode ? ["server.js"] : ["node_modules/next/dist/bin/next", "start", "-p", String(port)],
   { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] },
 );
 server.stdout.on("data", (b) => {
@@ -128,6 +148,24 @@ try {
     if (Date.now() > deadline)
       throw new Error("Server did not start: " + output);
     await new Promise((r) => setTimeout(r, 300));
+  }
+  if (releaseMode) {
+    const health = await fetch(base + "/api/health");
+    assert.equal(health.status, 200);
+    assert.equal((await health.json()).status, "ok");
+    const home = await fetch(base);
+    assert.equal(home.status, 200);
+    const html = await home.text();
+    const staticPaths = [...new Set([...html.matchAll(/(?:src|href)="([^"?#]*\/_next\/static\/[^"?#]+)/g)].map((m) => m[1]))];
+    assert(staticPaths.some((asset) => asset.endsWith(".css")), "Missing CSS reference");
+    assert(staticPaths.some((asset) => asset.endsWith(".js")), "Missing JS reference");
+    for (const asset of staticPaths) {
+      const response = await fetch(new URL(asset, base));
+      assert.equal(response.status, 200, "Missing bundled static asset: " + asset);
+      await response.arrayBuffer();
+    }
+    assert.equal((await fetch(base + "/window.svg")).status, 200);
+    passed += 3;
   }
   const a = await call("/api/auth/register", {
     method: "POST",
@@ -414,7 +452,7 @@ try {
     .prepare("UPDATE Asset SET createdAt = ?")
     .run(Date.now() - 48 * 3600_000);
   admin.close();
-  const cleanup = spawnSync(process.execPath, ["scripts/cleanup-assets.mjs"], {
+  const cleanup = spawnSync(runtime, ["scripts/cleanup-assets.mjs"], {
     cwd: workspace,
     env,
     encoding: "utf8",

@@ -60,3 +60,6 @@ dev.db-journal
 *.db-*
 *.sqlite
 *.sqlite-*
+
+# Local deployment bundles (contain a runtime, never user data)
+/dist/
