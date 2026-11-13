@@ -4,55 +4,56 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
-import { MemoryOrbit } from "@/components/memory-orbit";
-import { MediaGrid } from "@/modules/memories/media";
-import { api, dateText } from "@/lib/client";
+import { MemoryScene } from "@/components/memory-scene";
+import { CollectionCard } from "@/modules/memories/collection-card";
+import { api } from "@/lib/client";
 import type { MemoryList } from "@/modules/memories/types";
+
+const categories = [["all", "全部", "grid"], ["photo", "照片", "image"], ["video", "影像", "video"], ["text", "文字", "edit"]];
+
 export default function Home() {
   const { user, loading } = useApp();
-  const ownerKey = user?.id || "guest";
-  const [response, setResponse] = useState<{
-    key: string;
-    data: MemoryList;
-  } | null>(null);
-  const data = response?.key === ownerKey ? response.data : null;
-  const [error, setError] = useState("");
+  const [kind, setKind] = useState("all");
+  const ownerKey = (user?.id || "guest") + ":" + kind;
+  const [response, setResponse] = useState<{ key: string; data?: MemoryList; error?: string } | null>(null);
+  const current = response?.key === ownerKey ? response : null;
+  const data = current?.data;
   useEffect(() => {
     if (loading) return;
-    let live = true;
-    api<MemoryList>(`/api/memories?scope=${user ? "mine" : "public"}`)
-      .then((v) => {
-        if (live) {
-          setResponse({ key: ownerKey, data: v });
-          setError("");
-        }
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      });
-    return () => { live = false; };
-  }, [user, loading, ownerKey]);
+    const abort = new AbortController();
+    api<MemoryList>("/api/memories?scope=" + (user ? "mine" : "public") + (kind === "all" ? "" : "&type=" + kind), { signal: abort.signal })
+      .then((value) => setResponse({ key: ownerKey, data: value }))
+      .catch((error) => { if (!abort.signal.aborted) setResponse({ key: ownerKey, error: error.message }); });
+    return () => abort.abort();
+  }, [user, loading, ownerKey, kind]);
   const target = user ? "/memories" : "/memories?scope=public";
   return (
     <AppShell>
-      <section className="home-hero">
-        <div className="home-hero-copy">
-          <span className="home-greeting">{user ? (user.displayName || user.username) + " 的空间" : "不说再见"}<span className="status-dot" /></span>
-          <h1>让生活，<br /><em>有迹可循。</em></h1>
-          <p>照片、影像，还有当时的心情。</p>
-          <div className="hero-actions"><Link href="/memories/new" className="button">记录此刻<Icon name="plus" size={18} /></Link><Link href={target} className="text-link">打开手札<Icon name="arrow" size={17} /></Link></div>
+      <div className="journal-home">
+        <section className="journal-hero" aria-labelledby="hero-title">
+          <div className="journal-hero-copy">
+            <span className="journal-greeting"><span />{user ? (user.displayName || user.username) + " 的日常收藏" : "不说再见 · 日常收藏"}</span>
+            <h1 id="hero-title">日子很轻。<br /><em>回忆有分量。</em></h1>
+            <p>把照片、影像和心情，留在这里。</p>
+            <div className="journal-hero-actions">
+              <Link href="/memories/new" className="button">记录此刻<Icon name="plus" size={18} /></Link>
+              <Link href={target} className="journal-open">翻开手札<Icon name="arrow" size={18} /></Link>
+            </div>
+          </div>
+          <MemoryScene />
+        </section>
+        <div className="journal-summary">
+          <div><Icon name="book" size={18} /><span>{user ? "我的记忆手札" : "日常，从这里开始"}</span>{data?.stats && <span className="summary-count"><strong>{data.stats.total}</strong> 条记录<span className="summary-divider" /><strong>{data.stats.photos}</strong> 张照片<span className="summary-divider" /><strong>{data.stats.videos}</strong> 段影像</span>}</div>
+          <Link href="/memories?scope=public">公开的片刻<Icon name="arrow" size={16} /></Link>
         </div>
-        <div className="home-hero-art"><MemoryOrbit compact /></div>
-      </section>
-      <section className="home-shortcuts">
-        <Link href={target}><span className="shortcut-icon"><Icon name="book" size={23} /></span><div><h2>记忆手札</h2><span>{data?.stats ? data.stats.total + " 条记录" : "收藏生活的片刻"}</span></div><Icon name="arrow" size={19} /></Link>
-        <Link href="/memories?scope=public"><span className="shortcut-icon peach"><Icon name="globe" size={23} /></span><div><h2>公开的片刻</h2><span>看看被分享的日常</span></div><Icon name="arrow" size={19} /></Link>
-      </section>
-      <div className="section-heading home-recent-heading"><h2>{user ? "最近记录" : "最近分享"}</h2><Link className="text-link" href={target}>全部<Icon name="arrow" size={16} /></Link></div>
-      {error ? <div className="notice error" role="alert">{error}</div> : loading || !data ? <div className="home-skeleton" aria-label="正在加载"><span /><span /><span /></div> : data.items.length ? <div className="home-recents">{data.items.slice(0, 3).map(m => <article className="home-recent" key={m.id}>
-        {m.assets.length ? <MediaGrid assets={m.assets} compact /> : <Link href={"/memories/"+m.id} className="text-memory-cover"><Icon name="book" size={28} /><p>{m.content?.slice(0,100) || m.title}</p></Link>}
-        <Link href={"/memories/"+m.id} className="home-recent-label"><h3>{m.title || "日常随记"}</h3><span>{dateText(m.happenedAt,{month:"long",day:"numeric"})}</span></Link>
-      </article>)}</div> : <div className="home-empty"><div className="empty-paper"><Icon name="plus" size={25} /></div><h3>从第一条记录开始</h3><Link href="/memories/new" className="text-link">记一笔<Icon name="arrow" size={16} /></Link></div>}
+        <section className="journal-collection" aria-labelledby="collection-title">
+          <div className="collection-top"><div className="collection-heading"><h2 id="collection-title">{user ? "最近记录" : "最近分享"}<span> / </span></h2><Link href={target}>查看全部<Icon name="arrow" size={16} /></Link></div>
+          <div className="collection-filters" role="group" aria-label="最近记录类型">{categories.map(([value, label, icon]) => <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}><Icon name={icon} size={15} />{label}</button>)}</div></div>
+          {current?.error ? <div className="notice error" role="alert">{current.error}</div> : loading || !data ? <div className="collection-skeleton" role="status" aria-label="正在加载记录"><span /><span /><span /></div> : data.items.length ? (
+            <div className="collection-grid">{data.items.slice(0, 6).map(memory => <CollectionCard key={memory.id} memory={memory} />)}</div>
+          ) : <div className="collection-empty"><span><Icon name={kind === "all" ? "book" : categories.find(c => c[0] === kind)![2]} size={26} /></span><h3>{kind === "all" ? "第一份回忆，从此刻开始。" : "还没有这类记录"}</h3><Link href="/memories/new" className="text-link">记一笔<Icon name="plus" size={16} /></Link></div>}
+        </section>
+      </div>
     </AppShell>
   );
 }

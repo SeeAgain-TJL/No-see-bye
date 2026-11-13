@@ -5,7 +5,8 @@ import { useState } from "react";
 import { useApp } from "./providers";
 import { api } from "@/lib/client";
 import { Icon } from "./icons";
-import { MemoryOrbit } from "./memory-orbit";
+import { MemoryScene } from "./memory-scene";
+import { BrandMark } from "./brand-mark";
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const { refresh } = useApp();
@@ -39,8 +40,8 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       </Link>
       <div className="auth-card">
         <div className="auth-story">
-          <MemoryOrbit />
-          <Link className="auth-logo" href="/"><span className="brand-mark">n.</span>不说再见</Link>
+          <MemoryScene />
+          <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
           <div className="auth-story-copy"><span className="auth-kicker">属于你的，私人记忆空间</span><h2>此刻。<br /><em>值得留住。</em></h2></div>
           <span className="auth-edition">NO SEE BYE / 01</span>
         </div>

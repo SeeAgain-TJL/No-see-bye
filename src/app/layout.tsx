@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+import "./journal.css";
 export const metadata: Metadata = {
   title: { default: "不说再见 · 我的生活门户", template: "%s · 不说再见" },
   description: "用文字、照片和影像，收藏生活里值得记住的片刻。",

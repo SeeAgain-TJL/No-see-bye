@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useApp } from "./providers";
 import { Icon } from "./icons";
+import { BrandMark } from "./brand-mark";
 import { api } from "@/lib/client";
 export function AppShell({children}:{children:React.ReactNode}) {
   return <Suspense fallback={<div className="loading-panel">加载中…</div>}><ShellContent>{children}</ShellContent></Suspense>;
@@ -28,7 +29,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       <aside className="sidebar">
         <Link href="/" className="brand">
-          <span className="brand-mark">n.</span>
+          <BrandMark />
           <span>
             不说再见<small>NO SEE BYE</small>
           </span>
@@ -74,7 +75,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             {path === "/settings" ? "设置" : path.startsWith("/memories") ? (publicScope ? "公开的片刻" : "记忆手札") : "首页"}
           </span>
           <Link href="/" className="mobile-brand">
-            n. 不说再见
+            <BrandMark />不说再见
           </Link>
           <div className="account">
             {loading ? (

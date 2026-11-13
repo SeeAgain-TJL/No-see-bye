@@ -12,11 +12,11 @@ export function MediaGrid({
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   if (!assets.length) return null;
-  const shown = compact ? assets.slice(0, 3) : assets;
+  const shown = compact ? assets.slice(0, 1) : assets;
   return (
     <>
       <div
-        className={`media-grid ${assets.length === 1 ? "single" : ""} ${compact ? "compact" : ""}`}
+        className={`media-grid ${shown.length === 1 ? "single" : ""} ${compact ? "compact archive-cover" : ""}`}
       >
         {shown.map((a, i) => (
           <button
@@ -32,8 +32,8 @@ export function MediaGrid({
                 <span className="play-icon"><Icon name="video" size={23}/></span>
               </>
             ) : <img src={a.thumbnailUrl || a.url + "?variant=preview"} alt={a.filename} loading="lazy" decoding="async" onError={e=>{if(!e.currentTarget.dataset.fallback){e.currentTarget.dataset.fallback="1";e.currentTarget.src=a.url;}}} />}
-            {compact && i === 2 && assets.length > 3 && (
-              <span className="media-more">+{assets.length - 3}</span>
+            {compact && (
+              <span className="cover-count"><Icon name={a.mime.startsWith("video/") ? "video" : "image"} size={13} />{assets.length > 1 ? assets.length + " 个附件" : a.mime.startsWith("video/") ? "影像" : "照片"}</span>
             )}
           </button>
         ))}
