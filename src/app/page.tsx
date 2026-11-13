@@ -37,7 +37,7 @@ export default function Home() {
             <p>好玩的、热爱的、随手拍的。统统存下来。</p>
             <div className="journal-hero-actions">
               <Link href="/memories/new" className="button">记录一下<Icon name="plus" size={19} /></Link>
-              <Link href={target} className="journal-open">我的日常<Icon name="arrow" size={18} /></Link>
+              <Link href={target} className="journal-open">{user ? "我的日常" : "随便逛逛"}<Icon name="arrow" size={18} /></Link>
             </div>
           </div>
           <MemoryScene />
