@@ -1,0 +1,30 @@
+services:
+  web:
+    build: .
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/app.db"
+      STORAGE_DRIVER: "local"
+      STORAGE_LOCAL_DIR: "/app/data/uploads"
+      JWT_SECRET: "${JWT_SECRET:?Set JWT_SECRET in .env}"
+      APP_ORIGIN: "${APP_ORIGIN:-http://localhost:3000}"
+      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+      USER_QUOTA_MB: "${USER_QUOTA_MB:-2048}"
+      ALLOW_REGISTRATION: "${ALLOW_REGISTRATION:-true}"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3

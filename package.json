@@ -7,31 +7,42 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma skills sync || exit 0"
+    "db:init": "node --experimental-sqlite scripts/init-db.mjs",
+    "test:integration": "node scripts/integration.mjs",
+    "db:generate": "prisma generate",
+    "check": "tsc --noEmit",
+    "assets:cleanup": "node scripts/cleanup-assets.mjs"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.1",
-    "@tanstack/react-query": "^5.107.1",
-    "@volcengine/tos-sdk": "^2.9.1",
+    "@prisma/client": "6.19.3",
     "bcryptjs": "^3.0.3",
-    "date-fns": "^4.4.0",
     "jsonwebtoken": "^9.0.3",
     "next": "16.4.6",
-    "prisma": "^8.0.0-rc.33",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
-    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "prisma": "6.19.3",
     "tailwindcss": "4.3.3",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "overrides": {
+    "@prisma/config": {
+      "deepmerge-ts": "^8.0.0"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

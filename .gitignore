@@ -51,3 +51,12 @@ dev.db-journal
 .claude/
 .cursor/
 .devin/
+
+# local uploads
+/data/
+
+# SQLite data and WAL sidecars (never commit user data)
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*

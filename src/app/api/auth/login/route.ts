@@ -1,48 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { signToken } from "@/lib/auth";
-
-const loginSchema = z.object({
-  emailOrUsername: z.string().min(1),
-  password: z.string().min(1),
+import { prisma } from "@/core/prisma";
+import { signToken, withSession } from "@/core/auth";
+import { apiError, checkOrigin, HttpError, jsonBody } from "@/core/http";
+import { rateLimit } from "@/core/rate-limit";
+const schema = z.object({
+  emailOrUsername: z.string().trim().toLowerCase().min(1).max(254),
+  password: z.string().min(1).max(72),
 });
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = loginSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-    }
-
-    const { emailOrUsername, password } = parsed.data;
-
+    checkOrigin(req);
+    const body = schema.parse(await jsonBody(req));
+    rateLimit(`login:${body.emailOrUsername}`);
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ email: emailOrUsername }, { username: emailOrUsername }],
+        OR: [
+          { email: body.emailOrUsername },
+          { username: body.emailOrUsername },
+        ],
       },
     });
-
-    if (!user) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    const token = signToken({ userId: user.id, email: user.email });
-
-    return NextResponse.json({
-      token,
-      user: { id: user.id, email: user.email, username: user.username },
-    });
-  } catch (err) {
-    console.error("Login error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const hash =
+      user?.passwordHash ||
+      "$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+    const valid = await bcrypt.compare(body.password, hash);
+    if (!user || !valid) throw new HttpError(401, "账号或密码不正确");
+    return withSession(
+      NextResponse.json({
+        user: { id: user.id, username: user.username, email: user.email },
+      }),
+      signToken({ userId: user.id, email: user.email }),
+    );
+  } catch (error) {
+    return apiError(error);
   }
 }
