@@ -112,24 +112,15 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     <>
       <section className="page-heading">
         <div>
-          <div className="eyebrow">
-            {trash ? "NOT REALLY GOODBYE" : "COLLECT THE ORDINARY"}
-          </div>
           <h1>
             {trash
-              ? "暂别的记忆"
+              ? "回收站"
               : scope === "public"
                 ? "公开的片刻"
                 : "记忆手札"}
-            <span className="heading-flower">✳</span>
+
           </h1>
-          <p>
-            {trash
-              ? "偶尔整理，也给回忆一次重新被找回的机会。"
-              : scope === "public"
-                ? "被认真分享的日常，是另一种相遇。"
-                : "不必盛大，值得记住的生活，往往很小。"}
-          </p>
+
         </div>
         {!trash && (
           <Link className="button" href="/memories/new">
@@ -152,24 +143,24 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
             <div className="stats-strip">
               <div>
                 <strong>{data?.stats?.total ?? "—"}</strong>
-                <span>段记忆</span>
+                <span>条记录</span>
               </div>
               <div>
                 <strong>{data?.stats?.photos ?? "—"}</strong>
-                <span>帧照片</span>
+                <span>张照片</span>
               </div>
               <div>
                 <strong>{data?.stats?.videos ?? "—"}</strong>
-                <span>段影像</span>
+                <span>个视频</span>
               </div>
               <div className="storage-stat">
                 <Icon name="lock" size={16} />
                 <span>
-                  默认私密，安心收藏
+                  存储空间
                   <small>
                     {data?.stats
                       ? `${bytes(data.stats.usedBytes)} / ${bytes(data.stats.quotaBytes)} 已使用`
-                      : "属于你的独立空间"}
+                      : "—"}
                   </small>
                 </span>
               </div>
@@ -177,7 +168,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           )}
           {trash && (
             <div className="notice">
-              这里的记录可随时恢复，附件仍占用存储空间。本版不会自动清空回收站。
+              记录可恢复，附件仍占用空间。
             </div>
           )}
           <div className="feed-toolbar">
@@ -295,7 +286,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           ) : !data ? (
             <div className="loading-panel" role="status">
               <span className="loading-ring" />
-              正在整理记忆的碎片…
+              加载中…
             </div>
           ) : !data.items.length ? (
             <div className="empty-state">
@@ -304,23 +295,19 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               </span>
               <h2>
                 {trash
-                  ? "这里空空的，挺好。"
+                  ? "回收站为空"
                   : params.get("q") ||
                       params.get("month") ||
                       params.get("pinned") ||
                       type !== "all"
                     ? "还没找到这样的记忆"
-                    : "把今天，留给未来的自己。"}
+                    : "还没有记录"}
               </h2>
-              <p>
-                {trash
-                  ? "被移到回收站的记录会在这里等你。"
-                  : "一段随想、一张照片，都是值得留下的开始。"}
-              </p>
+
               {!trash && (
                 <Link className="button" href="/memories/new">
                   <Icon name="plus" size={17} />
-                  写下第一段记忆
+                  创建记录
                 </Link>
               )}
             </div>
@@ -410,14 +397,14 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       <div className="memory-card-bottom">
                         <span className="memory-meta">
                           {scope === "public" ? (
-                            `@${m.user.username}`
+                            (m.user.displayName || `@${m.user.username}`)
                           ) : m.location ? (
                             <>
                               <Icon name="map" size={13} />
                               {m.location}
                             </>
                           ) : (
-                            m.mood || "平凡的一天"
+                            m.mood || ""
                           )}
                         </span>
                         {user?.id === m.userId ? (

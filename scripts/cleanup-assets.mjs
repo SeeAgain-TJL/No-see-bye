@@ -25,7 +25,12 @@ try {
       data: { status: "deleting" },
     });
     if (!lock.count) continue;
-    await rm(target, { force: true });
+    for (const mediaKey of [asset.key, asset.thumbnailKey, asset.coverKey].filter(Boolean)) {
+      const mediaPath=path.resolve(root,mediaKey);
+      const safe=path.relative(root,mediaPath);
+      if(!safe || safe.startsWith("..") || path.isAbsolute(safe))throw new Error("Unsafe derivative path");
+      await rm(mediaPath,{force:true});
+    }
     await prisma.asset.delete({ where: { id: asset.id } });
     removed++;
   }

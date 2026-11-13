@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useApp } from "./providers";
 import { api } from "@/lib/client";
 import { Icon } from "./icons";
-import { Landscape } from "./landscape";
+import { MemoryOrbit } from "./memory-orbit";
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const { refresh } = useApp();
@@ -39,28 +39,18 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       </Link>
       <div className="auth-card">
         <div className="auth-story">
-          <Landscape />
-          <div>
-            <span className="eyebrow">NO SEE BYE</span>
-            <h2>
-              让每一个日常，
-              <br />
-              都有迹可循。
-            </h2>
-            <p>
-              我们留不住时间，
-              <br />
-              但可以留住时间里的自己。
-            </p>
-          </div>
+          <MemoryOrbit />
+          <Link className="auth-logo" href="/"><span className="brand-mark">n.</span>不说再见</Link>
+          <div className="auth-story-copy"><span className="auth-kicker">属于你的，私人记忆空间</span><h2>此刻。<br /><em>值得留住。</em></h2></div>
+          <span className="auth-edition">NO SEE BYE / 01</span>
         </div>
         <form className="auth-form" onSubmit={submit}>
-          <span className="brand-mark">n.</span>
-          <h1>{register ? "给生活安个家" : "好久不见"}</h1>
+          <span className="auth-form-kicker">不说再见</span>
+          <h1>{register ? "创建账号" : "欢迎回来"}</h1>
           <p className="muted">
             {register
-              ? "创建账号，开启属于你的记忆空间。"
-              : "欢迎回来，你的记忆都在这里。"}
+              ? "从今天，开始记录。"
+              : "登录，继续你的故事。"}
           </p>
           {register ? (
             <>
@@ -129,16 +119,16 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             </div>
           )}
           <button className="button wide" disabled={busy}>
-            {busy ? "请稍候…" : register ? "创建我的空间" : "回到我的空间"}
+            {busy ? "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
           </button>
           <p className="auth-switch">
-            {register ? "已经有账号了？" : "第一次来到这里？"}
+            {register ? "已有账号？" : "还没有账号？"}
             <Link href={register ? "/login" : "/register"}>
               {register ? "去登录" : "创建账号"}
             </Link>
           </p>
-          <span className="tiny muted">默认私密，只分享你想分享的片刻。</span>
+
         </form>
       </div>
     </main>

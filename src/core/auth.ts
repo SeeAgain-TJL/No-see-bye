@@ -1,10 +1,12 @@
 import jwt from "jsonwebtoken";
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/core/prisma";
 import { HttpError } from "@/core/http";
 export interface TokenPayload {
   userId: string;
   email: string;
+  sessionVersion?: number;
 }
 const developmentSecret = randomBytes(48).toString("hex");
 function secret() {
@@ -33,22 +35,21 @@ export function verifyToken(token: string): TokenPayload {
       typeof value.email !== "string"
     )
       throw new Error();
-    return { userId: value.userId, email: value.email };
+    return { userId: value.userId, email: value.email, sessionVersion: Number(value.sessionVersion || 0) };
   } catch {
     throw new HttpError(401, "请先登录，或重新登录后继续");
   }
 }
-export function optionalUser(req: NextRequest): TokenPayload | null {
+export async function optionalUser(req: NextRequest): Promise<TokenPayload | null> {
   const token = req.cookies.get("memory_session")?.value;
   if (!token) return null;
-  try {
-    return verifyToken(token);
-  } catch {
-    return null;
-  }
+  let session: TokenPayload;
+  try { session = verifyToken(token); } catch { return null; }
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { sessionVersion: true } });
+  return user && user.sessionVersion === session.sessionVersion ? session : null;
 }
-export function getUserFromRequest(req: NextRequest): TokenPayload {
-  const user = optionalUser(req);
+export async function getUserFromRequest(req: NextRequest): Promise<TokenPayload> {
+  const user = await optionalUser(req);
   if (!user) throw new HttpError(401, "请先登录，或重新登录后继续");
   return user;
 }

@@ -12,7 +12,7 @@ type Context = { params: Promise<{ id: string }> };
 export async function GET(req: NextRequest, context: Context) {
   try {
     const { id } = await context.params;
-    const session = optionalUser(req);
+    const session = await optionalUser(req);
     const entry = await prisma.entry.findUnique({
       where: { id },
       include: includeMemory,
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest, context: Context) {
 export async function PATCH(req: NextRequest, context: Context) {
   try {
     checkOrigin(req);
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     const { id } = await context.params;
     const body = await jsonBody(req);
     const entry = await prisma.$transaction(async (tx) => {
@@ -83,7 +83,7 @@ export async function PATCH(req: NextRequest, context: Context) {
 export async function DELETE(req: NextRequest, context: Context) {
   try {
     checkOrigin(req);
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     const { id } = await context.params;
     const result = await prisma.entry.updateMany({
       where: { id, userId: user.userId, deletedAt: null },

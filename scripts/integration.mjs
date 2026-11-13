@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import sharp from "sharp";
 import { spawn, spawnSync } from "node:child_process";
 import { randomUUID, randomBytes } from "node:crypto";
 import { mkdir, rm, readdir } from "node:fs/promises";
@@ -220,11 +221,25 @@ try {
     body: { happenedAt: "2026-11-13T00:00:00Z" },
     status: 400,
   });
-  const png = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5WbooAAAAASUVORK5CYII=",
-    "base64",
-  );
+  const png = await sharp({create:{width:1600,height:1000,channels:3,background:"#59745a"}}).png().toBuffer();
   const asset = await uploadFile(a.cookie, png);
+  assert(asset.thumbnailUrl, "Image upload must generate a preview");
+  const thumb = await fetch(base + asset.thumbnailUrl,{headers:{Cookie:a.cookie}});
+  assert.equal(thumb.status,200);assert.equal(thumb.headers.get("content-type"),"image/webp");
+  const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
+  assert(thumbBuffer.length < png.length);
+  const thumbInfo = await sharp(thumbBuffer).metadata();assert.equal(thumbInfo.width,960);assert.equal(thumbInfo.height,600);passed++;
+  await call(asset.thumbnailUrl,{status:404});
+  await call(asset.thumbnailUrl,{cookie:b.cookie,status:404});
+  const video = await uploadFile(a.cookie,Buffer.from("1a45dfa300000000000000000000000000000000000000000000000000000000","hex"),"video/webm");
+  const posterResponse = await fetch(base+video.url+"/preview",{method:"POST",headers:{Cookie:a.cookie,Origin:base,"Content-Type":"image/png"},body:png});
+  assert.equal(posterResponse.status,200);const poster=await posterResponse.json();assert(poster.thumbnailUrl);passed++;
+  await call(video.url+"/preview",{method:"POST",cookie:b.cookie,body:{},status:404});
+  const privatePoster = await fetch(base+poster.thumbnailUrl,{headers:{Cookie:a.cookie}});assert.equal(privatePoster.status,200);await privatePoster.arrayBuffer();passed++;
+  await call(poster.thumbnailUrl,{cookie:b.cookie,status:404});
+  const badPoster = await fetch(base+video.url+"/preview",{method:"POST",headers:{Cookie:a.cookie,Origin:base,"Content-Type":"image/png"},body:Buffer.from("bad")});assert.equal(badPoster.status,415);passed++;
+  const sourcePoster = await fetch(base+poster.thumbnailUrl,{headers:{Cookie:a.cookie}});assert.equal(sourcePoster.status,200);await sourcePoster.arrayBuffer();passed++;
+
   await uploadFile(
     a.cookie,
     Buffer.from("<script>alert(1)</script>"),
@@ -298,6 +313,8 @@ try {
     })
   ).data;
   assert.equal(updated.title, "愿意分享的一天");
+  const publicThumb = await fetch(base+asset.thumbnailUrl);assert.equal(publicThumb.status,200);await publicThumb.arrayBuffer();passed++;
+
   assert.equal(
     (await call("/api/memories?scope=public")).data.items[0].id,
     memory.id,
@@ -321,7 +338,7 @@ try {
   assert.deepEqual(Buffer.from(await suffix.arrayBuffer()), png.subarray(-5));
   passed++;
   for (const value of [
-    "bytes=9999-",
+    "bytes=" + (png.length + 10) + "-",
     "bytes=-0",
     "bytes=3-1",
     "bytes=1-2,4-5",
@@ -463,7 +480,19 @@ try {
   assert.equal(kept.status, 200);
   await kept.arrayBuffer();
   passed++;
-  await call("/api/auth/logout", { cookie: a.cookie, method: "POST" });
+  await call("/api/account",{status:401});
+  await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"profile",displayName:"新的昵称"},headers:{Origin:"https://evil.example"},status:403});
+  await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"profile",displayName:"新的昵称"}});
+  assert.equal((await call("/api/auth/me",{cookie:a.cookie})).data.user.displayName,"新的昵称");
+  const account=(await call("/api/account",{cookie:a.cookie})).data;assert.equal(account.user.email,"a@example.test");assert(account.usedBytes>0);assert.equal(account.quotaBytes,1024**2);
+  await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"incorrect",newPassword:"UpdatedPassword123"},status:400});
+  const rotated=await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123"}});
+  assert(rotated.cookie);await call("/api/account",{cookie:a.cookie,status:401});await call("/api/memories",{cookie:a.cookie,status:401});
+  assert.equal((await call("/api/auth/me",{cookie:a.cookie})).data.user,null);
+  await call("/api/account",{cookie:rotated.cookie});
+  await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"person_a",password:"IndependentPass123"},status:401});
+  const freshLogin=await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"person_a",password:"UpdatedPassword123"}});assert(freshLogin.cookie);
+  await call("/api/auth/logout", { cookie: rotated.cookie, method: "POST" });
   await call("/api/upload/sign", { method: "POST", status: 410 });
   console.log(
     "PASS: " +

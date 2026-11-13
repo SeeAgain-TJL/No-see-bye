@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     if (!["mine", "public", "trash"].includes(scope))
       throw new HttpError(400, "无效的浏览范围");
     const user =
-      scope === "public" ? optionalUser(req) : getUserFromRequest(req);
+      scope === "public" ? await optionalUser(req) : await getUserFromRequest(req);
     const filters: Prisma.EntryWhereInput[] = [
       scope === "public"
         ? { visibility: "public", deletedAt: null }
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     checkOrigin(req);
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     const { assetIds, tags, happenedAt, ...body } = memorySchema.parse(
       await jsonBody(req),
     );

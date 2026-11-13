@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       NextResponse.json({
         user: { id: user.id, username: user.username, email: user.email },
       }),
-      signToken({ userId: user.id, email: user.email }),
+      signToken({ userId: user.id, email: user.email, sessionVersion: user.sessionVersion }),
     );
   } catch (error) {
     return apiError(error);

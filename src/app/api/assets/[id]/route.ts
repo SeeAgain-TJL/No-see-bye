@@ -3,13 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { optionalUser } from "@/core/auth";
 import { prisma } from "@/core/prisma";
 import { getStorage } from "@/core/storage-factory";
+import { imagePreview } from "@/core/previews";
 import { apiError, HttpError } from "@/core/http";
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 async function serve(req: NextRequest, ctx: Context, head: boolean) {
   try {
     const { id } = await ctx.params;
-    const session = optionalUser(req);
+    const session = await optionalUser(req);
     const asset = await prisma.asset.findUnique({
       where: { id },
       include: { attachment: { include: { entry: true } } },
@@ -25,17 +26,32 @@ async function serve(req: NextRequest, ctx: Context, head: boolean) {
     const storage = getStorage();
     if (asset.driver !== storage.driver)
       throw new HttpError(503, "该媒体使用的存储驱动暂未配置");
-    const size = await storage.size(asset.key);
+    const preview = req.nextUrl.searchParams.get("variant") === "preview";
+    let mediaKey = asset.key;
+    if (preview) {
+      if (!asset.thumbnailKey && asset.mime.startsWith("image/")) {
+        const generated = await imagePreview(asset.key).catch(() => null);
+        if (generated) {
+          const saved = await prisma.asset.updateMany({where:{id:asset.id,thumbnailKey:null,status:"ready"},data:generated});
+          if (saved.count) asset.thumbnailKey=generated.thumbnailKey;
+          else { await storage.delete(generated.thumbnailKey);asset.thumbnailKey=(await prisma.asset.findUnique({where:{id:asset.id}}))?.thumbnailKey || null; }
+        }
+      }
+      if(asset.thumbnailKey)mediaKey=asset.thumbnailKey;
+      else if(asset.mime.startsWith("video/"))throw new HttpError(404,"暂无视频封面");
+    }
+    const isPreview = mediaKey !== asset.key;
+    const size = await storage.size(mediaKey);
     if (!size) throw new HttpError(404, "文件已丢失，请联系站点主人");
     const headers = new Headers({
-      "Content-Type": asset.mime,
+      "Content-Type": isPreview ? "image/webp" : asset.mime,
       "Content-Length": String(size),
       "X-File-Size": String(size),
       "Accept-Ranges": "bytes",
       "Cache-Control": "private, no-store",
       Vary: "Cookie",
       "X-Content-Type-Options": "nosniff",
-      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(asset.filename)}`,
+      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(isPreview ? "preview.webp" : asset.filename)}`,
     });
     let range: { start: number; end: number } | undefined;
     const requested = head ? null : req.headers.get("range");
@@ -67,7 +83,7 @@ async function serve(req: NextRequest, ctx: Context, head: boolean) {
       headers.set("Content-Length", String(range.end - range.start + 1));
     }
     if (head) return new NextResponse(null, { headers });
-    const result = await storage.read(asset.key, range);
+    const result = await storage.read(mediaKey, range);
     if (!result) throw new HttpError(404, "文件不存在");
     return new NextResponse(Readable.toWeb(result.stream) as ReadableStream, {
       status: range ? 206 : 200,

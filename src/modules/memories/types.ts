@@ -2,6 +2,7 @@ export interface UserInfo {
   id: string;
   username: string;
   email: string;
+  displayName?: string;
 }
 export interface MediaAsset {
   id: string;
@@ -9,6 +10,7 @@ export interface MediaAsset {
   mime: string;
   sizeBytes: number;
   url: string;
+  thumbnailUrl?: string | null;
 }
 export interface Memory {
   id: string;
@@ -24,7 +26,7 @@ export interface Memory {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  user: { username: string };
+  user: { username: string; displayName?: string };
   assets: MediaAsset[];
   hasLegacyMedia: boolean;
 }

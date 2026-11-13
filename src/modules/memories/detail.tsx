@@ -125,7 +125,6 @@ export function MemoryDetail({
         </div>
       )}
       <article className="detail-article">
-        <div className="eyebrow">A PAGE FROM LIFE</div>
         <div className="detail-meta">
           <span>
             {dateText(memory.happenedAt, {
@@ -146,9 +145,9 @@ export function MemoryDetail({
         <h1>{memory.title || "生活的一帧"}</h1>
         <div className="detail-byline">
           <span className="avatar">
-            {memory.user.username[0].toUpperCase()}
+            {(memory.user.displayName || memory.user.username)[0].toUpperCase()}
           </span>
-          <span>{memory.user.username}</span>
+          <span>{memory.user.displayName || memory.user.username}</span>
           {memory.location && (
             <span>
               <Icon name="map" size={14} />
@@ -192,7 +191,7 @@ export function MemoryDetail({
                 href={`/memories/${id}/edit`}
               >
                 <Icon name="edit" size={15} />
-                再添几笔
+                编辑记录
               </Link>
               <button
                 className="icon-button"

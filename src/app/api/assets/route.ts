@@ -5,6 +5,7 @@ import { prisma } from "@/core/prisma";
 import { getUserFromRequest } from "@/core/auth";
 import { apiError, checkOrigin, HttpError } from "@/core/http";
 import { getStorage, buildStorageKey } from "@/core/storage-factory";
+import { imagePreview } from "@/core/previews";
 import { assetDTO, quotaBytes } from "@/modules/memories/server";
 export const runtime = "nodejs";
 const types = new Set([
@@ -36,9 +37,10 @@ function validSignature(b: Buffer, mime: string) {
 export async function POST(req: NextRequest) {
   let assetId: string | undefined;
   let key: string | undefined;
+  let thumbnailKey: string | undefined;
   try {
     checkOrigin(req);
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     const mime = (req.headers.get("content-type") || "").split(";")[0];
     if (!types.has(mime))
       throw new HttpError(
@@ -121,12 +123,15 @@ export async function POST(req: NextRequest) {
         throw new HttpError(400, "文件未传输完整，请重试");
     }
     await storage.put(key, Readable.from(checkedStream()));
+    const preview = mime.startsWith("image/") ? await imagePreview(key).catch(() => null) : null;
+    thumbnailKey = preview?.thumbnailKey;
     const ready = await prisma.asset.update({
       where: { id: asset.id },
-      data: { status: "ready" },
+      data: { status: "ready", ...preview },
     });
     return NextResponse.json(assetDTO(ready), { status: 201 });
   } catch (error) {
+    if (thumbnailKey) await getStorage().delete(thumbnailKey).catch(console.error);
     if (key) await getStorage().delete(key).catch(console.error);
     if (assetId)
       await prisma.asset

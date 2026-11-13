@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 const paths: Record<string, React.ReactNode> = {
+  settings: (<><circle cx="12" cy="12" r="3" /><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 1 3h4l1-3 3-1 2-3-2-2 1-3-3-2-1-3z" /></>),
   home: (
     <>
       <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />

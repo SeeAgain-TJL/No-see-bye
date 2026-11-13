@@ -28,19 +28,10 @@ export function MediaGrid({
           >
             {a.mime.startsWith("video/") ? (
               <>
-                <video
-                  src={`${a.url}#t=0.1`}
-                  muted
-                  preload="metadata"
-                  playsInline
-                />
-                <span className="play-icon">
-                  <Icon name="video" size={23} />
-                </span>
+                {a.thumbnailUrl ? <img src={a.thumbnailUrl} alt={a.filename} loading="lazy" /> : <div className="video-placeholder"><Icon name="video" size={32}/><span>视频</span></div>}
+                <span className="play-icon"><Icon name="video" size={23}/></span>
               </>
-            ) : (
-              <img src={a.url} alt={a.filename} loading="lazy" />
-            )}
+            ) : <img src={a.thumbnailUrl || a.url + "?variant=preview"} alt={a.filename} loading="lazy" decoding="async" onError={e=>{if(!e.currentTarget.dataset.fallback){e.currentTarget.dataset.fallback="1";e.currentTarget.src=a.url;}}} />}
             {compact && i === 2 && assets.length > 3 && (
               <span className="media-more">+{assets.length - 3}</span>
             )}
@@ -104,7 +95,7 @@ function MediaViewer({
       </div>
       <div className="viewer-content" key={asset.id}>
         {asset.mime.startsWith("video/") ? (
-          <video src={asset.url} controls autoPlay playsInline />
+          <><video src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline onError={e=>{e.currentTarget.parentElement?.querySelector(".video-error")?.removeAttribute("hidden");}} /><p className="video-error" hidden>浏览器无法播放此编码，可下载原文件查看。</p></>
         ) : (
           <img src={asset.url} alt={asset.filename} />
         )}

@@ -42,6 +42,8 @@ try {
     )
       db.exec(`ALTER TABLE "${table}" ADD COLUMN "${name}" ${type}`);
   };
+  add("User", "displayName", "TEXT NOT NULL DEFAULT ''");
+  add("User", "sessionVersion", "INTEGER NOT NULL DEFAULT 0");
   add("Entry", "title", "TEXT NOT NULL DEFAULT ''");
   add("Entry", "tags", "TEXT NOT NULL DEFAULT '[]'");
   add("Entry", "location", "TEXT NOT NULL DEFAULT ''");

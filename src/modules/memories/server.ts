@@ -25,7 +25,7 @@ export const memorySchema = z
     "写点文字，或者放一张照片吧",
   );
 export const includeMemory = {
-  user: { select: { username: true } },
+  user: { select: { username: true, displayName: true } },
   attachments: {
     orderBy: { position: "asc" as const },
     include: { asset: true },
@@ -37,12 +37,14 @@ export const assetDTO = (a: {
   filename: string;
   mime: string;
   sizeBytes: number;
+  thumbnailKey?: string | null;
 }) => ({
   id: a.id,
   filename: a.filename,
   mime: a.mime,
   sizeBytes: a.sizeBytes,
   url: `/api/assets/${a.id}`,
+  thumbnailUrl: a.thumbnailKey ? `/api/assets/${a.id}?variant=preview` : null,
 });
 export function memoryDTO(entry: FullEntry) {
   const { attachments, media, tags, ...rest } = entry;

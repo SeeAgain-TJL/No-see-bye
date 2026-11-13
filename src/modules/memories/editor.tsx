@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
+import { videoPoster } from "@/lib/video-poster";
 import { api, bytes, upload } from "@/lib/client";
 import type { Memory, MemoryInput, MediaAsset } from "./types";
 type Selected = {
@@ -81,7 +82,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     const timer = setTimeout(() => {
       try {
         localStorage.setItem(key, JSON.stringify(fields));
-        setDraftState("文字草稿已保存在此浏览器");
+        setDraftState("草稿已保存");
       } catch {
         setDraftState("浏览器空间不足，草稿暂未保存");
       }
@@ -150,7 +151,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
         continue;
       const preview = URL.createObjectURL(file);
       blobs.current.add(preview);
-      additions.push({ key: crypto.randomUUID(), preview, file, progress: 0 });
+      additions.push({ key: (typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `file-${Date.now()}-${Math.random().toString(36).slice(2)}`), preview, file, progress: 0 });
     }
     setItems((v) => [...v, ...additions]);
     setError(errors.join("；"));
@@ -174,6 +175,24 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
       return next;
     });
     setDirty(true);
+  }
+  async function transfer(item:Selected,signal:AbortSignal) {
+    setItems(v=>v.map(x=>x.key===item.key?{...x,error:undefined,progress:0}:x));
+    const asset=await upload(item.file!,progress=>setItems(v=>v.map(x=>x.key===item.key?{...x,progress}:x)),signal);
+    // Keep a completed original even if poster generation fails or upload is cancelled.
+    setItems(v=>v.map(x=>x.key===item.key?{...x,asset,progress:100}:x));
+    if(item.file?.type.startsWith("video/")) {
+      const poster=await videoPoster(item.file,signal);
+      if(poster&&!signal.aborted)try{
+        const response=await fetch(asset.url+"/preview",{method:"POST",body:poster,headers:{"Content-Type":poster.type},signal});
+        if(response.ok){const ready=await response.json() as MediaAsset;setItems(v=>v.map(x=>x.key===item.key?{...x,asset:ready}:x));}
+      }catch{/* Original media remains available. */}
+    }
+    return asset;
+  }
+  async function retryUpload(item:Selected) {
+    const controller=new AbortController();abort.current=controller;setBusy(true);setError("");setStage("重新上传中…");
+    try{await transfer(item,controller.signal);}catch(e){const message=(e as Error).name==="AbortError"?"已取消上传":(e as Error).message;setItems(v=>v.map(x=>x.key===item.key?{...x,error:message}:x));setError(message);}finally{setBusy(false);setStage("");abort.current=null;}
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -202,20 +221,8 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
           ),
         );
         try {
-          const asset = await upload(
-            item.file,
-            (progress) =>
-              setItems((v) =>
-                v.map((x) => (x.key === item.key ? { ...x, progress } : x)),
-              ),
-            controller.signal,
-          );
+          const asset = await transfer(item,controller.signal);
           assetIds.push(asset.id);
-          setItems((v) =>
-            v.map((x) =>
-              x.key === item.key ? { ...x, asset, progress: 100 } : x,
-            ),
-          );
         } catch (err) {
           setItems((v) =>
             v.map((x) =>
@@ -226,7 +233,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
         }
       }
       if (controller.signal.aborted) return;
-      setStage("正在收藏这段记忆…");
+      setStage("保存中…");
       const saved = await api<Memory>(
         memory ? `/api/memories/${memory.id}` : "/api/memories",
         {
@@ -246,7 +253,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
         /* Saved record is authoritative. */
       }
       setDirty(false);
-      notify(memory ? "记忆已更新" : "又一个片刻，被好好留下了");
+      notify(memory ? "记忆已更新" : "记录已保存");
       router.replace(`/memories/${saved.id}`);
       router.refresh();
     } catch (err) {
@@ -272,12 +279,12 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
       </Link>
       <section className="page-heading editor-heading">
         <div>
-          <div className="eyebrow">A MOMENT WORTH KEEPING</div>
+
           <h1>
-            {memory ? "再添几笔" : "留住这一刻"}
-            <span className="heading-flower">✳</span>
+            {memory ? "编辑记录" : "新建记录"}
+
           </h1>
-          <p>不用组织好语言，真实的日常就很动人。</p>
+
         </div>
       </section>
       {draft && (
@@ -315,7 +322,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
               className="title-input"
               aria-label="记忆标题"
               maxLength={100}
-              placeholder="给这一刻起个名字（选填）"
+              placeholder="标题（选填）"
               value={fields.title}
               disabled={busy}
               onChange={(e) => update("title", e.target.value)}
@@ -325,7 +332,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
               aria-label="记忆正文"
               maxLength={20000}
               rows={10}
-              placeholder="今天发生了什么？也许是一场散步、一顿晚饭，或者一个突然想记住的念头……"
+              placeholder="写点今天的事……"
               value={fields.content}
               disabled={busy}
               onChange={(e) => update("content", e.target.value)}
@@ -339,7 +346,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
               <h2>
                 照片与影像 <span>{items.length} / 12</span>
               </h2>
-              <span className="tiny muted">按顺序，拼出这一天</span>
+
             </div>
             <input
               ref={input}
@@ -461,15 +468,17 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                             ? "已就绪"
                             : "等待上传")}
                     </span>
+                    {item.error && !item.asset && <button type="button" className="upload-retry" disabled={busy} onClick={()=>retryUpload(item)}>重新上传</button>}
                   </div>
                 ))}
               </div>
             )}
+            {busy && items.length > 0 && <div className="upload-summary" role="status"><span>{stage}</span><progress aria-label="总上传进度" max={100} value={Math.round(items.reduce((sum,item)=>sum+(item.asset?100:item.progress),0)/items.length)} /></div>}
           </section>
         </div>
         <aside className="editor-options">
           <section className="options-card">
-            <h2>这一刻的注脚</h2>
+            <h2>记录信息</h2>
             <label>
               <span>
                 <Icon name="calendar" size={15} />
@@ -553,7 +562,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
               />
               <Icon name="lock" size={18} />
               <span>
-                仅自己<small>安心存放，只有你能访问</small>
+                仅自己<small>只有你可以查看</small>
               </span>
             </label>
             <label
@@ -579,10 +588,10 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
           </section>
           <div className="editor-save">
             <button className="button wide" type="submit" disabled={busy}>
-              {busy ? stage : memory ? "保存修改" : "收藏这段记忆"}
+              {busy ? stage : memory ? "保存修改" : "保存记录"}
               {!busy && <Icon name="arrow" size={17} />}
             </button>
-            {busy && stage !== "正在收藏这段记忆…" && (
+            {busy && stage !== "保存中…" && (
               <button
                 type="button"
                 className="text-link"
@@ -594,9 +603,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
             <span className="tiny muted">
               {draftState || "文字草稿会自动保存在此浏览器"}
             </span>
-            <span className="tiny muted">
-              附件上传失败可重试；成功的附件会保留。
-            </span>
+
           </div>
         </aside>
         {error && (
