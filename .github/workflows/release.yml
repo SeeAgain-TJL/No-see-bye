@@ -41,7 +41,7 @@ jobs:
           tar -xzf no-see-bye-linux-x64.tar.gz -C "$bundle_dir"
           cd ..
           TEST_RELEASE_DIR="$bundle_dir/no-see-bye" npm run test:integration
-          sudo ln -s "$bundle_dir/no-see-bye" /opt/no-see-bye
+          sudo ln -s "$bundle_dir/no-see-bye" /root/no-see-bye
           systemd-analyze verify --man=no "$bundle_dir/no-see-bye"/deploy/systemd/no-see-bye*
       - uses: actions/upload-artifact@v4
         with:
