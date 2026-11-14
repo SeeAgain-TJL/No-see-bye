@@ -52,6 +52,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     const next = new URLSearchParams(params.toString());
     if (value) next.set(name, value);
     else next.delete(name);
+    if (name === "month") next.delete("day");
     router.push(
       `${trash ? "/memories/trash" : "/memories"}?${next.toString()}`,
       { scroll: false },
@@ -262,7 +263,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 onChange={(e) => filter("month", e.target.value)}
               />
             </label>
-            {(params.get("q") ||
+            {params.get("day") && <span className="day-filter-chip"><Icon name="calendar" size={15} />{params.get("day")}<button aria-label="清除日期筛选" onClick={() => filter("day", "")}><Icon name="close" size={14} /></button></span>}
+            {(params.get("day") || params.get("q") ||
               params.get("month") ||
               params.get("pinned")) && (
               <Link
@@ -302,7 +304,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               <h2>
                 {trash
                   ? "回收站为空"
-                  : params.get("q") ||
+                  : params.get("day") || params.get("q") ||
                       params.get("month") ||
                       params.get("pinned") ||
                       type !== "all"

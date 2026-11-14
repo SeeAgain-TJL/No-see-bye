@@ -3,8 +3,8 @@ import { Bricolage_Grotesque } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 import "./journal.css";
-import "./cinema.css";
 import "./comfort.css";
+import "./studio.css";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

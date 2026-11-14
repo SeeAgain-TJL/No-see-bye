@@ -705,6 +705,37 @@ try {
   assert.equal(oauthAccount.user.hasLocalPassword,false);assert.equal(oauthAccount.user.email,null);assert.deepEqual(oauthAccount.user.loginMethods,["github"]);
   await call("/api/account",{cookie:oauthCookie,method:"PATCH",body:{action:"password",currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123"},status:403});
   const oauthPassword=await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"github_test",password:"IndependentPass123"},status:400});assert.match(oauthPassword.data.error,/GitHub/);
+  // Archive tools query the full owner archive, with Shanghai day boundaries.
+  await call("/api/memories/revisit", { status: 401 });
+  await call("/api/memories/revisit?mode=random", { status: 401 });
+  assert.equal((await call("/api/memories/revisit?mode=random", { cookie: oauthCookie })).data.item, null);
+  const archiveToday = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+  const archiveYear = Number(archiveToday.slice(0, 4));
+  const anniversaryDay = (archiveYear - 1) + archiveToday.slice(4);
+  const archiveEntry = (await call("/api/memories", { cookie: oauthCookie, method: "POST", status: 201, body: memoryInput({ title: "Archive-only anniversary", happenedAt: anniversaryDay + "T12:00:00+08:00" }) })).data;
+  const archiveRandom = await call("/api/memories/revisit?mode=random", { cookie: oauthCookie });
+  assert.equal(archiveRandom.data.item.id, archiveEntry.id);
+  assert.equal(archiveRandom.res.headers.get("cache-control"), "private, no-store");
+  assert.equal((await call("/api/memories/revisit?mode=random&exclude=" + archiveEntry.id, { cookie: oauthCookie })).data.item.id, archiveEntry.id);
+  const dayEdge = (await call("/api/memories", { cookie: oauthCookie, method: "POST", status: 201, body: memoryInput({ title: "Shanghai midnight", happenedAt: "2024-12-31T16:00:00.000Z" }) })).data;
+  const beforeEdge = (await call("/api/memories", { cookie: oauthCookie, method: "POST", status: 201, body: memoryInput({ title: "Before midnight", happenedAt: "2024-12-31T15:59:59.999Z" }) })).data;
+  const calendar = (await call("/api/memories/revisit?month=2025-01", { cookie: oauthCookie })).data;
+  assert.equal(calendar.days["2025-01-01"], 1);
+  assert.equal(calendar.days["2024-12-31"], undefined);
+  assert.equal(calendar.today, archiveToday);
+  assert(calendar.anniversaries.some(item => item.id === archiveEntry.id));
+  assert(calendar.anniversaries.every(item => item.userId === archiveEntry.userId));
+  const exactDay = (await call("/api/memories?day=2025-01-01", { cookie: oauthCookie })).data;
+  assert.deepEqual(exactDay.items.map(item => item.id), [dayEdge.id]);
+  assert(!(await call("/api/memories?scope=public&day=2025-01-01")).data.items.some(item => item.id === dayEdge.id));
+  const otherCalendar = (await call("/api/memories/revisit?month=2025-01&userId=" + archiveEntry.userId, { cookie: b.cookie })).data;
+  assert.equal(otherCalendar.days["2025-01-01"], undefined);
+  for (const month of ["invalid", "2025-13", "0000-01", "2101-01"]) await call("/api/memories/revisit?month=" + month, { cookie: oauthCookie, status: 400 });
+  for (const day of ["2025-02-30", "2025-2-01", "invalid", "1899-01-01"]) await call("/api/memories?day=" + day, { cookie: oauthCookie, status: 400 });
+  await call("/api/memories/" + archiveEntry.id, { cookie: oauthCookie, method: "DELETE" });
+  assert(!(await call("/api/memories/revisit", { cookie: oauthCookie })).data.anniversaries.some(item => item.id === archiveEntry.id));
+  await call("/api/memories/" + beforeEdge.id, { cookie: oauthCookie, method: "DELETE" });
+  assert.equal((await call("/api/memories/revisit?mode=random", { cookie: oauthCookie })).data.item.id, dayEdge.id);
   // Avatar bytes are decoded, resized, stored separately and linked only to the current user.
   const usageBefore=(await call("/api/account",{cookie:b.cookie})).data.usedBytes;
   const avatarRequest=async(cookie,body,mime="image/png",status=200)=>{

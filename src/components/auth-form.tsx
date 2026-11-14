@@ -8,6 +8,7 @@ import { registrationCredentials, type RegistrationCredentials, type Registratio
 import { Icon } from "./icons";
 import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
+import { Daydream } from "./daydream";
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const { refresh } = useApp();
@@ -61,21 +62,21 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     finally { setBusy(false); }
   }
   return (
-    <main id="main" className="auth-page">
+    <main id="main" className="auth-page studio-auth">
       <Link className="auth-back text-link" href={register ? "/login" : "/"}>
         <Icon name="back" size={17} />
         {register ? "返回登录" : "返回首页"}
       </Link>
       <div className="auth-card">
         <div className="auth-story">
-          <DecodedImage className="auth-landscape" src="/visuals/lake-light.webp" alt="" loading="eager" fetchPriority="high" />
-          <div className="auth-landscape-shade" />
           <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
-          <div className="auth-story-copy"><span className="auth-kicker">A PERSONAL ARCHIVE</span><h2 lang="en">For the moments<br /><em>you keep.</em></h2><p lang="en">A place for life, as it happens.</p></div>
-          <span className="auth-edition">EST. 2026 — NO SEE BYE</span>
+          <div className="auth-story-copy"><span className="section-eyebrow">YOUR DAYS, YOUR WAY.</span><h2 lang="en">A little space.<br /><em>A lot of life.</em></h2><p>那些微小又闪亮的瞬间，都有地方安放。</p></div>
+          <Daydream compact />
+          <span className="auth-edition"><Icon name="lock" size={13} />私密记录，自在分享。<span>NO SEE BYE</span></span>
         </div>
         <form className="auth-form" onSubmit={submit}>
-          <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "YOUR STORY STARTS HERE" : "YOUR OWN LITTLE CORNER"}</span>
+          <nav className="auth-mode-tabs" aria-label="账号入口"><Link href="/login" aria-current={!register ? "page" : undefined}>登录</Link><Link href="/register" aria-current={register ? "page" : undefined}>注册</Link></nav>
+          <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "LET’S MAKE SOME MEMORIES" : "GOOD TO SEE YOU AGAIN"}</span>
           <h1>{register ? "Make it yours." : "Welcome back."}</h1>
           <p className="muted">
             {register

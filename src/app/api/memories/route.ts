@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/core/prisma";
+import { dayRange } from "@/lib/calendar";
 import { getUserFromRequest, optionalUser } from "@/core/auth";
 import { apiError, checkOrigin, HttpError, jsonBody } from "@/core/http";
 import {
@@ -50,6 +51,12 @@ export async function GET(req: NextRequest) {
     if (type === "text") filters.push({ attachments: { none: {} } });
     if (q.get("pinned") === "1") filters.push({ pinned: true });
     const month = q.get("month");
+    const day = q.get("day");
+    if (day) {
+      const range = dayRange(day);
+      if (!range) throw new HttpError(400, "日期格式不正确");
+      filters.push({ happenedAt: range });
+    }
     if (month) {
       if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))
         throw new HttpError(400, "月份格式不正确");

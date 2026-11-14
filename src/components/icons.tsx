@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 const paths: Record<string, React.ReactNode> = {
+  play: <path d="m8 4 12 8-12 8Z" />,
+  pause: <><path d="M8 4v16M16 4v16" /></>,
   download: <><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4" /></>,
   settings: (<><circle cx="12" cy="12" r="3" /><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 1 3h4l1-3 3-1 2-3-2-2 1-3-3-2-1-3z" /></>),
   home: (

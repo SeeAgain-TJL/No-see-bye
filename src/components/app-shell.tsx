@@ -7,6 +7,7 @@ import { Icon } from "./icons";
 import { BrandMark } from "./brand-mark";
 import { Avatar } from "./avatar";
 import { api } from "@/lib/client";
+import { QuickSearch } from "./quick-search";
 export function AppShell({children}:{children:React.ReactNode}) {
   return <Suspense fallback={<div className="loading-panel">加载中…</div>}><ShellContent>{children}</ShellContent></Suspense>;
 }
@@ -62,6 +63,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
           </Link>
         </nav>
         <div className="sidebar-bottom">
+          <Link href="/memories/new" className="sidebar-capture"><span aria-hidden="true">✳</span><strong>留一点今天</strong><small>打开记录本<Icon name="arrow" size={14} /></small></Link>
           <Link className={path.includes("trash") ? "nav-link active" : "nav-link"} href="/memories/trash">
             <Icon name="trash" />
             回收站
@@ -79,6 +81,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             <BrandMark />不说再见
           </Link>
           <div className="account">
+            <QuickSearch />
             {loading ? (
               <span className="muted small">连接中…</span>
             ) : user ? (
