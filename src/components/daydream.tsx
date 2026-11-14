@@ -1,5 +1,5 @@
 "use client";
-import { useState, type CSSProperties } from "react";
+import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Icon } from "./icons";
 
 const scenes = [
@@ -8,9 +8,19 @@ const scenes = [
   { label: "山间来信", english: "Somewhere, slow and lovely.", sky: "#e2dceb", sea: "#7e9c9a", hill: "#a8b7a2", sand: "#dfcfad", sun: "#d0985b" },
 ];
 
+function subscribeReducedMotion(notify: () => void) {
+  const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  preference.addEventListener("change", notify);
+  return () => preference.removeEventListener("change", notify);
+}
+const getReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const getServerReducedMotion = () => false;
+
 export function Daydream({ compact = false }: { compact?: boolean }) {
   const [scene, setScene] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [manuallyPaused, setManuallyPaused] = useState(false);
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, getServerReducedMotion);
+  const paused = manuallyPaused || reducedMotion;
   const current = scenes[scene];
   return <div className={"daydream" + (compact ? " daydream-compact" : "") + (paused ? " daydream-paused" : "")}
     style={{ "--scene-sky": current.sky, "--scene-sea": current.sea, "--scene-hill": current.hill, "--scene-sand": current.sand, "--scene-sun": current.sun } as CSSProperties}
@@ -37,6 +47,19 @@ export function Daydream({ compact = false }: { compact?: boolean }) {
       <div className="daydream-caption"><span lang="en">{current.english}</span><span>0{scene + 1} / 03</span></div>
     </div>
     <span className="daydream-note" lang="en">little moments,<br />big feelings. <span>↗</span></span>
-    <div className="daydream-controls"><div role="group" aria-label="切换插画场景">{scenes.map((item, index) => <button key={item.label} type="button" aria-pressed={index === scene} onClick={() => setScene(index)}>{item.label}</button>)}</div><button type="button" className="daydream-pause" aria-pressed={paused} aria-label={paused ? "播放背景动画" : "暂停背景动画"} onClick={() => setPaused(v => !v)}><Icon name={paused ? "play" : "pause"} size={15} /></button></div>
+    <div className="daydream-controls">
+      <div className="daydream-toolbar">
+        <div className="daydream-scenes" role="group" aria-label="切换插画场景">
+          {scenes.map((item, index) => <button key={item.label} type="button" aria-pressed={index === scene} onClick={() => setScene(index)}>{item.label}</button>)}
+        </div>
+        <button type="button" className="daydream-pause" aria-pressed={paused} disabled={reducedMotion}
+          title={reducedMotion ? "已跟随系统的减少动态效果设置" : undefined}
+          onClick={() => setManuallyPaused(v => !v)}>
+          <Icon name={reducedMotion ? "image" : paused ? "play" : "pause"} size={14} />
+          <span>{reducedMotion ? "静态画面" : paused ? "继续动画" : "暂停动画"}</span>
+        </button>
+      </div>
+      <p className="daydream-status" role="status">{reducedMotion ? "已跟随系统，显示静态画面" : paused ? "画面已暂停，留住这一刻。" : "云在走，小船在轻轻摇。"}</p>
+    </div>
   </div>;
 }
