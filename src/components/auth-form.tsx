@@ -221,9 +221,9 @@ function RegistrationVerification({ credentials, initialChallenge, onCancel, onC
   return <dialog ref={dialog} className="registration-dialog" aria-labelledby="registration-verify-title" aria-describedby="registration-verify-description"
     onCancel={e => { e.preventDefault(); if (!busy && !loading) onCancel(); }}>
     <form onSubmit={verify} aria-busy={busy || loading}>
-      <span className="registration-verify-kicker"><Icon name="spark" size={16} />ONE LAST STEP</span>
-      <h2 id="registration-verify-title">最后一步，确认一下</h2>
-      <p id="registration-verify-description">算出图片中的加法结果，即可完成注册。</p>
+      <span className="registration-verify-kicker"><Icon name="spark" size={16} />HUMAN CHECK</span>
+      <h2 id="registration-verify-title">验证你是真人</h2>
+      <p id="registration-verify-description">输入图片中的加法答案，通过验证后即可注册。</p>
       <div className="registration-question" aria-live="polite">
         {challenge ? <DecodedImage className="registration-question-image" src={challenge.image} alt="随机加法题，请计算图中的两个数字之和" width={320} height={112}
           onReady={() => { setImageReady(true); input.current?.focus({ preventScroll: true }); }} onFailure={() => { setImageReady(false); setError("题目图片加载失败，请换一道题"); }} />

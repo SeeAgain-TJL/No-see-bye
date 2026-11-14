@@ -1,4 +1,5 @@
 "use client";
+import { moodLabel } from "./moods";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -153,7 +154,7 @@ export function MemoryDetail({
               {memory.location}
             </span>
           )}
-          {memory.mood && <span>{memory.mood}</span>}
+          {memory.mood && <span>{moodLabel(memory.mood)}</span>}
         </div>
         {memory.content && <p className="detail-content">{memory.content}</p>}
         <MediaGrid assets={memory.assets} />

@@ -1,4 +1,5 @@
 "use client";
+import { moodLabel } from "./moods";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { dateText } from "@/lib/client";
@@ -26,7 +27,7 @@ export function CollectionCard({ memory, index = 0 }: { memory: Memory; index?: 
         </div>
         <Link href={href} className="collection-title"><h3>{memory.title || "日常随记"}</h3><Icon name="arrow" size={18} /></Link>
         {hasMedia && memory.content && <p className="collection-excerpt">{memory.content}</p>}
-        <div className="collection-caption"><span>{memory.location || memory.mood || (hasMedia ? (hasVideo ? "按下播放，快乐回放" : "随手一拍") : "今日碎碎念")}</span><span>{hasMedia ? memory.assets.length + " 个附件" : (memory.content?.length || 0) + " 字"}</span></div>
+        <div className="collection-caption"><span>{memory.location || moodLabel(memory.mood) || (hasMedia ? (hasVideo ? "按下播放，快乐回放" : "随手一拍") : "今日碎碎念")}</span><span>{hasMedia ? memory.assets.length + " 个附件" : (memory.content?.length || 0) + " 字"}</span></div>
       </div>
     </article>
   );

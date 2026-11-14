@@ -31,6 +31,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
   const strip = useRef<HTMLDivElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const [index, setIndex] = useState(initial);
+  const [portrait, setPortrait] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [original, setOriginal] = useState(false);
   const [ready, setReady] = useState(false);
@@ -43,7 +44,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     const target = (next + assets.length) % assets.length;
     if (target === index) return;
     setIndex(target);
-    setZoom(false); setOriginal(false); setReady(false); setFailed(false); setAttempt(0);
+    setPortrait(false); setZoom(false); setOriginal(false); setReady(false); setFailed(false); setAttempt(0);
   }
   useEffect(() => {
     ref.current?.showModal();
@@ -65,7 +66,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     image.decode().catch(() => {});
     return () => { image.src = ""; };
   }, [ready, index, assets]);
-  return <dialog ref={ref} className="media-dialog gallery-viewer" aria-label="媒体预览" onClose={close}
+  return <dialog ref={ref} className={"media-dialog gallery-viewer" + (assets.length === 1 ? " is-single" : "") + (portrait ? " is-portrait" : "")} aria-label="媒体预览" onClose={close}
     onClick={event => { if (event.target === event.currentTarget) ref.current?.close(); }}
     onKeyDown={event => {
       if ((event.target as HTMLElement).tagName === "VIDEO") return;
@@ -74,13 +75,21 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     <div className="viewer-bar"><span className="viewer-counter">{String(index + 1).padStart(2, "0")} <span>/ {String(assets.length).padStart(2, "0")}</span><span className="viewer-filename">{asset.filename}</span></span>
       <button type="button" className="icon-button" aria-label="关闭预览" autoFocus onClick={() => ref.current?.close()}><Icon name="close" /></button>
     </div>
-    <div className={'viewer-content' + (zoom ? " is-zoomed" : "")} key={asset.id}
+    <div className={'viewer-content' + (zoom ? " is-zoomed" : "")}
       onTouchStart={event => { const t = event.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; }}
       onTouchEnd={event => { const t = event.changedTouches[0], start = touch.current; touch.current = null; if (!start || zoom || isVideo) return; const dx = t.clientX - start.x; if (Math.abs(dx) > 60 && Math.abs(t.clientY - start.y) < 60) choose(index + (dx < 0 ? 1 : -1)); }}>
       {isVideo ? <video key={asset.id} src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline onError={() => setFailed(true)} /> : <>
         <DecodedImage className="viewer-backfill" src={previewUrl(asset)} alt="" />
-        <DecodedImage key={source + ":" + attempt} className="viewer-image" src={source + (attempt ? (source.includes("?") ? "&" : "?") + "retry=" + attempt : "")} alt={asset.filename} fetchPriority="high" onReady={() => { setReady(true); setFailed(false); }} onFailure={() => setFailed(true)} />
+        <DecodedImage key={source + ":" + attempt} className="viewer-image" src={source + (attempt ? (source.includes("?") ? "&" : "?") + "retry=" + attempt : "")} alt={asset.filename} fetchPriority="high" onReady={() => {
+          const image = ref.current?.querySelector<HTMLImageElement>(".viewer-image img");
+          setPortrait(!!image && image.naturalHeight > image.naturalWidth * 1.15);
+          setReady(true); setFailed(false);
+        }} onFailure={() => setFailed(true)} />
       </>}
+      {assets.length > 1 && !zoom && <div className="viewer-navigation">
+        <button type="button" className="viewer-prev" aria-label="上一张" onClick={() => choose(index - 1)}><Icon name="back" size={21} /></button>
+        <button type="button" className="viewer-next" aria-label="下一张" onClick={() => choose(index + 1)}><Icon name="arrow" size={21} /></button>
+      </div>}
       {failed ? <div className="viewer-status" role="status"><span>{isVideo ? "此视频暂时无法播放" : "图片加载失败"}</span>{!isVideo && <button type="button" onClick={() => { setFailed(false); setReady(false); setAttempt(v => v + 1); }}>重新加载</button>}</div> : !isVideo && !ready && <span className="viewer-status" role="status"><span className="image-loading-dot" />{original ? "正在加载原图…" : "正在加载清晰预览…"}</span>}
     </div>
     <div className="viewer-tools">
@@ -90,6 +99,6 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     {assets.length > 1 && <div className="viewer-filmstrip" ref={strip} aria-label="选择影像">{assets.map((item, i) => <button key={item.id} type="button" aria-label={'第 ' + (i + 1) + ' 个附件：' + item.filename} aria-pressed={index === i} onClick={() => choose(i)}>
       {item.mime.startsWith("image/") || item.thumbnailUrl ? <DecodedImage src={previewUrl(item)} alt="" loading="lazy" /> : <Icon name="video" size={20} />}
     </button>)}</div>}
-    <div className="viewer-controls"><button type="button" disabled={assets.length < 2} onClick={() => choose(index - 1)}><Icon name="back" size={17} />上一张</button><span className="viewer-key-hint">← → 切换 · ESC 关闭</span><span className="viewer-mobile-hint">左右滑动切换</span><button type="button" disabled={assets.length < 2} onClick={() => choose(index + 1)}>下一张<Icon name="arrow" size={17} /></button></div>
+
   </dialog>;
 }

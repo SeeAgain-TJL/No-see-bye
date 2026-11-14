@@ -1,4 +1,5 @@
 "use client";
+import { moodLabel } from "./moods";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -409,7 +410,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                               {m.location}
                             </>
                           ) : (
-                            m.mood || ""
+                            moodLabel(m.mood) || ""
                           )}
                         </span>
                         {user?.id === m.userId ? (

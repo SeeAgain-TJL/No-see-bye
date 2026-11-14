@@ -1,0 +1,8 @@
+Nearby-city data: GeoNames (https://www.geonames.org/)
+Source: https://download.geonames.org/export/dump/cities15000.zip
+Downloaded: 2026-11-14
+Source SHA256: f274b5e5f2cff6211cb10cc5b348254a6e00dde9449244d18c0f542beb7581e5
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Changes: selected city names/coordinates only; Chinese alternate names where available; CN/HK/MO/TW limited to regional administrative seats; rounded coordinates.
+Approximate nearest-city lookup, not street-level reverse geocoding.

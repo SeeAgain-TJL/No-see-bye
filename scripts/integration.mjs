@@ -208,6 +208,26 @@ try {
     status: 201,
   });
   assert(a.cookie && b.cookie);
+  const locationBody = { latitude: 30.27, longitude: 120.15 };
+  await call("/api/location/nearby", { method: "POST", body: locationBody, status: 401 });
+  await call("/api/location/nearby", { method: "POST", cookie: a.cookie, body: locationBody, headers: { Origin: "https://evil.example" }, status: 403 });
+  for (const body of [{ latitude: 91, longitude: 0 }, { latitude: 0, longitude: -181 }, { latitude: "30", longitude: 120 }, {}]) {
+    await call("/api/location/nearby", { method: "POST", cookie: a.cookie, body, status: 400 });
+  }
+  const nearby = await call("/api/location/nearby", { method: "POST", cookie: a.cookie, body: locationBody });
+  assert.match(nearby.data.location, /杭州/);
+  assert.equal(nearby.data.approximate, true);
+  assert.equal(nearby.res.headers.get("cache-control"), "no-store");
+  const ocean = await call("/api/location/nearby", { method: "POST", cookie: a.cookie, body: { latitude: 0, longitude: -140 } });
+  assert.equal(ocean.data.approximate, false);
+  assert.equal(ocean.data.location, "0.00°N · 140.00°W");
+  const policy = (await fetch(base + "/")).headers.get("permissions-policy");
+  assert.match(policy, /geolocation=\(self\)/);
+  const credit = await fetch(base + "/geodata-notice.txt");
+  assert.equal(credit.status, 200);
+  assert.match(await credit.text(), /Attribution 4.0/);
+  passed += 2;
+
   assert.match(a.res.headers.get("set-cookie"), /HttpOnly/i);
   assert.equal(a.data.token, undefined);
   await call("/api/auth/login", {
@@ -225,6 +245,18 @@ try {
     status: 409,
   });
   await call("/api/memories", { status: 401 });
+  await call("/api/memories", { cookie: a.cookie, method: "POST", body: memoryInput({ mood: "not-a-mood" }), status: 400 });
+  const moodEntry = (await call("/api/memories", { cookie: a.cookie, method: "POST", body: memoryInput({ mood: "元气" }), status: 201 })).data;
+  assert.equal(moodEntry.mood, "元气");
+  for (const mood of ["开心", "平静", "感动", "疲惫", "想念", "雀跃", "治愈", "委屈", ""]) {
+    const current = (await call("/api/memories/" + moodEntry.id, { cookie: a.cookie })).data;
+    const updated = await call("/api/memories/" + moodEntry.id, { cookie: a.cookie, method: "PATCH", body: { ...memoryInput({ mood }), updatedAt: current.updatedAt } });
+    assert.equal(updated.data.mood, mood);
+  }
+  await call("/api/memories/" + moodEntry.id, { cookie: a.cookie, method: "DELETE" });
+  const moodTrash = (await call("/api/memories/trash", { cookie: a.cookie })).data;
+  await call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", body: { confirmation: "EMPTY_TRASH", before: moodTrash.before } });
+
   await call("/api/memories", {
     cookie: a.cookie,
     method: "POST",

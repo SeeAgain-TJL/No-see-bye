@@ -7,6 +7,7 @@ import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { videoPoster } from "@/lib/video-poster";
 import { api, bytes, upload } from "@/lib/client";
+import { moods } from "./moods";
 import type { Memory, MemoryInput, MediaAsset } from "./types";
 type Selected = {
   key: string;
@@ -52,6 +53,10 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
   );
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState("");
+  const locationRequest = useRef(0);
+  const locationAbort = useRef<AbortController | null>(null);
   const [stage, setStage] = useState("");
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -73,6 +78,8 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     });
     const urls = blobs.current;
     return () => {
+      locationRequest.current += 1;
+      locationAbort.current?.abort();
       abort.current?.abort();
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
@@ -98,8 +105,48 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     return () => window.removeEventListener("beforeunload", leave);
   }, [dirty]);
   function update<K extends keyof MemoryInput>(name: K, value: MemoryInput[K]) {
+    if (name === "location") {
+      locationRequest.current += 1;
+      locationAbort.current?.abort();
+      setLocating(false);
+      setLocationStatus("");
+    }
     setFields((v) => ({ ...v, [name]: value }));
     setDirty(true);
+  }
+  function locate() {
+    if (busy || locating) return;
+    if (!window.isSecureContext) { setLocationStatus("请通过 HTTPS 打开网站后定位，也可以手动填写。"); return; }
+    if (!navigator.geolocation) { setLocationStatus("当前浏览器不支持定位，请手动填写。"); return; }
+    const request = ++locationRequest.current;
+    setLocating(true);
+    setLocationStatus("请允许浏览器访问位置…");
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      if (request !== locationRequest.current) return;
+      setLocationStatus("正在识别附近城市…");
+      const controller = new AbortController();
+      locationAbort.current = controller;
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      try {
+        const result = await api<{ location: string; approximate: boolean }>("/api/location/nearby", {
+          method: "POST", signal: controller.signal,
+          body: JSON.stringify({ latitude: Number(coords.latitude.toFixed(2)), longitude: Number(coords.longitude.toFixed(2)) }),
+        });
+        if (request !== locationRequest.current) return;
+        setFields(v => ({ ...v, location: result.location }));
+        setDirty(true);
+        setLocationStatus(result.approximate ? "已填入附近城市，可手动修改。" : "已填入大致坐标，可手动修改。");
+      } catch {
+        if (request === locationRequest.current) setLocationStatus("暂时无法识别位置，请重试或手动填写。");
+      } finally {
+        clearTimeout(timeout);
+        if (request === locationRequest.current) setLocating(false);
+      }
+    }, error => {
+      if (request !== locationRequest.current) return;
+      setLocating(false);
+      setLocationStatus(error.code === 1 ? "未获得定位权限，仍可手动填写地点。" : error.code === 3 ? "定位超时，请重试或手动填写。" : "暂时无法获取位置，请重试或手动填写。");
+    }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 });
   }
   function addFiles(list: FileList | File[]) {
     if (busy) return;
@@ -191,7 +238,11 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     return asset;
   }
   async function retryUpload(item:Selected) {
-    const controller=new AbortController();abort.current=controller;setBusy(true);setError("");setStage("重新上传中…");
+    const controller=new AbortController();abort.current=controller;locationRequest.current += 1;
+    locationAbort.current?.abort();
+    setLocating(false);
+    setLocationStatus("");
+    setBusy(true);setError("");setStage("重新上传中…");
     try{await transfer(item,controller.signal);}catch(e){const message=(e as Error).name==="AbortError"?"已取消上传":(e as Error).message;setItems(v=>v.map(x=>x.key===item.key?{...x,error:message}:x));setError(message);}finally{setBusy(false);setStage("");abort.current=null;}
   }
   async function save(e: React.FormEvent) {
@@ -203,6 +254,10 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     }
     const controller = new AbortController();
     abort.current = controller;
+    locationRequest.current += 1;
+    locationAbort.current?.abort();
+    setLocating(false);
+    setLocationStatus("");
     setBusy(true);
     setError("");
     try {
@@ -295,6 +350,10 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
             disabled={busy}
             className="text-link"
             onClick={() => {
+              locationRequest.current += 1;
+              locationAbort.current?.abort();
+              setLocating(false);
+              setLocationStatus("");
               setFields((v) => ({ ...v, ...draft, assetIds: v.assetIds }));
               setDraft(null);
               setDirty(true);
@@ -500,32 +559,27 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                 }}
               />
             </label>
-            <label>
-              <span>
-                <Icon name="map" size={15} />
-                地点
-              </span>
-              <input
-                maxLength={80}
-                placeholder="比如，回家的路上"
-                disabled={busy}
-                value={fields.location}
-                onChange={(e) => update("location", e.target.value)}
-              />
-            </label>
-            <label>
-              <span>此刻心情</span>
-              <select
-                value={fields.mood}
-                disabled={busy}
-                onChange={(e) => update("mood", e.target.value)}
-              >
-                <option value="">不特别标记</option>
-                {["开心", "平静", "感动", "疲惫", "想念"].map((m) => (
-                  <option key={m}>{m}</option>
-                ))}
-              </select>
-            </label>
+            <div className="location-field">
+              <div className="option-field-heading">
+                <label htmlFor="memory-location"><Icon name="map" size={15} />地点</label>
+                <button type="button" className="locate-button" disabled={busy || locating} onClick={locate}>
+                  <Icon name="map" size={13} />{locating ? "定位中…" : "自动定位"}
+                </button>
+              </div>
+              <input id="memory-location" maxLength={80} placeholder="比如，回家的路上" disabled={busy}
+                value={fields.location} onChange={e => update("location", e.target.value)} aria-describedby="location-status" />
+              <small id="location-status" className="location-status" role="status">{locationStatus || "定位到附近城市，也可以自己写。"} <a href="https://www.geonames.org/" target="_blank" rel="noreferrer" className="geodata-credit">GeoNames</a></small>
+            </div>
+            <fieldset className="mood-field" disabled={busy}>
+              <legend>此刻心情</legend>
+              <button type="button" className="mood-clear" aria-pressed={!fields.mood} onClick={() => update("mood", "")}>不标记</button>
+              <div className="mood-grid">
+                {moods.map(m => <button key={m.value} type="button" className="mood-option" aria-label={m.value}
+                  aria-pressed={fields.mood === m.value} onClick={() => update("mood", fields.mood === m.value ? "" : m.value)}>
+                  <span aria-hidden="true">{m.emoji}</span><span>{m.value}</span>
+                </button>)}
+              </div>
+            </fieldset>
             <label>
               <span>标签</span>
               <input

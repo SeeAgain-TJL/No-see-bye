@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { moodValues } from "./moods";
 import { Prisma } from "@prisma/client";
 import { HttpError } from "@/core/http";
 import { avatarUrl } from "@/core/user";
@@ -16,7 +17,7 @@ export const memorySchema = z
         "请选择有效日期",
       ),
     location: z.string().trim().max(80).default(""),
-    mood: z.enum(["", "开心", "平静", "感动", "疲惫", "想念"]).default(""),
+    mood: z.enum(moodValues).default(""),
     tags: z.array(z.string().trim().min(1).max(20)).max(8).default([]),
     visibility: z.enum(["private", "public"]).default("private"),
     assetIds: z.array(z.string().min(1).max(80)).max(12).default([]),
