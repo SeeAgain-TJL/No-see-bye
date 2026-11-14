@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { dateText } from "@/lib/client";
@@ -9,7 +10,7 @@ export function CollectionCard({ memory, index = 0 }: { memory: Memory; index?: 
   const hasVideo = memory.assets.some((a) => a.mime.startsWith("video/"));
   const href = "/memories/" + memory.id;
   return (
-    <article className={"collection-card tone-" + (index % 3) + " " + (hasMedia ? "collection-visual" : "collection-note")}>
+    <article onPointerMove={event => { if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; const rect = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty("--mouse-x", (event.clientX - rect.left) + "px"); event.currentTarget.style.setProperty("--mouse-y", (event.clientY - rect.top) + "px"); }} className={"collection-card tone-" + (index % 3) + " " + (hasMedia ? "collection-visual" : "collection-note")}>
       <div className="collection-cover"><span className="collection-sticker" aria-hidden="true">{hasMedia ? hasVideo ? "PLAY" : "SNAP" : "MOOD"}<Icon name={hasVideo ? "video" : "spark"} size={13} /></span>
       {hasMedia ? <MediaGrid assets={memory.assets} compact /> : (
         <Link href={href} className="collection-note-body" aria-label={"阅读：" + (memory.title || "日常随记")}>
