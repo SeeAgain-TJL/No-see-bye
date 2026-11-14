@@ -1,10 +1,16 @@
-# Copy to /opt/no-see-bye/config.env. No export keyword.
-DATABASE_URL=file:/opt/no-see-bye/data/app.db
+# Copy to /root/no-see-bye/config.env. No export keyword.
+DATABASE_URL=file:/root/no-see-bye/data/app.db
 STORAGE_DRIVER=local
-STORAGE_LOCAL_DIR=/opt/no-see-bye/data/uploads
+STORAGE_LOCAL_DIR=/root/no-see-bye/data/uploads
 JWT_SECRET=replace-with-a-random-secret-at-least-32-characters
 USER_QUOTA_MB=2048
 ALLOW_REGISTRATION=true
-# Replace with your real EIP; no trailing slash.
-APP_ORIGIN=http://YOUR_EIP:3000
+APP_ORIGIN=https://tingjieli.shop
 COOKIE_SECURE=false
+# Optional OAuth providers. Buttons appear only when both values are set.
+# GITHUB_CLIENT_ID=your-github-oauth-client-id
+# GITHUB_CLIENT_SECRET=your-github-oauth-client-secret
+# GITHUB_REDIRECT_URI=https://tingjieli.shop/api/auth/github
+# QQ_APP_ID=your-qq-app-id
+# QQ_APP_KEY=your-qq-app-key
+# QQ_REDIRECT_URI=https://tingjieli.shop/api/auth/qq

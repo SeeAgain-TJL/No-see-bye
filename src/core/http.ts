@@ -11,13 +11,22 @@ export class HttpError extends Error {
 }
 export function checkOrigin(req: NextRequest) {
   const origin = req.headers.get("origin");
-  const expected =
-    process.env.APP_ORIGIN ||
-    `${req.nextUrl.protocol}//${req.headers.get("host") || req.nextUrl.host}`;
-  if (
-    (origin && origin !== expected) ||
-    req.headers.get("sec-fetch-site") === "cross-site"
-  )
+  if (!origin) {
+    if (req.headers.get("sec-fetch-site") === "cross-site")
+      throw new HttpError(403, "请求来源不受信任");
+    return;
+  }
+  const configured = process.env.APP_ORIGIN;
+  if (!configured) return;
+  let expected: URL;
+  try { expected = new URL(configured); } catch { throw new HttpError(500, "站点地址配置不正确"); }
+  let actual: URL;
+  try { actual = new URL(origin); } catch { throw new HttpError(403, "请求来源不受信任"); }
+  // HTTP and HTTPS are intentionally both accepted for the same host during the
+  // transition period. Cookie security is controlled separately by COOKIE_SECURE.
+  if (actual.hostname !== expected.hostname || actual.port !== expected.port)
+    throw new HttpError(403, "请求来源不受信任");
+  if (req.headers.get("sec-fetch-site") === "cross-site")
     throw new HttpError(403, "请求来源不受信任");
 }
 export async function jsonBody(req: NextRequest) {

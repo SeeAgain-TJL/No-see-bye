@@ -16,9 +16,8 @@ try { origin = new URL(process.env.APP_ORIGIN); } catch { throw new Error("Set A
 if (!["https:", "http:"].includes(origin.protocol) || origin.origin !== process.env.APP_ORIGIN)
   throw new Error("APP_ORIGIN must contain only protocol, hostname, and optional port (no trailing slash)");
 if (!["true", "false"].includes(process.env.COOKIE_SECURE) ||
-    (origin.protocol === "https:" && process.env.COOKIE_SECURE !== "true") ||
-    (origin.protocol === "http:" && process.env.COOKIE_SECURE !== "false"))
-  throw new Error("COOKIE_SECURE must match APP_ORIGIN: true for HTTPS, false for HTTP");
+    (process.env.COOKIE_SECURE === "true" && origin.protocol !== "https:"))
+  throw new Error("COOKIE_SECURE=true requires an HTTPS APP_ORIGIN; use false when HTTP fallback is enabled");
 for (const dir of [path.dirname(database.slice(5)), process.env.STORAGE_LOCAL_DIR]) {
   mkdirSync(dir, { recursive: true });
   accessSync(dir, constants.W_OK);

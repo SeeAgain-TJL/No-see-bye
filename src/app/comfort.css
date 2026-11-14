@@ -153,3 +153,13 @@ body::before,body::after { opacity:.09; animation:none; }
 }
 @media(max-width:360px) { .auth-story-copy h2 { font-size:33px; } .auth-form { padding-inline:22px; } .archive-shortcuts small { display:none; } }
 @media(prefers-reduced-motion:reduce) { .decoded-image > img,.wall-image img { transition:none; } }
+.auth-social { margin-top: 28px; }
+.auth-social-divider { display:flex; align-items:center; gap:12px; color:#777d87; font-size:11px; }
+.auth-social-divider::before,.auth-social-divider::after { content:""; height:1px; flex:1; background:#ffffff12; }
+.auth-social-buttons { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+.auth-social-button { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; border:1px solid #ffffff12; border-radius:11px; color:#cfd3da; font-size:12px; background:#ffffff03; transition:background .2s,border-color .2s,transform .2s; }
+.auth-social-button span { display:grid; place-items:center; width:22px; height:22px; border-radius:7px; font-weight:700; color:#11151a; }
+.auth-social-button.qq span { background:#78b9ff; }
+.auth-social-button.github svg { width:19px; height:19px; color:#f0f3f6; }
+.auth-social-button:hover { transform:translateY(-1px); background:#ffffff08; border-color:#ffffff30; }
+@media(max-width:760px) { .auth-social { margin-top:24px; } .auth-social-buttons { grid-template-columns:1fr; } .auth-social-button { min-height:46px; } }

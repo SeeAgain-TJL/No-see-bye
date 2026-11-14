@@ -5,15 +5,15 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/no-see-bye
+WorkingDirectory=/root/no-see-bye
 Environment=NODE_ENV=production
 Environment=NEXT_TELEMETRY_DISABLED=1
 Environment=HOSTNAME=0.0.0.0
 Environment=PORT=3000
-EnvironmentFile=/opt/no-see-bye/config.env
-ExecStartPre=/opt/no-see-bye/runtime/node /opt/no-see-bye/scripts/check-runtime.mjs
-ExecStartPre=/opt/no-see-bye/runtime/node /opt/no-see-bye/scripts/init-db.mjs
-ExecStart=/opt/no-see-bye/runtime/node /opt/no-see-bye/server.js
+EnvironmentFile=/root/no-see-bye/config.env
+ExecStartPre=/root/no-see-bye/runtime/node /root/no-see-bye/scripts/check-runtime.mjs
+ExecStartPre=/root/no-see-bye/runtime/node /root/no-see-bye/scripts/init-db.mjs
+ExecStart=/root/no-see-bye/runtime/node /root/no-see-bye/server.js
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=45

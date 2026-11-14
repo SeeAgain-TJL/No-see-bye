@@ -58,6 +58,12 @@ try {
     CREATE INDEX IF NOT EXISTS Asset_createdAt_idx ON Asset(createdAt);
     CREATE INDEX IF NOT EXISTS Entry_userId_deletedAt_happenedAt_idx ON Entry(userId,deletedAt,happenedAt);
     CREATE INDEX IF NOT EXISTS Entry_visibility_deletedAt_happenedAt_idx ON Entry(visibility,deletedAt,happenedAt);
+    CREATE TABLE IF NOT EXISTS OAuthAccount (
+      id TEXT PRIMARY KEY NOT NULL, provider TEXT NOT NULL, providerAccountId TEXT NOT NULL,
+      userId TEXT NOT NULL, createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES User(id) ON DELETE CASCADE);
+    CREATE UNIQUE INDEX IF NOT EXISTS OAuthAccount_provider_providerAccountId_key ON OAuthAccount(provider,providerAccountId);
+    CREATE INDEX IF NOT EXISTS OAuthAccount_userId_idx ON OAuthAccount(userId);
     CREATE TABLE IF NOT EXISTS EntryAsset (
       entryId TEXT NOT NULL, assetId TEXT NOT NULL, position INTEGER NOT NULL,
       PRIMARY KEY(entryId,assetId),
