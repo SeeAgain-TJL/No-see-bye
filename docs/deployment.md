@@ -44,7 +44,7 @@ systemctl daemon-reload
 systemctl enable --now no-see-bye
 ```
 
-安装并启用 Nginx，让 80/443 反代到本机 3000：`yum install -y nginx`，复制 `deploy/nginx.conf` 到 `/etc/nginx/conf.d/no-see-bye.conf`，执行 `nginx -t && systemctl enable --now nginx`。证书已放在 `/root/certificate`。在阿里云 ECS 安全组和服务器防火墙放行 **TCP 80、443**；应用本身仍只监听本机 3000，不需要公网放行 3000。访问 `https://tingjieli.shop` 或 `http://tingjieli.shop` 均可；HTTP 会以明文传输，账号密码和记录内容可能被旁路观察或篡改，建议优先使用 HTTPS。
+安装并启用 Nginx，让 80/443 反代到本机 3000：`yum install -y nginx`，复制 `deploy/nginx.conf` 到 `/etc/nginx/conf.d/no-see-bye.conf`，执行 `nginx -t && systemctl enable --now nginx`。证书已放在 `/root/certificate`。Nginx 使用 `tingjieli.shop_fullchain.pem`（站点证书在前，中间证书在后）和 `tingjieli.shop.key`；当前服务器已补齐证书链，更换证书时也需同步更新 fullchain 文件。在阿里云 ECS 安全组和服务器防火墙放行 **TCP 80、443**；应用本身仍只监听本机 3000，不需要公网放行 3000。访问 `https://tingjieli.shop` 或 `http://tingjieli.shop` 均可；HTTP 会以明文传输，账号密码和记录内容可能被旁路观察或篡改，建议优先使用 HTTPS。
 
 ```bash
 systemctl status no-see-bye
