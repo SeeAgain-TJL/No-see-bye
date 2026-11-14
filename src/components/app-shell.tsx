@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useApp } from "./providers";
 import { Icon } from "./icons";
 import { BrandMark } from "./brand-mark";
+import { Avatar } from "./avatar";
 import { api } from "@/lib/client";
 export function AppShell({children}:{children:React.ReactNode}) {
   return <Suspense fallback={<div className="loading-panel">加载中…</div>}><ShellContent>{children}</ShellContent></Suspense>;
@@ -83,7 +84,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             ) : user ? (
               <>
                 <span className="account-name">{user.displayName || user.username}</span>
-                <Link href="/settings" className="avatar" aria-label="账号设置">{(user.displayName || user.username)[0].toUpperCase()}</Link>
+                <Link href="/settings" className="account-avatar-link" aria-label="账号设置"><Avatar name={user.displayName || user.username} src={user.avatarUrl} /></Link>
                 <button
                   type="button"
                   className="icon-button"

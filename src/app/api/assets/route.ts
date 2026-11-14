@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
         where: { ownerId: user.userId },
         _sum: { sizeBytes: true },
       });
-      if ((used._sum.sizeBytes || 0) + length > quotaBytes())
+      const limit = quotaBytes();
+      if (limit !== null && (used._sum.sizeBytes || 0) + length > limit)
         throw new HttpError(413, "个人存储空间不足，请联系站点主人");
       if (
         (await tx.asset.count({

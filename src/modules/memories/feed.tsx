@@ -163,7 +163,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                   存储空间
                   <small>
                     {data?.stats
-                      ? `${bytes(data.stats.usedBytes)} / ${bytes(data.stats.quotaBytes)} 已使用`
+                      ? data.stats.quotaBytes === null ? `已使用 ${bytes(data.stats.usedBytes)}` : `${bytes(data.stats.usedBytes)} / ${bytes(data.stats.quotaBytes)} 已使用`
                       : "—"}
                   </small>
                 </span>

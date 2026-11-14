@@ -10,6 +10,8 @@ model User {
   id String @id @default(cuid())
   email String @unique
   username String @unique
+  phone String? @unique
+  hasLocalPassword Boolean @default(true)
   passwordHash String
   displayName String @default("")
   sessionVersion Int @default(0)
@@ -81,4 +83,12 @@ model OAuthAccount {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
   @@index([userId])
+}
+
+model SmsChallenge {
+  phone String @id
+  codeHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  attempts Int @default(0)
 }

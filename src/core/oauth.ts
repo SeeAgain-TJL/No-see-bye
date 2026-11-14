@@ -174,6 +174,7 @@ export async function findOrCreateOAuthUser(provider: OAuthProvider, profile: OA
         username,
         displayName: profile.displayName.trim().slice(0, 80) || `${provider} 用户`,
         passwordHash,
+        hasLocalPassword: false,
         oauthAccounts: { create: { provider, providerAccountId: profile.providerAccountId } },
       },
     }));

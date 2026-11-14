@@ -39,9 +39,14 @@ try {
         .prepare(`PRAGMA table_info("${table}")`)
         .all()
         .some((c) => c.name === name)
-    )
+    ) {
       db.exec(`ALTER TABLE "${table}" ADD COLUMN "${name}" ${type}`);
+      return true;
+    }
+    return false;
   };
+  const addedAuthMode = add("User", "hasLocalPassword", "BOOLEAN NOT NULL DEFAULT true");
+  add("User", "phone", "TEXT");
   add("User", "displayName", "TEXT NOT NULL DEFAULT ''");
   add("User", "sessionVersion", "INTEGER NOT NULL DEFAULT 0");
   add("Entry", "title", "TEXT NOT NULL DEFAULT ''");
@@ -70,8 +75,15 @@ try {
       FOREIGN KEY(entryId) REFERENCES Entry(id) ON DELETE CASCADE,
       FOREIGN KEY(assetId) REFERENCES Asset(id) ON DELETE RESTRICT);
     CREATE UNIQUE INDEX IF NOT EXISTS EntryAsset_assetId_key ON EntryAsset(assetId);
-    PRAGMA user_version=1;
-    COMMIT;`);
+    CREATE UNIQUE INDEX IF NOT EXISTS User_phone_key ON User(phone);
+    CREATE TABLE IF NOT EXISTS SmsChallenge (
+      phone TEXT PRIMARY KEY NOT NULL, codeHash TEXT NOT NULL,
+      expiresAt DATETIME NOT NULL, createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      attempts INTEGER NOT NULL DEFAULT 0);
+    `);
+  if (addedAuthMode) db.exec(`UPDATE User SET hasLocalPassword=false
+    WHERE email LIKE '%@oauth.local' AND EXISTS (SELECT 1 FROM OAuthAccount WHERE userId=User.id)`);
+  db.exec("PRAGMA user_version=2; COMMIT;");
   console.log("SQLite initialized (additive; existing records preserved).");
 } catch (error) {
   db.exec("ROLLBACK");

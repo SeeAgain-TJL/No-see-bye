@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import sharp from "sharp";
 import { spawn, spawnSync } from "node:child_process";
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomUUID, randomBytes, createHmac } from "node:crypto";
+import jwt from "jsonwebtoken";
 import { mkdir, rm, readdir, access, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -24,7 +25,8 @@ const env = {
   JWT_SECRET: randomBytes(48).toString("hex"),
   COOKIE_SECURE: "false",
   APP_ORIGIN: base,
-  USER_QUOTA_MB: "1",
+  USER_QUOTA_MB: process.env.TEST_UNLIMITED ? "0" : "1",
+  SMS_ACCESS_KEY_ID: "", SMS_ACCESS_KEY_SECRET: "", SMS_SIGN_NAME: "", SMS_TEMPLATE_CODE: "",
   ALLOW_REGISTRATION: "true",
   HOSTNAME: "127.0.0.1",
   PORT: String(port),
@@ -62,6 +64,9 @@ legacy.exec(`CREATE TABLE User (id TEXT PRIMARY KEY, email TEXT, username TEXT, 
 CREATE TABLE Entry (id TEXT PRIMARY KEY, userId TEXT, content TEXT, media TEXT, visibility TEXT, createdAt DATETIME, updatedAt DATETIME);
 INSERT INTO User VALUES ('legacy-user','legacy@example.test','legacy_user','test-hash',NULL,1000000,1000000);
 INSERT INTO Entry VALUES ('legacy-entry','legacy-user','preserve this record','[]','private',1000000,1000000);`);
+legacy.exec(`CREATE TABLE OAuthAccount (id TEXT PRIMARY KEY NOT NULL,provider TEXT NOT NULL,providerAccountId TEXT NOT NULL,userId TEXT NOT NULL,createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+INSERT INTO User VALUES ('legacy-oauth','github_old@oauth.local','github_old','random-old-hash',NULL,1000000,1000000);
+INSERT INTO OAuthAccount(id,provider,providerAccountId,userId) VALUES ('legacy-oauth-link','github','legacy-github','legacy-oauth');`);
 legacy.close();
 assert.equal(
   spawnSync(runtime, ["scripts/init-db.mjs"], {
@@ -82,6 +87,9 @@ assert.equal(
     .get("legacy-entry").happenedAt,
   1000000,
 );
+assert.equal(upgraded.prepare("SELECT hasLocalPassword FROM User WHERE id='legacy-oauth'").get().hasLocalPassword,0);
+assert.equal(upgraded.prepare("SELECT hasLocalPassword FROM User WHERE id='legacy-user'").get().hasLocalPassword,1);
+assert.equal(upgraded.prepare("SELECT passwordHash FROM User WHERE id='legacy-oauth'").get().passwordHash,"random-old-hash");
 upgraded.close();
 let output = "";
 const server = spawn(
@@ -96,10 +104,25 @@ server.stderr.on("data", (b) => {
   output += b;
 });
 let passed = 0;
+const registrationPhones = new Map();
+function registrationFields(body) {
+  let phone = registrationPhones.get(body.username);
+  if (!phone) { phone = "138" + String(registrationPhones.size + 1).padStart(8, "0"); registrationPhones.set(body.username, phone); }
+  const smsCode = "123456";
+  seedCode(phone, smsCode);
+  return { ...body, phone, smsCode };
+}
+function seedCode(phone, code, { expired = false, attempts = 0 } = {}) {
+  const db = new DatabaseSync(path.join(testRoot, "test.db"));
+  const hash = createHmac("sha256", env.JWT_SECRET).update(`register:${phone}:${code}`).digest("hex");
+  db.prepare("INSERT OR REPLACE INTO SmsChallenge(phone,codeHash,createdAt,expiresAt,attempts) VALUES (?,?,?,?,?)").run(phone, hash, Date.now(), Date.now() + (expired ? -1000 : 300000), attempts);
+  db.close();
+}
 async function call(
   url,
   { cookie, method = "GET", body, headers = {}, status = 200 } = {},
 ) {
+  if (url === "/api/auth/register" && body?.username && !body.phone && !body.smsCode) body = registrationFields(body);
   const res = await fetch(base + url, {
     method,
     headers: {
@@ -191,7 +214,7 @@ try {
   assert.equal(a.data.token, undefined);
   await call("/api/auth/login", {
     method: "POST",
-    body: { emailOrUsername: "a@example.test", password: "wrong-password" },
+    body: { emailOrUsername: "person_a", password: "wrong-password" },
     status: 401,
   });
   await call("/api/auth/login", {
@@ -301,7 +324,7 @@ try {
     a.cookie,
     Buffer.concat([png, Buffer.alloc(1024 ** 2)]),
     "image/png",
-    413,
+    process.env.TEST_UNLIMITED ? 201 : 413,
   );
   const memory = (
     await call("/api/memories", {
@@ -525,7 +548,7 @@ try {
       }),
     ),
   );
-  assert.deepEqual(concurrent.map((r) => r.status).sort(), [201, 413]);
+  assert.deepEqual(concurrent.map((r) => r.status).sort(), process.env.TEST_UNLIMITED ? [201, 201] : [201, 413]);
   await Promise.all(concurrent.map((r) => r.arrayBuffer()));
   passed++;
   const files = await readdir(path.join(testRoot, "uploads"), {
@@ -608,11 +631,76 @@ try {
   assert.equal((await call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", body: retryBody })).data.pending, 0);
   await assert.rejects(access(retryPath));
   inspection.close();
+  // Real SMS proofs are generated in the isolated test database; production has no bypass.
+  const missing = await call("/api/auth/login", { method:"POST", body:{emailOrUsername:"not_registered",password:"IndependentPass123"},status:404 });
+  assert.match(missing.data.error,/未注册/);
+  const wrong = await call("/api/auth/login", { method:"POST", body:{emailOrUsername:"person_b",password:"bad-password"},status:401 });
+  assert.match(wrong.data.error,/密码不正确/);
+  await call("/api/auth/sms", {method:"POST",body:{phone:"invalid"},status:400});
+  await call("/api/auth/sms", {method:"POST",body:{phone:"13900000000"},headers:{Origin:"https://evil.example"},status:403});
+  const unavailable = await call("/api/auth/sms", {method:"POST",body:{phone:"13900000000"},status:503});
+  assert.match(unavailable.data.error,/暂未开通/);
+  const proofPhone="13900000001";
+  const smsBody={username:"sms_person",phone:proofPhone,password:"IndependentPass123",smsCode:"111111"};
+  await call("/api/auth/register",{method:"POST",body:smsBody,status:400});
+  seedCode(proofPhone,"654321");
+  for(let i=0;i<5;i++) await call("/api/auth/register",{method:"POST",body:smsBody,status:400});
+  let smsDB=new DatabaseSync(path.join(testRoot,"test.db"));
+  assert.equal(smsDB.prepare("SELECT attempts FROM SmsChallenge WHERE phone=?").get(proofPhone).attempts,5);smsDB.close();
+  await call("/api/auth/register",{method:"POST",body:{...smsBody,smsCode:"654321"},status:400});
+  seedCode(proofPhone,"654321",{expired:true});
+  await call("/api/auth/register",{method:"POST",body:{...smsBody,smsCode:"654321"},status:400});
+  seedCode(proofPhone,"654321");
+  const smsUser=await call("/api/auth/register",{method:"POST",body:{...smsBody,smsCode:"654321"},status:201});
+  assert.equal(smsUser.data.user.email,null);
+  await call("/api/auth/register",{method:"POST",body:{...smsBody,username:"sms_replay",smsCode:"654321"},status:400});
+  await call("/api/auth/login",{method:"POST",body:{emailOrUsername:proofPhone,password:"IndependentPass123"}});
+  // An OAuth-only account rejects local password login and changes, even with a matching hash.
+  const authDB=new DatabaseSync(path.join(testRoot,"test.db"));
+  const reference=authDB.prepare("SELECT passwordHash FROM User WHERE username='person_b'").get();
+  authDB.prepare("INSERT INTO User(id,email,username,passwordHash,displayName,hasLocalPassword) VALUES (?,?,?,?,?,?)").run("oauth-test","github_test@oauth.local","github_test",reference.passwordHash,"GitHub 测试",0);
+  authDB.prepare("INSERT INTO OAuthAccount(id,provider,providerAccountId,userId) VALUES (?,?,?,?)").run("oauth-test-link","github","test-account","oauth-test");
+  authDB.close();
+  const oauthCookie="memory_session="+jwt.sign({userId:"oauth-test",email:"github_test@oauth.local",sessionVersion:0},env.JWT_SECRET,{algorithm:"HS256",expiresIn:"5m"});
+  const oauthAccount=(await call("/api/account",{cookie:oauthCookie})).data;
+  assert.equal(oauthAccount.user.hasLocalPassword,false);assert.equal(oauthAccount.user.email,null);assert.deepEqual(oauthAccount.user.loginMethods,["github"]);
+  await call("/api/account",{cookie:oauthCookie,method:"PATCH",body:{action:"password",currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123"},status:403});
+  const oauthPassword=await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"github_test",password:"IndependentPass123"},status:400});assert.match(oauthPassword.data.error,/GitHub/);
+  // Avatar bytes are decoded, resized, stored separately and linked only to the current user.
+  const usageBefore=(await call("/api/account",{cookie:b.cookie})).data.usedBytes;
+  const avatarRequest=async(cookie,body,mime="image/png",status=200)=>{
+    const r=await fetch(base+"/api/account/avatar",{method:"POST",headers:{Origin:base,...(cookie?{Cookie:cookie}:{}),"Content-Type":mime},body});
+    const payload=await r.json();assert.equal(r.status,status,JSON.stringify(payload));passed++;return payload;
+  };
+  await avatarRequest(null,png,"image/png",401);
+  await avatarRequest(b.cookie,Buffer.from("<svg/>"),"image/svg+xml",415);
+  await avatarRequest(b.cookie,Buffer.from("not an image"),"image/png",415);
+  await avatarRequest(b.cookie,Buffer.alloc(5*1024**2+1),"image/png",413);
+  const avatar=await avatarRequest(b.cookie,png);
+  const avatarResponse=await fetch(base+avatar.avatarUrl);assert.equal(avatarResponse.status,200);assert.equal(avatarResponse.headers.get("content-type"),"image/webp");
+  const avatarMeta=await sharp(Buffer.from(await avatarResponse.arrayBuffer())).metadata();assert.equal(avatarMeta.width,256);assert.equal(avatarMeta.height,256);
+  const cachedAvatar=await fetch(base+avatar.avatarUrl,{headers:{"If-None-Match":avatarResponse.headers.get("etag")}});assert.equal(cachedAvatar.status,304);
+  assert.equal((await call("/api/auth/me",{cookie:b.cookie})).data.user.avatarUrl,avatar.avatarUrl);
+  assert.equal((await call("/api/account",{cookie:b.cookie})).data.usedBytes,usageBefore);
+  await call("/api/account/avatar",{cookie:a.cookie,method:"DELETE"});
+  assert.equal((await call("/api/auth/me",{cookie:b.cookie})).data.user.avatarUrl,avatar.avatarUrl);
+  const avatarDB=new DatabaseSync(path.join(testRoot,"test.db"));const oldAvatarKey=avatarDB.prepare("SELECT avatarKey FROM User WHERE username='person_b'").get().avatarKey;avatarDB.close();
+  const newAvatar=await avatarRequest(b.cookie,png);assert.notEqual(newAvatar.avatarUrl,avatar.avatarUrl);
+  await assert.rejects(access(path.join(testRoot,"uploads",oldAvatarKey)));
+  await call("/api/account/avatar",{cookie:b.cookie,method:"DELETE"});
+  assert.equal((await call("/api/auth/me",{cookie:b.cookie})).data.user.avatarUrl,null);
+  assert.equal((await fetch(base+newAvatar.avatarUrl)).status,404);
+  if(process.env.TEST_UNLIMITED){
+    const quotaDB=new DatabaseSync(path.join(testRoot,"test.db"));const owner=quotaDB.prepare("SELECT id FROM User WHERE username='quota_user'").get().id;
+    for(let i=0;i<2;i++)quotaDB.prepare("INSERT INTO Asset(id,ownerId,driver,key,mime,sizeBytes,status) VALUES (?,?,?,?,?,?,?)").run("large-fixture-"+i,owner,"local","quota-fixture-"+i,"image/png",1500000000,"ready");quotaDB.close();
+    await uploadFile(c.cookie,png);
+    const unlimited=(await call("/api/account",{cookie:c.cookie})).data;assert.equal(unlimited.quotaBytes,null);assert(unlimited.usedBytes>3_000_000_000);
+  }
   await call("/api/account",{status:401});
   await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"profile",displayName:"新的昵称"},headers:{Origin:"https://evil.example"},status:403});
   await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"profile",displayName:"新的昵称"}});
   assert.equal((await call("/api/auth/me",{cookie:a.cookie})).data.user.displayName,"新的昵称");
-  const account=(await call("/api/account",{cookie:a.cookie})).data;assert.equal(account.user.email,"a@example.test");assert(account.usedBytes>0);assert.equal(account.quotaBytes,1024**2);
+  const account=(await call("/api/account",{cookie:a.cookie})).data;assert.equal(account.user.email,null);assert.equal(account.user.hasLocalPassword,true);assert.deepEqual(account.user.loginMethods,["password"]);assert(account.usedBytes>0);assert.equal(account.quotaBytes,process.env.TEST_UNLIMITED ? null : 1024**2);
   await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"incorrect",newPassword:"UpdatedPassword123"},status:400});
   const rotated=await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123"}});
   assert(rotated.cookie);await call("/api/account",{cookie:a.cookie,status:401});await call("/api/memories",{cookie:a.cookie,status:401});

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { HttpError } from "@/core/http";
+import { avatarUrl } from "@/core/user";
 export const memorySchema = z
   .object({
     title: z.string().trim().max(100, "标题最多 100 字").default(""),
@@ -25,7 +26,7 @@ export const memorySchema = z
     "写点文字，或者放一张照片吧",
   );
 export const includeMemory = {
-  user: { select: { username: true, displayName: true } },
+  user: { select: { id: true, username: true, displayName: true, avatarKey: true } },
   attachments: {
     orderBy: { position: "asc" as const },
     include: { asset: true },
@@ -47,7 +48,7 @@ export const assetDTO = (a: {
   thumbnailUrl: a.thumbnailKey ? `/api/assets/${a.id}?variant=preview` : null,
 });
 export function memoryDTO(entry: FullEntry) {
-  const { attachments, media, tags, ...rest } = entry;
+  const { attachments, media, tags, user, ...rest } = entry;
   let tagArray: string[] = [];
   try {
     tagArray = JSON.parse(tags);
@@ -56,6 +57,7 @@ export function memoryDTO(entry: FullEntry) {
   }
   return {
     ...rest,
+    user: { username: user.username, displayName: user.displayName, avatarUrl: avatarUrl(user) },
     tags: tagArray,
     assets: attachments.map((x) => assetDTO(x.asset)),
     hasLegacyMedia: media !== "[]" && !!media,
@@ -83,7 +85,7 @@ export async function validateAssets(
   if (count !== assetIds.length)
     throw new HttpError(400, "部分附件不可用，请移除后重新上传");
 }
-export function quotaBytes() {
-  const n = Number(process.env.USER_QUOTA_MB || 2048);
-  return (Number.isFinite(n) && n > 0 ? n : 2048) * 1024 * 1024;
+export function quotaBytes(): number | null {
+  const n = Number(process.env.USER_QUOTA_MB || 0);
+  return Number.isFinite(n) && n > 0 ? n * 1024 * 1024 : null;
 }

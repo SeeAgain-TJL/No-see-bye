@@ -1,7 +1,8 @@
 export interface UserInfo {
   id: string;
   username: string;
-  email: string;
+  email: string | null;
+  avatarUrl?: string | null;
   displayName?: string;
 }
 export interface MediaAsset {
@@ -26,7 +27,7 @@ export interface Memory {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  user: { username: string; displayName?: string };
+  user: { username: string; displayName?: string; avatarUrl?: string | null };
   assets: MediaAsset[];
   hasLegacyMedia: boolean;
 }
@@ -45,7 +46,7 @@ export interface MemoryStats {
   photos: number;
   videos: number;
   usedBytes: number;
-  quotaBytes: number;
+  quotaBytes: number | null;
 }
 export interface MemoryList {
   items: Memory[];

@@ -12,6 +12,12 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   const { refresh } = useApp();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [smsEnabled, setSmsEnabled] = useState<boolean | null>(null);
+  const [sending, setSending] = useState(false);
+  const [retryAt, setRetryAt] = useState(0);
+  const [remaining, setRemaining] = useState(0);
+  const [smsNotice, setSmsNotice] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [socialProviders, setSocialProviders] = useState<Array<"qq" | "github">>([]);
   useEffect(() => {
@@ -20,10 +26,25 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         ? data.providers.filter((item): item is "qq" | "github" => item === "qq" || item === "github")
         : [];
       setSocialProviders(providers);
+      setSmsEnabled(Boolean(data && typeof data === "object" && "smsEnabled" in data && data.smsEnabled));
     }).catch(() => {});
     if (new URLSearchParams(window.location.search).get("error"))
       window.setTimeout(() => setError("第三方登录没有完成，请重新尝试"), 0);
   }, []);
+  useEffect(() => {
+    if (!retryAt) return;
+    const tick = () => setRemaining(Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)));
+    tick(); const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [retryAt]);
+  async function sendCode() {
+    if (!/^1[3-9]\d{9}$/.test(phone.trim())) { setError("请输入有效的 11 位手机号"); return; }
+    setSending(true); setError(""); setSmsNotice("");
+    try {
+      const result = await api<{ retryAfter: number }>("/api/auth/sms", { method: "POST", body: JSON.stringify({ phone: phone.trim() }) });
+      setRetryAt(Date.now() + result.retryAfter * 1000); setSmsNotice("验证码已发送，5 分钟内有效");
+    } catch (e) { setError((e as Error).message); } finally { setSending(false); }
+  }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fields = Object.fromEntries(new FormData(e.currentTarget));
@@ -45,9 +66,9 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   }
   return (
     <main id="main" className="auth-page">
-      <Link className="auth-back text-link" href="/">
+      <Link className="auth-back text-link" href={register ? "/login" : "/"}>
         <Icon name="back" size={17} />
-        返回首页
+        {register ? "返回登录" : "返回首页"}
       </Link>
       <div className="auth-card">
         <div className="auth-story">
@@ -79,27 +100,17 @@ export function AuthForm({ register = false }: { register?: boolean }) {
                   placeholder="3–20 位字母、数字或下划线"
                 />
               </label>
-              <label>
-                邮箱
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  maxLength={254}
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                />
-              </label>
+
             </>
           ) : (
             <label>
-              用户名或邮箱
+              用户名或手机号
               <input
                 name="emailOrUsername"
                 required
                 maxLength={254}
                 autoComplete="username"
-                placeholder="输入你的用户名或邮箱"
+                placeholder="输入你的用户名或手机号"
               />
             </label>
           )}
@@ -126,15 +137,28 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               </button>
             </div>
           </label>
+          {register && <fieldset className="phone-verification"><legend>手机验证</legend>
+            <label className="sr-only" htmlFor="register-phone">手机号</label>
+            <div className="phone-code-request"><span className="phone-prefix">+86</span><input id="register-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="输入手机号" required pattern="1[3-9][0-9]{9}" maxLength={11} value={phone} onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 11)); setSmsNotice(""); }} /><button type="button" disabled={busy || sending || remaining > 0 || smsEnabled !== true} onClick={sendCode}>{sending ? "发送中…" : remaining > 0 ? `${remaining}s 后重发` : "获取验证码"}</button></div>
+            <label className="sr-only" htmlFor="register-code">短信验证码</label><input id="register-code" name="smsCode" className="sms-code-input" inputMode="numeric" autoComplete="one-time-code" placeholder="6 位短信验证码" pattern="[0-9]{6}" maxLength={6} required />
+            {smsNotice && <p className="auth-verification-note" role="status">{smsNotice}</p>}
+            {smsEnabled === false && <p className="auth-verification-note">短信验证暂未开通，请使用 GitHub 注册。</p>}
+          </fieldset>}
           {error && (
             <div className="notice error" role="alert">
               {error}
             </div>
           )}
-          <button className="button wide" disabled={busy}>
+          <button className="button wide" disabled={busy || (register && smsEnabled !== true)}>
             {busy ? "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
           </button>
+          <p className="auth-switch">
+            {register ? "已有账号？" : "还没有账号？"}
+            <Link href={register ? "/login" : "/register"}>
+              {register ? "返回登录" : "创建账号"}
+            </Link>
+          </p>
           {socialProviders.length > 0 && (
             <div className="auth-social">
               <div className="auth-social-divider"><span>或使用其他方式继续</span></div>
@@ -144,12 +168,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               </div>
             </div>
           )}
-          <p className="auth-switch">
-            {register ? "已有账号？" : "还没有账号？"}
-            <Link href={register ? "/login" : "/register"}>
-              {register ? "去登录" : "创建账号"}
-            </Link>
-          </p>
+
 
         </form>
       </div>

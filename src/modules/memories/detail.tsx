@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
+import { Avatar } from "@/components/avatar";
 import { api, dateText } from "@/lib/client";
 import type { Memory } from "./types";
 import { MediaGrid } from "./media";
@@ -144,9 +145,7 @@ export function MemoryDetail({
         </div>
         <h1>{memory.title || "生活的一帧"}</h1>
         <div className="detail-byline">
-          <span className="avatar">
-            {(memory.user.displayName || memory.user.username)[0].toUpperCase()}
-          </span>
+          <Avatar name={memory.user.displayName || memory.user.username} src={memory.user.avatarUrl} />
           <span>{memory.user.displayName || memory.user.username}</span>
           {memory.location && (
             <span>
