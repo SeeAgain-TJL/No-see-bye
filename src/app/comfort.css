@@ -164,7 +164,7 @@ body::before,body::after { opacity:.09; animation:none; }
 .auth-social-button:hover { transform:translateY(-1px); background:#ffffff08; border-color:#ffffff30; }
 @media(max-width:760px) { .auth-social { margin-top:24px; } .auth-social-buttons { grid-template-columns:1fr; } .auth-social-button { min-height:46px; } }
 
-/* Account settings and phone verification follow the existing quiet surfaces. */
+/* Account settings follow the existing quiet surfaces. */
 .avatar { flex-shrink:0; overflow:hidden; }
 .avatar img { display:block; width:100%; height:100%; object-fit:cover; }
 .account-avatar-link { display:inline-flex; border-radius:50%; }
@@ -181,21 +181,34 @@ body::before,body::after { opacity:.09; animation:none; }
 .settings-connected h2 { margin-bottom:14px; }
 .settings-connected > strong { font-size:22px; font-weight:500; color:var(--cine-ink); }
 .settings-connected p { color:var(--cine-muted); font-size:13px; line-height:1.9; max-width:310px; margin:16px 0 28px; }
-.phone-verification { min-width:0; padding:0; border:0; margin:0 0 24px; }
-.phone-verification legend { color:var(--cine-muted); font-size:13px; margin-bottom:10px; }
-.phone-code-request { display:flex; align-items:center; gap:8px; border:1px solid #ffffff12; background:#ffffff03; border-radius:12px; padding:0 14px; min-height:53px; }
-.phone-prefix { color:#7c818d; font-size:13px; padding-right:10px; border-right:1px solid #ffffff12; }
-.auth-form .phone-code-request input { flex:1; min-width:0; width:0; padding:0; border:0; background:transparent; outline:none; box-shadow:none; }
-.phone-code-request:focus-within { border-color:#d0ed9b70; }
-.phone-code-request button { flex-shrink:0; color:var(--cine-lime); background:transparent; font-size:12px; padding:12px 0 12px 8px; }
-.phone-code-request button:disabled { color:#717580; cursor:not-allowed; }
-.auth-form .sms-code-input { width:100%; margin-top:10px; min-height:53px; border:1px solid #ffffff12; border-radius:12px; background:#ffffff03; padding:0 15px; color:var(--cine-ink); }
-.auth-verification-note { color:var(--cine-muted); font-size:11px; line-height:1.7; margin:10px 0 0; }
 .auth-form .auth-switch { display:flex; justify-content:center; align-items:center; gap:8px; margin:21px 0 0; color:var(--cine-muted); }
 .auth-switch a { color:var(--cine-lime); }
-@media(max-width:760px) { .settings-avatar-row { gap:17px; }.settings-avatar.avatar { width:66px; height:66px; }.settings-avatar-controls p { font-size:10px; }.settings-connected { min-height:280px; }.settings-storage { flex-wrap:wrap; }.settings-storage .storage-gauge { min-width:150px; }.phone-code-request { gap:6px; padding-inline:11px; }.phone-prefix { padding-right:8px; } }
+@media(max-width:760px) { .settings-avatar-row { gap:17px; }.settings-avatar.avatar { width:66px; height:66px; }.settings-avatar-controls p { font-size:10px; }.settings-connected { min-height:280px; }.settings-storage { flex-wrap:wrap; }.settings-storage .storage-gauge { min-width:150px; } }
 
-.auth-form .phone-code-request input:not([type="checkbox"]):not([type="radio"]) { padding:0; border:0; background:transparent; border-radius:0; box-shadow:none; }
 .settings-card input.sr-only { width:1px; height:1px; padding:0; border:0; margin:-1px; }
 .settings-card { min-width:0; }
-.auth-form .phone-verification,.auth-form .auth-social,.auth-form .auth-switch { width:100%; }
+.auth-form .auth-social,.auth-form .auth-switch { width:100%; }
+
+/* A small, focused registration step in the site's existing palette. */
+.registration-dialog { position:fixed; inset:0; width:min(420px,calc(100vw - 36px)); max-height:calc(100dvh - 40px); margin:auto; padding:30px; overflow-y:auto; border:1px solid #ffffff18; border-radius:22px; background:#15191f; color:var(--cine-ink); box-shadow:0 30px 100px #0008; }
+.registration-dialog::backdrop { background:#05070bb8; backdrop-filter:blur(9px); }
+.registration-dialog form { display:flex; flex-direction:column; }
+.registration-verify-kicker { display:flex; align-items:center; gap:8px; color:var(--cine-lime); font-size:10px; letter-spacing:.13em; }
+.registration-dialog h2 { margin:17px 0 10px; font-size:23px; font-weight:500; letter-spacing:-.03em; }
+.registration-dialog #registration-verify-description { color:var(--cine-muted); font-size:12px; line-height:1.8; margin:0 0 22px; }
+.registration-question { display:grid; place-items:center; min-height:112px; overflow:hidden; border-radius:14px; background:#edf2e7; }
+.registration-question-image { display:block; background:#edf2e7; width:100%; height:112px; }
+.registration-question-image img { width:100%; height:100%; object-fit:contain; }
+.registration-question-loading { color:#496241; font-size:12px; }
+.registration-question-tools { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 0 21px; color:var(--cine-muted); font-size:11px; }
+.registration-question-tools button { background:none; color:var(--cine-lime); padding:4px 0 4px 10px; }
+.registration-question-tools button:disabled { opacity:.5; cursor:wait; }
+.registration-answer-label { color:var(--cine-muted); font-size:12px; margin-bottom:9px; }
+.registration-answer { min-width:0; width:100%; height:50px; padding:0 15px; border:1px solid #ffffff20; border-radius:12px; background:#ffffff04; color:var(--cine-ink); font-size:17px; letter-spacing:.1em; outline:none; }
+.registration-answer:focus { border-color:#d0ed9b90; box-shadow:0 0 0 3px #d0ed9b0a; }
+.registration-answer::placeholder { font-size:12px; color:var(--cine-muted); letter-spacing:normal; }
+.registration-dialog .notice { font-size:12px; margin:12px 0 0; }
+.registration-dialog .button { min-height:50px; margin-top:20px; border-radius:12px; font-size:13px; }
+.registration-verify-cancel { align-self:center; padding:12px 18px 0; background:none; color:var(--cine-muted); font-size:12px; margin-top:4px; }
+.registration-verify-cancel:hover { color:var(--cine-ink); }
+@media(max-width:480px) { .registration-dialog { padding:25px 22px; border-radius:18px; }.registration-dialog h2 { font-size:21px; } }

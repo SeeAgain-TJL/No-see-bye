@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import sharp from "sharp";
 import { spawn, spawnSync } from "node:child_process";
-import { randomUUID, randomBytes, createHmac } from "node:crypto";
+import { randomUUID, randomBytes } from "node:crypto";
 import jwt from "jsonwebtoken";
 import { mkdir, rm, readdir, access, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -26,7 +26,6 @@ const env = {
   COOKIE_SECURE: "false",
   APP_ORIGIN: base,
   USER_QUOTA_MB: process.env.TEST_UNLIMITED ? "0" : "1",
-  SMS_ACCESS_KEY_ID: "", SMS_ACCESS_KEY_SECRET: "", SMS_SIGN_NAME: "", SMS_TEMPLATE_CODE: "",
   ALLOW_REGISTRATION: "true",
   HOSTNAME: "127.0.0.1",
   PORT: String(port),
@@ -104,25 +103,26 @@ server.stderr.on("data", (b) => {
   output += b;
 });
 let passed = 0;
-const registrationPhones = new Map();
-function registrationFields(body) {
-  let phone = registrationPhones.get(body.username);
-  if (!phone) { phone = "138" + String(registrationPhones.size + 1).padStart(8, "0"); registrationPhones.set(body.username, phone); }
-  const smsCode = "123456";
-  seedCode(phone, smsCode);
-  return { ...body, phone, smsCode };
-}
-function seedCode(phone, code, { expired = false, attempts = 0 } = {}) {
-  const db = new DatabaseSync(path.join(testRoot, "test.db"));
-  const hash = createHmac("sha256", env.JWT_SECRET).update(`register:${phone}:${code}`).digest("hex");
-  db.prepare("INSERT OR REPLACE INTO SmsChallenge(phone,codeHash,createdAt,expiresAt,attempts) VALUES (?,?,?,?,?)").run(phone, hash, Date.now(), Date.now() + (expired ? -1000 : 300000), attempts);
-  db.close();
+// Exercise the public challenge flow, solving only the visible arithmetic in test images.
+async function registrationFields(body, cookie) {
+  const credentials = { username: body.username, password: body.password, confirmPassword: body.confirmPassword ?? body.password };
+  const issued = await call("/api/auth/challenge", { method: "POST", body: credentials, cookie });
+  assert.equal(issued.data.answer, undefined);
+  assert.equal(issued.data.answerHash, undefined);
+  assert.match(issued.res.headers.get("set-cookie"), /HttpOnly/i);
+  assert.equal(issued.res.headers.get("cache-control"), "no-store");
+  const svg = Buffer.from(issued.data.image.split(",")[1], "base64").toString();
+  const numbers = [...svg.matchAll(/<text[^>]*>(\d+)<\/text>/g)].map(match => Number(match[1]));
+  assert.equal(numbers.length, 2);
+  return { fields: { ...credentials, challengeId: issued.data.id, answer: String(numbers[0] + numbers[1]) }, cookie: issued.cookie || cookie, challenge: issued.data };
 }
 async function call(
   url,
-  { cookie, method = "GET", body, headers = {}, status = 200 } = {},
+  { cookie, method = "GET", body, headers = {}, status = 200, automaticProof = true } = {},
 ) {
-  if (url === "/api/auth/register" && body?.username && !body.phone && !body.smsCode) body = registrationFields(body);
+  if (url === "/api/auth/register" && body?.username && !("challengeId" in body) && automaticProof) {
+    const proof = await registrationFields(body, cookie); body = proof.fields; cookie = proof.cookie;
+  }
   const res = await fetch(base + url, {
     method,
     headers: {
@@ -195,7 +195,6 @@ try {
     method: "POST",
     body: {
       username: "person_a",
-      email: "a@example.test",
       password: "IndependentPass123",
     },
     status: 201,
@@ -204,7 +203,6 @@ try {
     method: "POST",
     body: {
       username: "person_b",
-      email: "b@example.test",
       password: "IndependentPass123",
     },
     status: 201,
@@ -221,13 +219,9 @@ try {
     method: "POST",
     body: { emailOrUsername: "PERSON_A", password: "IndependentPass123" },
   });
-  await call("/api/auth/register", {
+  await call("/api/auth/challenge", {
     method: "POST",
-    body: {
-      username: "person_a",
-      email: "other@example.test",
-      password: "IndependentPass123",
-    },
+    body: { username: "person_a", password: "IndependentPass123", confirmPassword: "IndependentPass123" },
     status: 409,
   });
   await call("/api/memories", { status: 401 });
@@ -533,7 +527,6 @@ try {
     method: "POST",
     body: {
       username: "quota_user",
-      email: "quota@example.test",
       password: "IndependentPass123",
     },
     status: 201,
@@ -631,30 +624,44 @@ try {
   assert.equal((await call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", body: retryBody })).data.pending, 0);
   await assert.rejects(access(retryPath));
   inspection.close();
-  // Real SMS proofs are generated in the isolated test database; production has no bypass.
+  // Registration needs no external service, but both credential checks and a one-use browser-bound proof.
   const missing = await call("/api/auth/login", { method:"POST", body:{emailOrUsername:"not_registered",password:"IndependentPass123"},status:404 });
   assert.match(missing.data.error,/未注册/);
   const wrong = await call("/api/auth/login", { method:"POST", body:{emailOrUsername:"person_b",password:"bad-password"},status:401 });
   assert.match(wrong.data.error,/密码不正确/);
-  await call("/api/auth/sms", {method:"POST",body:{phone:"invalid"},status:400});
-  await call("/api/auth/sms", {method:"POST",body:{phone:"13900000000"},headers:{Origin:"https://evil.example"},status:403});
-  const unavailable = await call("/api/auth/sms", {method:"POST",body:{phone:"13900000000"},status:503});
-  assert.match(unavailable.data.error,/暂未开通/);
-  const proofPhone="13900000001";
-  const smsBody={username:"sms_person",phone:proofPhone,password:"IndependentPass123",smsCode:"111111"};
-  await call("/api/auth/register",{method:"POST",body:smsBody,status:400});
-  seedCode(proofPhone,"654321");
-  for(let i=0;i<5;i++) await call("/api/auth/register",{method:"POST",body:smsBody,status:400});
-  let smsDB=new DatabaseSync(path.join(testRoot,"test.db"));
-  assert.equal(smsDB.prepare("SELECT attempts FROM SmsChallenge WHERE phone=?").get(proofPhone).attempts,5);smsDB.close();
-  await call("/api/auth/register",{method:"POST",body:{...smsBody,smsCode:"654321"},status:400});
-  seedCode(proofPhone,"654321",{expired:true});
-  await call("/api/auth/register",{method:"POST",body:{...smsBody,smsCode:"654321"},status:400});
-  seedCode(proofPhone,"654321");
-  const smsUser=await call("/api/auth/register",{method:"POST",body:{...smsBody,smsCode:"654321"},status:201});
-  assert.equal(smsUser.data.user.email,null);
-  await call("/api/auth/register",{method:"POST",body:{...smsBody,username:"sms_replay",smsCode:"654321"},status:400});
-  await call("/api/auth/login",{method:"POST",body:{emailOrUsername:proofPhone,password:"IndependentPass123"}});
+  const providers = await call("/api/auth/providers");assert.equal(providers.data.smsEnabled,undefined);
+  assert.equal((await fetch(base+"/api/auth/sms",{method:"POST"})).status,405);passed++;
+  const credentials={username:"captcha_person",password:"IndependentPass123",confirmPassword:"IndependentPass123"};
+  await call("/api/auth/challenge",{method:"POST",body:credentials,headers:{Origin:"https://evil.example"},status:403});
+  const mismatch=await call("/api/auth/challenge",{method:"POST",body:{...credentials,confirmPassword:"DifferentPass123"},status:400});assert.match(mismatch.data.error,/不一致/);
+  await call("/api/auth/challenge",{method:"POST",body:{...credentials,password:"short",confirmPassword:"short"},status:400});
+  await call("/api/auth/challenge",{method:"POST",body:{...credentials,username:"bad name"},status:400});
+  await call("/api/auth/challenge",{method:"POST",body:{...credentials,password:"密".repeat(25),confirmPassword:"密".repeat(25)},status:400});
+  await call("/api/auth/register",{method:"POST",body:credentials,automaticProof:false,status:400});
+  let proof=await registrationFields(credentials);
+  const metadata=await sharp(Buffer.from(proof.challenge.image.split(",")[1],"base64")).metadata();assert.equal(metadata.width,320);assert.equal(metadata.height,112);
+  await call("/api/auth/register",{method:"POST",body:proof.fields,status:410});
+  await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:{...proof.fields,username:"captcha_other"},status:410});
+  await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:{...proof.fields,confirmPassword:"DifferentPass123"},status:400});
+  for(let i=0;i<5;i++)await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:{...proof.fields,answer:"999"},status:400});
+  let proofDB=new DatabaseSync(path.join(testRoot,"test.db"));
+  assert.equal(proofDB.prepare("SELECT attempts FROM RegistrationChallenge WHERE id=?").get(proof.fields.challengeId).attempts,5);proofDB.close();
+  await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:proof.fields,status:410});
+  proof=await registrationFields(credentials,proof.cookie);
+  proofDB=new DatabaseSync(path.join(testRoot,"test.db"));proofDB.prepare("UPDATE RegistrationChallenge SET expiresAt=? WHERE id=?").run(Date.now()-1000,proof.fields.challengeId);proofDB.close();
+  await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:proof.fields,status:410});
+  const stale=await registrationFields(credentials,proof.cookie);
+  proof=await registrationFields(credentials,stale.cookie);
+  assert.notEqual(stale.fields.challengeId,proof.fields.challengeId);
+  await call("/api/auth/register",{method:"POST",cookie:stale.cookie,body:stale.fields,status:410});
+  const verified=await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:proof.fields,status:201});assert.equal(verified.data.user.email,null);
+  assert.equal((await call("/api/account",{cookie:verified.cookie})).data.user.phoneMasked,null);
+  await call("/api/auth/register",{method:"POST",cookie:proof.cookie,body:proof.fields,status:410});
+  await call("/api/auth/login",{method:"POST",body:{emailOrUsername:credentials.username,password:credentials.password}});
+  const concurrentProof=await registrationFields({...credentials,username:"proof_race"});
+  const proofRace=await Promise.all([1,2].map(()=>fetch(base+"/api/auth/register",{method:"POST",headers:{Origin:base,Cookie:concurrentProof.cookie,"Content-Type":"application/json"},body:JSON.stringify(concurrentProof.fields)})));
+  assert.deepEqual(proofRace.map(response=>response.status).sort(),[201,410]);passed+=2;
+  proofDB=new DatabaseSync(path.join(testRoot,"test.db"));assert.equal(proofDB.prepare("SELECT count(*) as count FROM User WHERE username='proof_race'").get().count,1);proofDB.close();
   // An OAuth-only account rejects local password login and changes, even with a matching hash.
   const authDB=new DatabaseSync(path.join(testRoot,"test.db"));
   const reference=authDB.prepare("SELECT passwordHash FROM User WHERE username='person_b'").get();
@@ -710,6 +717,14 @@ try {
   const freshLogin=await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"person_a",password:"UpdatedPassword123"}});assert(freshLogin.cookie);
   await call("/api/auth/logout", { cookie: rotated.cookie, method: "POST" });
   await call("/api/upload/sign", { method: "POST", status: 410 });
+  let challengeLimited=false;
+  for(let i=0;i<45;i++){
+    const response=await fetch(base+"/api/auth/challenge",{method:"POST",headers:{Origin:base,"Content-Type":"application/json"},body:JSON.stringify({...credentials,username:"limit_fixture"})});
+    await response.arrayBuffer();
+    if(response.status===429){challengeLimited=true;break;}
+    assert.equal(response.status,200);
+  }
+  assert(challengeLimited,"Challenge endpoint must reject excessive requests");passed++;
   console.log(
     "PASS: " +
       passed +

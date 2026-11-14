@@ -15,9 +15,6 @@
     "release:pack": "node scripts/package-release.mjs"
   },
   "dependencies": {
-    "@alicloud/dysmsapi20170525": "^4.6.0",
-    "@alicloud/openapi-core": "^1.0.9",
-    "@darabonba/typescript": "^1.0.6",
     "@prisma/client": "6.19.3",
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",

@@ -97,15 +97,10 @@ systemctl enable --now no-see-bye-cleanup.timer
 
 Linux x64 包同时携带 Debian/Ubuntu 和 RHEL/Alibaba Cloud Linux 所需的 OpenSSL 1.1/3.0 Prisma 引擎，已在 Alibaba Cloud Linux 3 + OpenSSL 1.1 实机验证数据库连接。其他架构需要对应构建产物。当前部署使用 `https://tingjieli.shop` 和 `/root/certificate` 下的证书；80 和 443 均可访问；HTTP 为明文，建议使用 HTTPS。
 
-## 手机验证注册
+## 本地注册与验证
 
-注册无需邮箱，使用用户名、密码和手机验证码。短信通过阿里云发送，签名与验证码模板通过审核后，在 `config.env` 填写以下四项，再重启服务：
+注册填写用户名、密码和确认密码，两次密码一致后弹出随机加法验证；回答正确即创建账号并自动登录。不需要邮箱、手机号或短信服务配置。GitHub 登录继续保留。
 
-```ini
-SMS_ACCESS_KEY_ID=
-SMS_ACCESS_KEY_SECRET=
-SMS_SIGN_NAME=
-SMS_TEMPLATE_CODE=
-```
+题目由服务器随机生成，以图片显示，5 分钟有效、最多尝试 5 次，并绑定当前浏览器与用户名；成功注册后立即作废。注册与换题接口均有限流。这是轻量反自动化措施，不等同于能阻止高级机器人的风控服务。
 
-模板变量为 `${code}`。未配置时不会伪造验证码，也不会绕过手机验证；GitHub 登录不受影响。验证码 5 分钟有效、60 秒重发冷却，连续输错 5 次需重新获取。`USER_QUOTA_MB=0` 表示不设个人总存储上限；单张照片 20 MB、单个视频 200 MB、头像 5 MB 的限制仍保留。
+`USER_QUOTA_MB=0` 表示不设个人总存储上限；单张照片 20 MB、单个视频 200 MB、头像 5 MB 的限制仍保留。

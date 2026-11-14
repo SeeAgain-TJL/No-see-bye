@@ -85,10 +85,12 @@ model OAuthAccount {
   @@index([userId])
 }
 
-model SmsChallenge {
-  phone String @id
-  codeHash String
+model RegistrationChallenge {
+  id String @id
+  bindingHash String
+  answerHash String
   expiresAt DateTime
   createdAt DateTime @default(now())
   attempts Int @default(0)
+  @@index([expiresAt])
 }

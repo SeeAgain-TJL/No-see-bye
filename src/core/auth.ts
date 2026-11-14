@@ -9,7 +9,7 @@ export interface TokenPayload {
   sessionVersion?: number;
 }
 const developmentSecret = randomBytes(48).toString("hex");
-function secret() {
+export function authSecret() {
   const value = process.env.JWT_SECRET;
   if (
     value &&
@@ -24,11 +24,11 @@ function secret() {
   return developmentSecret;
 }
 export function signToken(payload: TokenPayload): string {
-  return jwt.sign(payload, secret(), { expiresIn: "7d", algorithm: "HS256" });
+  return jwt.sign(payload, authSecret(), { expiresIn: "7d", algorithm: "HS256" });
 }
 export function verifyToken(token: string): TokenPayload {
   try {
-    const value = jwt.verify(token, secret(), { algorithms: ["HS256"] });
+    const value = jwt.verify(token, authSecret(), { algorithms: ["HS256"] });
     if (
       typeof value !== "object" ||
       typeof value.userId !== "string" ||

@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useApp } from "./providers";
-import { api } from "@/lib/client";
+import { api, ApiError } from "@/lib/client";
+import { registrationCredentials, type RegistrationCredentials, type RegistrationChallenge } from "@/lib/registration";
 import { Icon } from "./icons";
 import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
@@ -12,12 +13,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   const { refresh } = useApp();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [smsEnabled, setSmsEnabled] = useState<boolean | null>(null);
-  const [sending, setSending] = useState(false);
-  const [retryAt, setRetryAt] = useState(0);
-  const [remaining, setRemaining] = useState(0);
-  const [smsNotice, setSmsNotice] = useState("");
+  const [registration, setRegistration] = useState<{ credentials: RegistrationCredentials; challenge: RegistrationChallenge } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [socialProviders, setSocialProviders] = useState<Array<"qq" | "github">>([]);
   useEffect(() => {
@@ -26,43 +22,43 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         ? data.providers.filter((item): item is "qq" | "github" => item === "qq" || item === "github")
         : [];
       setSocialProviders(providers);
-      setSmsEnabled(Boolean(data && typeof data === "object" && "smsEnabled" in data && data.smsEnabled));
     }).catch(() => {});
     if (new URLSearchParams(window.location.search).get("error"))
       window.setTimeout(() => setError("第三方登录没有完成，请重新尝试"), 0);
   }, []);
-  useEffect(() => {
-    if (!retryAt) return;
-    const tick = () => setRemaining(Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)));
-    tick(); const timer = window.setInterval(tick, 1000);
-    return () => window.clearInterval(timer);
-  }, [retryAt]);
-  async function sendCode() {
-    if (!/^1[3-9]\d{9}$/.test(phone.trim())) { setError("请输入有效的 11 位手机号"); return; }
-    setSending(true); setError(""); setSmsNotice("");
-    try {
-      const result = await api<{ retryAfter: number }>("/api/auth/sms", { method: "POST", body: JSON.stringify({ phone: phone.trim() }) });
-      setRetryAt(Date.now() + result.retryAfter * 1000); setSmsNotice("验证码已发送，5 分钟内有效");
-    } catch (e) { setError((e as Error).message); } finally { setSending(false); }
+  async function finish() {
+    setRegistration(null);
+    await refresh().catch(() => {});
+    router.replace("/");
+    router.refresh();
   }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy || registration) return;
     const fields = Object.fromEntries(new FormData(e.currentTarget));
-    setBusy(true);
     setError("");
-    try {
-      await api(`/api/auth/${register ? "register" : "login"}`, {
-        method: "POST",
-        body: JSON.stringify(fields),
-      });
-      await refresh();
-      router.push("/");
-      router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
+    if (register) {
+      const result = registrationCredentials.safeParse(fields);
+      if (!result.success) {
+        setError(result.error.issues[0]?.message || "请检查注册信息");
+        const field = result.error.issues[0]?.path[0];
+        if (typeof field === "string") (e.currentTarget.elements.namedItem(field) as HTMLInputElement | null)?.focus();
+        return;
+      }
+      setBusy(true);
+      try {
+        const challenge = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(result.data) });
+        setRegistration({ credentials: result.data, challenge });
+      } catch (err) { setError((err as Error).message); }
+      finally { setBusy(false); }
+      return;
     }
+    setBusy(true);
+    try {
+      await api("/api/auth/login", { method: "POST", body: JSON.stringify(fields) });
+      await finish();
+    } catch (err) { setError((err as Error).message); }
+    finally { setBusy(false); }
   }
   return (
     <main id="main" className="auth-page">
@@ -87,7 +83,6 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               : "回来看看，也留下一点新的日常。"}
           </p>
           {register ? (
-            <>
               <label>
                 用户名
                 <input
@@ -100,17 +95,15 @@ export function AuthForm({ register = false }: { register?: boolean }) {
                   placeholder="3–20 位字母、数字或下划线"
                 />
               </label>
-
-            </>
           ) : (
             <label>
-              用户名或手机号
+              用户名
               <input
                 name="emailOrUsername"
                 required
                 maxLength={254}
                 autoComplete="username"
-                placeholder="输入你的用户名或手机号"
+                placeholder="输入你的用户名"
               />
             </label>
           )}
@@ -137,20 +130,19 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               </button>
             </div>
           </label>
-          {register && <fieldset className="phone-verification"><legend>手机验证</legend>
-            <label className="sr-only" htmlFor="register-phone">手机号</label>
-            <div className="phone-code-request"><span className="phone-prefix">+86</span><input id="register-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="输入手机号" required pattern="1[3-9][0-9]{9}" maxLength={11} value={phone} onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 11)); setSmsNotice(""); }} /><button type="button" disabled={busy || sending || remaining > 0 || smsEnabled !== true} onClick={sendCode}>{sending ? "发送中…" : remaining > 0 ? `${remaining}s 后重发` : "获取验证码"}</button></div>
-            <label className="sr-only" htmlFor="register-code">短信验证码</label><input id="register-code" name="smsCode" className="sms-code-input" inputMode="numeric" autoComplete="one-time-code" placeholder="6 位短信验证码" pattern="[0-9]{6}" maxLength={6} required />
-            {smsNotice && <p className="auth-verification-note" role="status">{smsNotice}</p>}
-            {smsEnabled === false && <p className="auth-verification-note">短信验证暂未开通，请使用 GitHub 注册。</p>}
-          </fieldset>}
+          {register && <label>
+            再次确认密码
+            <div className="password-field">
+              <input name="confirmPassword" type={showPassword ? "text" : "password"} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="再次输入密码" />
+            </div>
+          </label>}
           {error && (
             <div className="notice error" role="alert">
               {error}
             </div>
           )}
-          <button className="button wide" disabled={busy || (register && smsEnabled !== true)}>
-            {busy ? "请稍候…" : register ? "创建账号" : "登录"}
+          <button className="button wide" disabled={busy || registration !== null}>
+            {busy ? register ? "正在准备验证…" : "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
           </button>
           <p className="auth-switch">
@@ -172,6 +164,78 @@ export function AuthForm({ register = false }: { register?: boolean }) {
 
         </form>
       </div>
+      {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}
+        onCancel={() => setRegistration(null)} onComplete={finish}
+        onFormError={message => { setRegistration(null); setError(message); }} />}
     </main>
   );
+}
+
+function RegistrationVerification({ credentials, initialChallenge, onCancel, onComplete, onFormError }: {
+  credentials: RegistrationCredentials; initialChallenge: RegistrationChallenge;
+  onCancel: () => void; onComplete: () => Promise<void>; onFormError: (message: string) => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const [challenge, setChallenge] = useState<RegistrationChallenge | null>(initialChallenge);
+  const [answer, setAnswer] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [imageReady, setImageReady] = useState(false);
+  const pending = useRef(false);
+  useEffect(() => {
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialog.current?.showModal();
+    return () => { document.body.style.overflow = overflow; };
+  }, []);
+  async function anotherQuestion(note = "") {
+    if (pending.current) return;
+    pending.current = true;
+    setLoading(true); setImageReady(false); setAnswer(""); setChallenge(null); setError("");
+    try {
+      const next = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(credentials) });
+      setChallenge(next); setError(note);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) onFormError(err.message);
+      else setError((err as Error).message);
+    } finally { setLoading(false); pending.current = false; }
+  }
+  async function verify(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending.current || !challenge || !imageReady) return;
+    if (challenge.expiresAt <= Date.now()) { await anotherQuestion("题目已过期，已为你换一道新题"); return; }
+    pending.current = true; setBusy(true); setError("");
+    try {
+      await api("/api/auth/register", { method: "POST", body: JSON.stringify({ ...credentials, challengeId: challenge.id, answer }) });
+      await onComplete();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) onFormError(err.message);
+      else if (err instanceof ApiError && err.status === 410) {
+        pending.current = false;
+        await anotherQuestion("验证已失效，已为你换一道新题");
+      } else { setError((err as Error).message); setAnswer(""); input.current?.focus({ preventScroll: true }); }
+    } finally { setBusy(false); pending.current = false; }
+  }
+  return <dialog ref={dialog} className="registration-dialog" aria-labelledby="registration-verify-title" aria-describedby="registration-verify-description"
+    onCancel={e => { e.preventDefault(); if (!busy && !loading) onCancel(); }}>
+    <form onSubmit={verify} aria-busy={busy || loading}>
+      <span className="registration-verify-kicker"><Icon name="spark" size={16} />ONE LAST STEP</span>
+      <h2 id="registration-verify-title">最后一步，确认一下</h2>
+      <p id="registration-verify-description">算出图片中的加法结果，即可完成注册。</p>
+      <div className="registration-question" aria-live="polite">
+        {challenge ? <DecodedImage className="registration-question-image" src={challenge.image} alt="随机加法题，请计算图中的两个数字之和" width={320} height={112}
+          onReady={() => { setImageReady(true); input.current?.focus({ preventScroll: true }); }} onFailure={() => { setImageReady(false); setError("题目图片加载失败，请换一道题"); }} />
+          : <span className="registration-question-loading">{loading ? "正在准备新题目…" : "题目未加载，请重试"}</span>}
+      </div>
+      <div className="registration-question-tools"><span>5 分钟内有效</span><button type="button" onClick={() => anotherQuestion()} disabled={busy || loading}>换一道题</button></div>
+      <label className="registration-answer-label" htmlFor="registration-answer">你的答案</label>
+      <input ref={input} id="registration-answer" name="answer" className="registration-answer" inputMode="numeric" autoComplete="off" placeholder="输入计算结果" required pattern="[0-9]{1,3}" maxLength={3}
+        disabled={busy || loading} value={answer} onChange={e => setAnswer(e.target.value.replace(/\D/g, "").slice(0, 3))} aria-invalid={Boolean(error)} aria-describedby={error ? "registration-verify-error" : undefined} />
+      {error && <p id="registration-verify-error" className="notice error" role="alert">{error}</p>}
+      <button className="button wide" disabled={busy || loading || !imageReady || !answer.trim()}>{busy ? "正在创建账号…" : "验证并完成注册"}<Icon name="arrow" size={17} /></button>
+      <button className="registration-verify-cancel" type="button" onClick={onCancel} disabled={busy || loading}>返回修改</button>
+    </form>
+  </dialog>;
 }

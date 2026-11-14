@@ -76,14 +76,15 @@ try {
       FOREIGN KEY(assetId) REFERENCES Asset(id) ON DELETE RESTRICT);
     CREATE UNIQUE INDEX IF NOT EXISTS EntryAsset_assetId_key ON EntryAsset(assetId);
     CREATE UNIQUE INDEX IF NOT EXISTS User_phone_key ON User(phone);
-    CREATE TABLE IF NOT EXISTS SmsChallenge (
-      phone TEXT PRIMARY KEY NOT NULL, codeHash TEXT NOT NULL,
+    CREATE TABLE IF NOT EXISTS RegistrationChallenge (
+      id TEXT PRIMARY KEY NOT NULL, bindingHash TEXT NOT NULL, answerHash TEXT NOT NULL,
       expiresAt DATETIME NOT NULL, createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       attempts INTEGER NOT NULL DEFAULT 0);
+    CREATE INDEX IF NOT EXISTS RegistrationChallenge_expiresAt_idx ON RegistrationChallenge(expiresAt);
     `);
   if (addedAuthMode) db.exec(`UPDATE User SET hasLocalPassword=false
     WHERE email LIKE '%@oauth.local' AND EXISTS (SELECT 1 FROM OAuthAccount WHERE userId=User.id)`);
-  db.exec("PRAGMA user_version=2; COMMIT;");
+  db.exec("PRAGMA user_version=3; COMMIT;");
   console.log("SQLite initialized (additive; existing records preserved).");
 } catch (error) {
   db.exec("ROLLBACK");
