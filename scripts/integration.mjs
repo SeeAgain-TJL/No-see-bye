@@ -221,7 +221,7 @@ try {
     body: { happenedAt: "2026-11-13T00:00:00Z" },
     status: 400,
   });
-  const png = await sharp({create:{width:1600,height:1000,channels:3,background:"#59745a"}}).png().toBuffer();
+  const png = await sharp({create:{width:2400,height:1500,channels:3,background:"#59745a"}}).png().toBuffer();
   const asset = await uploadFile(a.cookie, png);
   assert(asset.thumbnailUrl, "Image upload must generate a preview");
   const thumb = await fetch(base + asset.thumbnailUrl,{headers:{Cookie:a.cookie}});
@@ -229,9 +229,59 @@ try {
   const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
   assert(thumbBuffer.length < png.length);
   const thumbInfo = await sharp(thumbBuffer).metadata();assert.equal(thumbInfo.width,960);assert.equal(thumbInfo.height,600);passed++;
+
+  const displayUrl = asset.url + "?variant=display";
+  const beforeDisplay = await readdir(env.STORAGE_LOCAL_DIR, { recursive: true });
+  const firstDisplays = await Promise.all(Array.from({ length: 4 }, () =>
+    fetch(base + displayUrl, { headers: { Cookie: a.cookie } })));
+  for (const response of firstDisplays) assert.equal(response.status, 200);
+  const displayBuffers = await Promise.all(firstDisplays.map(async response => Buffer.from(await response.arrayBuffer())));
+  for (const buffer of displayBuffers) assert.deepEqual(buffer, displayBuffers[0]);
+  const displayInfo = await sharp(displayBuffers[0]).metadata();
+  assert.equal(displayInfo.width, 1920);
+  assert.equal(displayInfo.height, 1200);
+  const afterDisplay = await readdir(env.STORAGE_LOCAL_DIR, { recursive: true });
+  assert.equal(afterDisplay.filter(file => !beforeDisplay.includes(file)).length, 1, "Concurrent viewers must share one derivative");
+  const displayEtag = firstDisplays[0].headers.get("etag");
+  assert(displayEtag);
+  assert.match(firstDisplays[0].headers.get("cache-control"), /private.*no-cache.*must-revalidate/);
+  assert(firstDisplays[0].headers.get("vary").split(",").some(value => value.trim() === "Cookie"));
+  const cached = await fetch(base + displayUrl, { headers: { Cookie: a.cookie, "If-None-Match": displayEtag } });
+  assert.equal(cached.status, 304);
+  assert.equal((await cached.arrayBuffer()).byteLength, 0);
+  const cachedWeak = await fetch(base + displayUrl, { headers: { Cookie: a.cookie, "If-None-Match": 'W/' + displayEtag } });
+  assert.equal(cachedWeak.status, 304);
+  const displayHead = await fetch(base + displayUrl, { method: "HEAD", headers: { Cookie: a.cookie } });
+  assert.equal(displayHead.status, 200);
+  assert.equal(Number(displayHead.headers.get("x-file-size")), displayBuffers[0].length);
+  if (displayHead.headers.has("content-length")) assert.equal(Number(displayHead.headers.get("content-length")), displayBuffers[0].length);
+  assert.equal((await displayHead.arrayBuffer()).byteLength, 0);
+  const displayRange = await fetch(base + displayUrl, { headers: { Cookie: a.cookie, Range: "bytes=2-9" } });
+  assert.equal(displayRange.status, 206);
+  assert.deepEqual(Buffer.from(await displayRange.arrayBuffer()), displayBuffers[0].subarray(2, 10));
+  passed += 7;
+  await call(displayUrl, { status: 404, headers: { "If-None-Match": displayEtag } });
+  await call(displayUrl, { cookie: b.cookie, status: 404, headers: { "If-None-Match": displayEtag } });
+  await call(asset.url + "?variant=unknown", { cookie: a.cookie, status: 400 });
+  // Missing derivatives self-heal without changing or serving the original.
+  const previewDb = new DatabaseSync(env.DATABASE_URL.slice(5));
+  const savedDisplay = previewDb.prepare("SELECT key, coverKey FROM Asset WHERE id=?").get(asset.id);
+  await rm(path.join(env.STORAGE_LOCAL_DIR, savedDisplay.coverKey));
+  const repaired = await fetch(base + displayUrl, { headers: { Cookie: a.cookie, "If-None-Match": displayEtag } });
+  assert.equal(repaired.status, 200);
+  assert.notEqual(repaired.headers.get("etag"), displayEtag);
+  assert.deepEqual(Buffer.from(await repaired.arrayBuffer()), displayBuffers[0]);
+  const repairedRow = previewDb.prepare("SELECT key, coverKey FROM Asset WHERE id=?").get(asset.id);
+  assert.equal(repairedRow.key, savedDisplay.key);
+  assert.notEqual(repairedRow.coverKey, savedDisplay.coverKey);
+  await access(path.join(env.STORAGE_LOCAL_DIR, savedDisplay.key));
+  previewDb.close();
+  passed++;
+
   await call(asset.thumbnailUrl,{status:404});
   await call(asset.thumbnailUrl,{cookie:b.cookie,status:404});
   const video = await uploadFile(a.cookie,Buffer.from("1a45dfa300000000000000000000000000000000000000000000000000000000","hex"),"video/webm");
+  await call(video.url+"?variant=display", {cookie:a.cookie,status:400});
   const posterResponse = await fetch(base+video.url+"/preview",{method:"POST",headers:{Cookie:a.cookie,Origin:base,"Content-Type":"image/png"},body:png});
   assert.equal(posterResponse.status,200);const poster=await posterResponse.json();assert(poster.thumbnailUrl);passed++;
   await call(video.url+"/preview",{method:"POST",cookie:b.cookie,body:{},status:404});
@@ -313,6 +363,25 @@ try {
     })
   ).data;
   assert.equal(updated.title, "愿意分享的一天");
+
+  const publicDisplay = await fetch(base + displayUrl);
+  assert.equal(publicDisplay.status, 200);
+  const publicEtag = publicDisplay.headers.get("etag");
+  await publicDisplay.arrayBuffer();
+  const publicCached = await fetch(base + displayUrl, { headers: { "If-None-Match": publicEtag } });
+  assert.equal(publicCached.status, 304);
+  passed += 2;
+  const nowPrivate = (await call("/api/memories/" + memory.id, {
+    cookie: a.cookie, method: "PATCH",
+    body: memoryInput({ visibility: "private", assetIds: [asset.id], updatedAt: updated.updatedAt }),
+  })).data;
+  await call(displayUrl, { status: 404, headers: { "If-None-Match": publicEtag } });
+  await call(displayUrl, { cookie: b.cookie, status: 404, headers: { "If-None-Match": publicEtag } });
+  await call("/api/memories/" + memory.id, {
+    cookie: a.cookie, method: "PATCH",
+    body: memoryInput({ title: updated.title, visibility: "public", assetIds: [asset.id], tags: ["散步"], location: "公园", updatedAt: nowPrivate.updatedAt }),
+  });
+
   const publicThumb = await fetch(base+asset.thumbnailUrl);assert.equal(publicThumb.status,200);await publicThumb.arrayBuffer();passed++;
 
   assert.equal(
@@ -488,6 +557,8 @@ try {
   await call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", body: { confirmation: "EMPTY_TRASH", before: new Date(Date.now() + 60000).toISOString() }, status: 400 });
   await call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", headers: { Origin: "https://evil.example" }, body: {}, status: 403 });
   const purgeAsset = await uploadFile(a.cookie, png);
+  const purgeDisplay = await fetch(base + purgeAsset.url + "?variant=display", {headers:{Cookie:a.cookie}});
+  assert.equal(purgeDisplay.status,200);await purgeDisplay.arrayBuffer();passed++;
   const purgeIds = [];
   for (let i = 0; i < 14; i++) {
     const entry = (await call("/api/memories", { cookie: a.cookie, method: "POST", status: 201, body: memoryInput({ title: "清空测试 " + i, assetIds: i === 0 ? [purgeAsset.id] : [] }) })).data;
@@ -502,12 +573,12 @@ try {
   const laterTrash = (await call("/api/memories", { cookie: a.cookie, method: "POST", status: 201, body: memoryInput({ title: "确认窗口打开后才删除" }) })).data;
   await call("/api/memories/" + laterTrash.id, { cookie: a.cookie, method: "DELETE" });
   const inspection = new DatabaseSync(env.DATABASE_URL.slice(5));
-  const purgeRow = inspection.prepare("SELECT key, thumbnailKey FROM Asset WHERE id=?").get(purgeAsset.id);
+  const purgeRow = inspection.prepare("SELECT key, thumbnailKey, coverKey FROM Asset WHERE id=?").get(purgeAsset.id);
   const purged = (await call("/api/memories/trash?type=text&q=ignored", { cookie: a.cookie, method: "DELETE", body: { confirmation: "EMPTY_TRASH", before: snapshot.before } })).data;
   assert.equal(purged.deleted, 13);
   assert.equal(purged.pending, 0);
   assert.equal(inspection.prepare("SELECT count(*) AS n FROM Asset WHERE id=?").get(purgeAsset.id).n, 0);
-  for (const key of [purgeRow.key, purgeRow.thumbnailKey].filter(Boolean)) await assert.rejects(access(path.join(env.STORAGE_LOCAL_DIR, key)));
+  for (const key of [purgeRow.key, purgeRow.thumbnailKey, purgeRow.coverKey].filter(Boolean)) await assert.rejects(access(path.join(env.STORAGE_LOCAL_DIR, key)));
   await call("/api/assets/" + purgeAsset.id, { cookie: a.cookie, status: 404 });
   await call("/api/memories/" + purgeIds[0], { cookie: a.cookie, status: 404 });
   await call("/api/memories/" + purgeIds[0], { cookie: a.cookie, method: "PATCH", body: { action: "restore" }, status: 404 });
@@ -554,7 +625,7 @@ try {
   console.log(
     "PASS: " +
       passed +
-      " API checks (auth, ownership, privacy, uploads, quota races, Range, edits, trash, filters and pagination).",
+      " API checks (auth, ownership, privacy, uploads, quota races, HD previews, cache privacy, Range, edits, trash, filters and pagination).",
   );
 } catch (error) {
   console.error(output);

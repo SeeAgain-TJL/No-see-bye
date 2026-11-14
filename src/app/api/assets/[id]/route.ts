@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { optionalUser } from "@/core/auth";
 import { prisma } from "@/core/prisma";
@@ -7,6 +8,34 @@ import { imagePreview } from "@/core/previews";
 import { apiError, HttpError } from "@/core/http";
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
+// Deduplicate first-view conversions; the database comparison also protects multiple workers.
+const pending = new Map<string, Promise<string>>();
+async function derivative(id: string, key: string, field: "thumbnailKey" | "coverKey", previous: string | null) {
+  const lock = id + ":" + field;
+  const existing = pending.get(lock);
+  if (existing) return existing;
+  const work = (async () => {
+    const storage = getStorage();
+    const generated = await imagePreview(key, field === "coverKey");
+    if (!generated) throw new HttpError(503, "预览暂不可用，请稍后重试");
+    try {
+      const saved = await prisma.asset.updateMany({
+        where: { id, [field]: previous, status: "ready" },
+        data: { [field]: generated.thumbnailKey },
+      });
+      if (saved.count) return generated.thumbnailKey;
+      await storage.delete(generated.thumbnailKey);
+      const current = await prisma.asset.findUnique({ where: { id } });
+      if (!current || current.status !== "ready" || !current[field]) throw new HttpError(404, "找不到该媒体");
+      return current[field];
+    } catch (error) {
+      await storage.delete(generated.thumbnailKey).catch(() => {});
+      throw error;
+    }
+  })();
+  pending.set(lock, work);
+  try { return await work; } finally { pending.delete(lock); }
+}
 async function serve(req: NextRequest, ctx: Context, head: boolean) {
   try {
     const { id } = await ctx.params;
@@ -26,19 +55,17 @@ async function serve(req: NextRequest, ctx: Context, head: boolean) {
     const storage = getStorage();
     if (asset.driver !== storage.driver)
       throw new HttpError(503, "该媒体使用的存储驱动暂未配置");
-    const preview = req.nextUrl.searchParams.get("variant") === "preview";
+    const variant = req.nextUrl.searchParams.get("variant");
+    if (variant && !["preview", "display"].includes(variant)) throw new HttpError(400, "无效的图片规格");
+    const preview = variant === "preview" || variant === "display";
     let mediaKey = asset.key;
     if (preview) {
-      if (!asset.thumbnailKey && asset.mime.startsWith("image/")) {
-        const generated = await imagePreview(asset.key).catch(() => null);
-        if (generated) {
-          const saved = await prisma.asset.updateMany({where:{id:asset.id,thumbnailKey:null,status:"ready"},data:generated});
-          if (saved.count) asset.thumbnailKey=generated.thumbnailKey;
-          else { await storage.delete(generated.thumbnailKey);asset.thumbnailKey=(await prisma.asset.findUnique({where:{id:asset.id}}))?.thumbnailKey || null; }
-        }
-      }
-      if(asset.thumbnailKey)mediaKey=asset.thumbnailKey;
-      else if(asset.mime.startsWith("video/"))throw new HttpError(404,"暂无视频封面");
+      if (variant === "display" && !asset.mime.startsWith("image/")) throw new HttpError(400, "该规格仅适用于图片");
+      const field = variant === "display" ? "coverKey" : "thumbnailKey";
+      const savedKey = asset[field];
+      if (savedKey && await storage.size(savedKey)) mediaKey = savedKey;
+      else if (asset.mime.startsWith("image/")) mediaKey = await derivative(asset.id, asset.key, field, savedKey);
+      else throw new HttpError(404, "暂无视频封面");
     }
     const isPreview = mediaKey !== asset.key;
     const size = await storage.size(mediaKey);
@@ -48,11 +75,20 @@ async function serve(req: NextRequest, ctx: Context, head: boolean) {
       "Content-Length": String(size),
       "X-File-Size": String(size),
       "Accept-Ranges": "bytes",
-      "Cache-Control": "private, no-store",
+      "Cache-Control": isPreview ? "private, no-cache, max-age=0, must-revalidate" : "private, no-store",
       Vary: "Cookie",
       "X-Content-Type-Options": "nosniff",
       "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(isPreview ? "preview.webp" : asset.filename)}`,
     });
+    if (isPreview) {
+      const etag = '"' + createHash("sha256").update(mediaKey + ":" + size).digest("hex") + '"';
+      headers.set("ETag", etag);
+      // Authentication and current visibility are checked above, even for a cached image.
+      if (!req.headers.has("range") && req.headers.get("if-none-match")?.split(",").some(value => value.trim().replace(/^W\//, "") === etag || value.trim() === "*")) {
+        headers.delete("Content-Length");
+        return new NextResponse(null, { status: 304, headers });
+      }
+    }
     let range: { start: number; end: number } | undefined;
     const requested = head ? null : req.headers.get("range");
     if (requested) {

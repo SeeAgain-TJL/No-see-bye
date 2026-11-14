@@ -6,6 +6,7 @@ import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
+import { PhotoWall } from "./photo-wall";
 import { MediaGrid } from "./media";
 import { EmptyTrash } from "./empty-trash";
 export function MemoryFeed({ trash = false }: { trash?: boolean }) {
@@ -18,7 +19,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       ? "public"
       : "mine";
   const type = params.get("type") || "all";
-  const [view, setView] = useState("grid");
+  const view = ["gallery", "timeline"].includes(params.get("view") || "") ? params.get("view")! : "grid";
   const [result, setResult] = useState<{
     key: string;
     data?: MemoryList;
@@ -31,6 +32,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const query = new URLSearchParams(params.toString());
   query.set("scope", scope);
   query.delete("cursor");
+  query.delete("view");
   const url = `/api/memories?${query.toString()}`;
   const key = `${url}:${user?.id || "guest"}:${refreshKey}`;
   useEffect(() => {
@@ -204,13 +206,14 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               >
                 <Icon name="pin" size={18} />
               </button>
-              <div className="view-switch">
+              <div className="view-switch" role="group" aria-label="浏览方式">
+                <button type="button" aria-label="照片墙" title="照片墙" aria-pressed={view === "gallery"} className={view === "gallery" ? "selected" : ""} onClick={() => filter("view", "gallery")}><Icon name="image" size={17} /></button>
                 <button
                   type="button"
                   aria-label="卡片视图"
                   aria-pressed={view === "grid"}
                   className={view === "grid" ? "selected" : ""}
-                  onClick={() => setView("grid")}
+                  onClick={() => filter("view", "")}
                 >
                   <Icon name="grid" size={16} />
                 </button>
@@ -219,7 +222,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                   aria-label="时间线视图"
                   aria-pressed={view === "timeline"}
                   className={view === "timeline" ? "selected" : ""}
-                  onClick={() => setView("timeline")}
+                  onClick={() => filter("view", "timeline")}
                 >
                   <Icon name="list" size={17} />
                 </button>
@@ -263,7 +266,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               params.get("pinned")) && (
               <Link
                 className="text-link small"
-                href={trash ? "/memories/trash" : `/memories?scope=${scope}`}
+                href={trash ? "/memories/trash" : `/memories?scope=${scope}${view === "grid" ? "" : "&view=" + view}`}
               >
                 清除筛选
               </Link>
@@ -313,7 +316,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 </Link>
               )}
             </div>
-          ) : (
+          ) : view === "gallery" ? <PhotoWall memories={data.items} /> : (
             <div className={`memory-feed ${view}`}>
               {data.items.map((m, i) => {
                 const month = dateText(m.happenedAt, {

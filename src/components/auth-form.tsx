@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useApp } from "./providers";
 import { api } from "@/lib/client";
 import { Icon } from "./icons";
-import { MemoryScene } from "./memory-scene";
+import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
@@ -40,18 +40,19 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       </Link>
       <div className="auth-card">
         <div className="auth-story">
-          <MemoryScene />
+          <DecodedImage className="auth-landscape" src="/visuals/lake-light.webp" alt="" loading="eager" fetchPriority="high" />
+          <div className="auth-landscape-shade" />
           <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
-          <div className="auth-story-copy"><span className="auth-kicker">LESS SCROLLING. MORE LIVING.</span><h2>你的日常，<br /><em>自带高光。</em><Icon name="spark" size={36} /></h2></div>
-          <span className="auth-edition">NO SEE BYE / 01</span>
+          <div className="auth-story-copy"><span className="auth-kicker">A PERSONAL ARCHIVE</span><h2 lang="en">For the moments<br /><em>you keep.</em></h2><p lang="en">A place for life, as it happens.</p></div>
+          <span className="auth-edition">EST. 2026 — NO SEE BYE</span>
         </div>
         <form className="auth-form" onSubmit={submit}>
-          <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "NICE TO MEET YOU" : "HEY, YOU’RE BACK"}</span>
-          <h1>{register ? "开启你的主场" : "嗨，又见面啦！"}</h1>
+          <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "YOUR STORY STARTS HERE" : "YOUR OWN LITTLE CORNER"}</span>
+          <h1>{register ? "Make it yours." : "Welcome back."}</h1>
           <p className="muted">
             {register
-              ? "新鲜日常，从这一条开始。"
-              : "今天有什么新鲜事？登录聊聊。"}
+              ? "为照片、影像和文字，留一个自己的空间。"
+              : "回来看看，也留下一点新的日常。"}
           </p>
           {register ? (
             <>

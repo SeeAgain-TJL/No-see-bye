@@ -58,6 +58,7 @@ export default function Home() {
           <div><span className="summary-label"><Icon name="spark" size={17} />{user ? "生活持续更新中" : "每种日常，都有意思"}</span>{overview?.key === overviewKey && overview.data?.stats && <span className="summary-count"><strong>{overview.data?.stats.total}</strong> 条记录<span className="summary-divider" /><strong>{overview.data?.stats.photos}</strong> 张照片<span className="summary-divider" /><strong>{overview.data?.stats.videos}</strong> 个视频</span>}</div>
           <Link href="/memories?scope=public">发现日常<Icon name="arrow" size={16} /></Link>
         </div>
+        <div className="archive-shortcuts" aria-label="快捷浏览"><Link href={target + (target.includes("?") ? "&" : "?") + "view=gallery"}><Icon name="image" size={18} /><span>照片墙<small>See the bigger picture</small></span><Icon name="arrow" size={16} /></Link>{user && <Link href="/memories?pinned=1"><Icon name="pin" size={18} /><span>我的收藏<small>The ones you love</small></span><Icon name="arrow" size={16} /></Link>}</div>
         <section className="journal-collection" aria-labelledby="collection-title">
           <div className="collection-top">
             <div className="collection-heading"><h2 id="collection-title">{user ? "最近记录" : "最近分享"}<span>NEW</span></h2><Link href={target}>查看全部<Icon name="arrow" size={16} /></Link></div>
