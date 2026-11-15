@@ -1,0 +1,141 @@
+/* 主题系统基础变量 */
+:root {
+  --page: #f7f3f0;
+  --surface: #fffbf7;
+  --surface-dim: #f5efe8;
+  --ink: #2b2528;
+  --ink-muted: #76696f;
+  --line: #e8dfd8;
+  --accent: #8b7a9d;
+  --accent-soft: #ede6f3;
+  --warm: #d4906e;
+  --warm-soft: #f8ead8;
+}
+
+[data-theme="night"] {
+  --page: #0f1419;
+  --surface: #1a1f26;
+  --surface-dim: #141921;
+  --ink: #e8e6ed;
+  --ink-muted: #9d98a3;
+  --line: #2d3340;
+  --accent: #a78ec7;
+  --accent-soft: #2b2538;
+  --warm: #e8a87c;
+  --warm-soft: #2e2419;
+}
+
+[data-theme="sea"] {
+  --page: #f4f7f9;
+  --surface: #ffffff;
+  --surface-dim: #edf2f5;
+  --ink: #1f3847;
+  --ink-muted: #6b8290;
+  --line: #d8e4eb;
+  --accent: #4a7c9e;
+  --accent-soft: #e7f1f7;
+  --warm: #d97a68;
+  --warm-soft: #fceee8;
+}
+
+[data-theme="film"] {
+  --page: #f0ebe3;
+  --surface: #faf7f0;
+  --surface-dim: #ebe4d8;
+  --ink: #3d2f28;
+  --ink-muted: #78675d;
+  --line: #dcd1c3;
+  --accent: #c4604a;
+  --accent-soft: #f8e8e0;
+  --warm: #b8905f;
+  --warm-soft: #f5ede0;
+}
+
+/* 主题切换动画 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+}
+
+/* 主题切换器样式 */
+.theme-switcher {
+  position: relative;
+}
+
+.theme-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-trigger:hover {
+  background: var(--surface-dim);
+  color: var(--ink);
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 140px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.theme-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.theme-menu button:hover {
+  background: var(--surface-dim);
+}
+
+.theme-menu button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.theme-swatch {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+}
+
+[data-theme-preview="dusk"] { background: linear-gradient(135deg, #d4906e, #8b7a9d); }
+[data-theme-preview="night"] { background: linear-gradient(135deg, #1a1f26, #a78ec7); }
+[data-theme-preview="sea"] { background: linear-gradient(135deg, #4a7c9e, #d97a68); }
+[data-theme-preview="film"] { background: linear-gradient(135deg, #c4604a, #b8905f); }
+
+/* 响应式 */
+@media (max-width: 760px) {
+  .theme-menu {
+    right: -8px;
+  }
+}
