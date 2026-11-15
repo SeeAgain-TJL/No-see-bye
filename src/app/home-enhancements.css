@@ -10,9 +10,6 @@
 /* Animate the existing image zoom once, without also scaling its wrapper. */
 .collection-card .media-tile .decoded-image > img { transition: opacity .24s ease, transform .45s cubic-bezier(.4, 0, .2, 1); }
 
-/* Preserve the absolute centering while making the selected star more legible. */
-.memory-star[aria-pressed="true"] > span { transform: scale(1.12); }
-
 /* The menu arrives without moving the surrounding navigation. */
 .theme-menu { animation: theme-menu-arrive .18s cubic-bezier(.4, 0, .2, 1) both; }
 @keyframes theme-menu-arrive { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
@@ -21,7 +18,7 @@
 .theme-menu button:hover .theme-swatch { transform: scale(1.06); }
 
 /* Keyboard users get a stronger path through the new controls. */
-.memory-star:focus-visible, .theme-trigger:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.recent-entry-title:focus-visible, .theme-trigger:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .studio-text-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 2px; }
 
 @media (hover: none) {
@@ -35,8 +32,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .studio-text-link > svg, .collection-card .media-tile .decoded-image > img, .memory-star > span, .theme-current-swatch, .theme-swatch { transition: none; }
+  .studio-text-link > svg, .collection-card .media-tile .decoded-image > img, .theme-current-swatch, .theme-swatch { transition: none; }
   .theme-menu { animation: none; }
-  .studio-text-link:hover > svg, .collection-card:hover .media-tile img, .memory-star[aria-pressed="true"] > span, .theme-menu button:hover .theme-swatch { transform: none; }
+  .studio-text-link:hover > svg, .collection-card:hover .media-tile img, .theme-menu button:hover .theme-swatch { transform: none; }
   .theme-trigger:hover .theme-current-swatch { transform: rotate(-25deg); }
 }

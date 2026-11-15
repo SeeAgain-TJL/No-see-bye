@@ -1,34 +1,28 @@
 "use client";
-import { moodLabel } from "./moods";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { dateText } from "@/lib/client";
-import type { Memory } from "./types";
+import { moodLabel } from "./moods";
 import { MediaGrid } from "./media";
+import type { Memory } from "./types";
 
-export function CollectionCard({ memory, index = 0 }: { memory: Memory; index?: number }) {
+export function CollectionCard({ memory, featured = false }: { memory: Memory; featured?: boolean }) {
   const hasMedia = memory.assets.length > 0;
-  const hasVideo = memory.assets.some((a) => a.mime.startsWith("video/"));
   const href = "/memories/" + memory.id;
-  return (
-    <article onPointerMove={event => { if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; const rect = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty("--mouse-x", (event.clientX - rect.left) + "px"); event.currentTarget.style.setProperty("--mouse-y", (event.clientY - rect.top) + "px"); }} className={"collection-card tone-" + (index % 3) + " " + (hasMedia ? "collection-visual" : "collection-note")}>
-      <div className="collection-cover"><span className="collection-sticker" aria-hidden="true">{hasMedia ? hasVideo ? "PLAY" : "SNAP" : "MOOD"}<Icon name={hasVideo ? "video" : "spark"} size={13} /></span>
-      {hasMedia ? <MediaGrid assets={memory.assets} compact /> : (
-        <Link href={href} className="collection-note-body" aria-label={"阅读：" + (memory.title || "日常随记")}>
-          <span className="note-category"><Icon name="edit" size={15} />随便说说</span>
-          <p>{memory.content || memory.title || "日常随记"}</p>
-          <span className="note-rule" aria-hidden="true">Aa<span>✳</span></span>
-        </Link>
-      )}</div>
-      <div className="collection-info">
-        <div className="collection-dateline">
-          <time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: "long", day: "numeric" })}</time>
-          <span><Icon name={memory.visibility === "public" ? "globe" : "lock"} size={12} />{memory.visibility === "public" ? "公开" : "私密"}</span>
-        </div>
-        <Link href={href} className="collection-title"><h3>{memory.title || "日常随记"}</h3><Icon name="arrow" size={18} /></Link>
-        {hasMedia && memory.content && <p className="collection-excerpt">{memory.content}</p>}
-        <div className="collection-caption"><span>{memory.location || moodLabel(memory.mood) || (hasMedia ? (hasVideo ? "按下播放，快乐回放" : "随手一拍") : "今日碎碎念")}</span><span>{hasMedia ? memory.assets.length + " 个附件" : (memory.content?.length || 0) + " 字"}</span></div>
+  const context = [memory.location, moodLabel(memory.mood)].filter(Boolean).join(" · ");
+  return <article className={"recent-entry" + (featured ? " recent-entry-featured" : "") + (!hasMedia ? " recent-entry-note" : "")}>
+    {hasMedia && <div className="recent-entry-cover"><MediaGrid assets={memory.assets} compact /></div>}
+    <div className="recent-entry-info">
+      <div className="recent-entry-meta">
+        <time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { year: "numeric", month: "long", day: "numeric" })}</time>
+        <span><Icon name={memory.visibility === "public" ? "globe" : "lock"} size={12} />{memory.visibility === "public" ? "公开" : "仅自己"}</span>
       </div>
-    </article>
-  );
+      <Link href={href} className="recent-entry-title"><h3>{memory.title || "日常随记"}</h3></Link>
+      {memory.content && <p className="recent-entry-excerpt">{memory.content}</p>}
+      <div className="recent-entry-footer">
+        <span className="recent-entry-context">{context || (hasMedia ? "影像日记" : "文字日记")}</span>
+        <Link href={href} className="studio-text-link" aria-label={"翻开这一天：" + (memory.title || "日常随记")}>翻开这一天<Icon name="arrow" size={15} /></Link>
+      </div>
+    </div>
+  </article>;
 }
