@@ -40,9 +40,18 @@ const executable = process.platform === "win32" ? "node.exe" : "node";
 await cp(process.execPath, path.join(release, "runtime", executable));
 await chmod(path.join(release, "runtime", executable), 0o755);
 // Ship the license for the exact bundled Node runtime, including third-party notices.
-const licenseResponse = await fetch("https://raw.githubusercontent.com/nodejs/node/v" + process.versions.node + "/LICENSE", { signal: AbortSignal.timeout(30_000) });
-if (!licenseResponse.ok) throw new Error("Cannot fetch bundled Node license: " + licenseResponse.status);
-await writeFile(path.join(release, "runtime", "LICENSE"), await licenseResponse.text());
+let runtimeLicense;
+try {
+  runtimeLicense = await readFile(path.join(path.dirname(process.execPath), "LICENSE"), "utf8");
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+  const licenseResponse = await fetch("https://raw.githubusercontent.com/nodejs/node/v" + process.versions.node + "/LICENSE", { signal: AbortSignal.timeout(30_000) });
+  if (!licenseResponse.ok) throw new Error("Cannot fetch bundled Node license: " + licenseResponse.status);
+  runtimeLicense = await licenseResponse.text();
+}
+if (!runtimeLicense.includes("Node.js") || !runtimeLicense.includes("Permission is hereby granted"))
+  throw new Error("Invalid bundled Node license");
+await writeFile(path.join(release, "runtime", "LICENSE"), runtimeLicense);
 const git = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" });
 const manifest = {
   application: "no-see-bye", commit: git.status === 0 ? git.stdout.trim() : null,
