@@ -9,7 +9,7 @@
 .hero-footnote { margin-top: 28px; line-height: 1.8; }
 .studio-hero .daydream { min-height: 430px; padding: 38px 35px 125px 15px; }
 .studio-hero .daydream-postcard { max-width: 420px; position: relative; }
-.studio-hero .daydream-postcard::before { content: ""; position: absolute; inset: 4px; border: 1px solid var(--line); background: var(--surface); transform: rotate(8deg); z-index: -1; border-radius: 4px; }
+.studio-hero .daydream-postcard::before { content: ""; position: absolute; inset: 4px; border: 1px solid #d4c7c8; background: #fcf5e9; transform: rotate(8deg); z-index: -1; border-radius: 4px; }
 .studio-hero .daydream-orbit { width: 320px; height: 320px; top: 35px; right: 45px; }
 .studio-hero .daydream-note { bottom: 120px; right: 22px; }
 .studio-hero .daydream-spark { top: 22px; right: 29px; }
