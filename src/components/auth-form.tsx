@@ -13,6 +13,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const { refresh } = useApp();
   const [error, setError] = useState("");
+  const [siteOrigin, setSiteOrigin] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [registration, setRegistration] = useState<{ credentials: RegistrationCredentials; challenge: RegistrationChallenge } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +28,15 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     if (new URLSearchParams(window.location.search).get("error"))
       window.setTimeout(() => setError("第三方登录没有完成，请重新尝试"), 0);
   }, []);
+  function handleError(err: unknown) {
+    setError(err instanceof Error ? err.message : "暂时无法完成，请稍后重试");
+    if (err instanceof ApiError && err.status === 403 && err.siteOrigin) {
+      try {
+        const site = new URL(err.siteOrigin);
+        if (["http:", "https:"].includes(site.protocol)) setSiteOrigin(site.origin);
+      } catch { /* Keep the original error if configuration is unavailable. */ }
+    }
+  }
   async function finish() {
     setRegistration(null);
     await refresh().catch(() => {});
@@ -38,6 +48,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     if (busy || registration) return;
     const fields = Object.fromEntries(new FormData(e.currentTarget));
     setError("");
+    setSiteOrigin(null);
     if (register) {
       const result = registrationCredentials.safeParse(fields);
       if (!result.success) {
@@ -50,7 +61,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       try {
         const challenge = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(result.data) });
         setRegistration({ credentials: result.data, challenge });
-      } catch (err) { setError((err as Error).message); }
+      } catch (err) { handleError(err); }
       finally { setBusy(false); }
       return;
     }
@@ -58,7 +69,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     try {
       await api("/api/auth/login", { method: "POST", body: JSON.stringify(fields) });
       await finish();
-    } catch (err) { setError((err as Error).message); }
+    } catch (err) { handleError(err); }
     finally { setBusy(false); }
   }
   return (
@@ -140,6 +151,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           {error && (
             <div className="notice error" role="alert">
               {error}
+              {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
             </div>
           )}
           <button className="button wide" disabled={busy || registration !== null}>

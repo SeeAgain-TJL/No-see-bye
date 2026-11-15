@@ -272,3 +272,5 @@ body::before,body::after { opacity:.09; animation:none; }
 @media(prefers-reduced-motion:reduce) { .mood-option { transition:none; } }
 
 .geodata-credit { color:#737f8d; font-size:9px; text-decoration:underline; text-underline-offset:2px; }
+
+.origin-recovery { display: flex; align-items: center; gap: 6px; width: fit-content; min-height: 44px; margin-top: 6px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }

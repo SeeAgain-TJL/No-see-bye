@@ -3,6 +3,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public siteOrigin?: string,
   ) {
     super(message);
   }
@@ -25,6 +26,7 @@ export async function api<T>(
     throw new ApiError(
       data?.error || "网络有点忙，请稍后再试",
       response.status,
+      data?.siteOrigin,
     );
   return data as T;
 }

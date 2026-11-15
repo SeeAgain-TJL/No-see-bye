@@ -191,6 +191,22 @@ try {
     assert.equal((await fetch(base + "/window.svg")).status, 200);
     passed += 3;
   }
+  // Phones often reopen an older IP/port bookmark. Normalize documents before
+  // credentials are entered; never redirect a mutation with its password body.
+  for (const pathname of ["/login?from=phone", "/register"]) {
+    const redirected = await fetch("http://127.0.0.1:" + port + pathname, { redirect: "manual" });
+    assert.equal(redirected.status, 307, pathname);
+    assert.equal(redirected.headers.get("location"), base + pathname);
+    assert.match(redirected.headers.get("cache-control"), /no-store/);
+    passed++;
+  }
+  const canonical = await fetch(base + "/login", { redirect: "manual" });
+  assert.equal(canonical.status, 200, "Canonical login must not loop");
+  const hostileHost = await fetch("http://127.0.0.1:" + port + "/login?next=https%3A%2F%2Fevil.example", {
+    headers: { "X-Forwarded-Host": "evil.example" }, redirect: "manual",
+  });
+  assert.equal(new URL(hostileHost.headers.get("location")).origin, base);
+  passed += 2;
   const a = await call("/api/auth/register", {
     method: "POST",
     body: {
@@ -238,6 +254,26 @@ try {
   await call("/api/auth/login", {
     method: "POST",
     body: { emailOrUsername: "PERSON_A", password: "IndependentPass123" },
+  });
+  const mobileLogin = await call("/api/auth/login", {
+    method: "POST", body: { emailOrUsername: "person_a", password: "IndependentPass123" },
+    headers: { "Sec-Fetch-Site": "same-origin", "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" },
+  });
+  assert(mobileLogin.cookie);
+  for (const session of [a.cookie, mobileLogin.cookie]) {
+    const current = await call("/api/auth/me", { cookie: session });
+    assert.equal(current.data.user.id, a.data.user.id, "Both device sessions must remain valid");
+  }
+  for (const origin of ["https://evil.example", "null", "http://localhost:9999", base + "/login", "ftp://localhost:" + port]) {
+    const rejected = await call("/api/auth/login", {
+      method: "POST", body: { emailOrUsername: "person_a", password: "IndependentPass123" },
+      headers: { Origin: origin }, status: 403,
+    });
+    assert.equal(rejected.data.siteOrigin, base, "Origin rejection must offer a trusted recovery entrance");
+  }
+  for (const origin of [base, ""]) await call("/api/auth/login", {
+    method: "POST", body: { emailOrUsername: "person_a", password: "IndependentPass123" },
+    headers: { Origin: origin, "Sec-Fetch-Site": "cross-site" }, status: 403,
   });
   await call("/api/auth/challenge", {
     method: "POST",
