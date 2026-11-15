@@ -1,57 +1,15 @@
-// 主题定义：四个主题的色彩变量
+// Color tokens live in themes.css; this list is shared by the UI and first-paint script.
 export const themes = {
-  dusk: {
-    label: '暮光',
-    '--page': '#f7f3f0',
-    '--surface': '#fffbf7',
-    '--surface-dim': '#f5efe8',
-    '--ink': '#2b2528',
-    '--ink-muted': '#76696f',
-    '--line': '#e8dfd8',
-    '--accent': '#8b7a9d',
-    '--accent-soft': '#ede6f3',
-    '--warm': '#d4906e',
-    '--warm-soft': '#f8ead8',
-  },
-  night: {
-    label: '夜航',
-    '--page': '#0f1419',
-    '--surface': '#1a1f26',
-    '--surface-dim': '#141921',
-    '--ink': '#e8e6ed',
-    '--ink-muted': '#9d98a3',
-    '--line': '#2d3340',
-    '--accent': '#a78ec7',
-    '--accent-soft': '#2b2538',
-    '--warm': '#e8a87c',
-    '--warm-soft': '#2e2419',
-  },
-  sea: {
-    label: '海盐',
-    '--page': '#f4f7f9',
-    '--surface': '#ffffff',
-    '--surface-dim': '#edf2f5',
-    '--ink': '#1f3847',
-    '--ink-muted': '#6b8290',
-    '--line': '#d8e4eb',
-    '--accent': '#4a7c9e',
-    '--accent-soft': '#e7f1f7',
-    '--warm': '#d97a68',
-    '--warm-soft': '#fceee8',
-  },
-  film: {
-    label: '胶片',
-    '--page': '#f0ebe3',
-    '--surface': '#faf7f0',
-    '--surface-dim': '#ebe4d8',
-    '--ink': '#3d2f28',
-    '--ink-muted': '#78675d',
-    '--line': '#dcd1c3',
-    '--accent': '#c4604a',
-    '--accent-soft': '#f8e8e0',
-    '--warm': '#b8905f',
-    '--warm-soft': '#f5ede0',
-  },
+  dusk: { label: "暮光", description: "杏色晚风，雾紫心事" },
+  sea: { label: "海盐", description: "海风吹过的一页" },
+  film: { label: "胶片", description: "把日子晒成暖色" },
+  night: { label: "夜航", description: "蓝灰夜色，一盏小灯" },
 } as const;
-
 export type ThemeName = keyof typeof themes;
+export const themeNames = Object.keys(themes) as ThemeName[];
+export const THEME_STORAGE_KEY = "theme";
+export function isTheme(value: string | null | undefined): value is ThemeName {
+  return themeNames.some(name => name === value);
+}
+// Static, allow-listed values only. Runs before the first body paint.
+export const themeInitScript = `(function(){try{var t=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});if(${JSON.stringify(themeNames)}.includes(t))document.documentElement.dataset.theme=t}catch(e){}})()`;

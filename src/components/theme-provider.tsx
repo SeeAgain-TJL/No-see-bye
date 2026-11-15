@@ -1,84 +1,92 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { themes, type ThemeName } from "@/lib/themes";
-
-const STORAGE_KEY = "theme";
-
-function isTheme(value: string | null | undefined): value is ThemeName {
-  return !!value && value in themes;
-}
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { isTheme, themes, themeNames, THEME_STORAGE_KEY, type ThemeName } from "@/lib/themes";
 
 function activeTheme(): ThemeName {
   const value = document.documentElement.dataset.theme;
   return isTheme(value) ? value : "dusk";
 }
+function subscribe(notify: () => void) {
+  const sync = (event: StorageEvent) => {
+    if (event.key !== THEME_STORAGE_KEY && event.key !== null) return;
+    document.documentElement.dataset.theme = isTheme(event.newValue) ? event.newValue : "dusk";
+    notify();
+  };
+  window.addEventListener("storage", sync);
+  window.addEventListener("nsb:theme", notify);
+  return () => { window.removeEventListener("storage", sync); window.removeEventListener("nsb:theme", notify); };
+}
+const serverTheme = (): ThemeName => "dusk";
 
 export function ThemeSwitcher() {
-  const [current, setCurrent] = useState<ThemeName>("dusk");
+  const current = useSyncExternalStore(subscribe, activeTheme, serverTheme);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
+  const trigger = useRef<HTMLButtonElement>(null);
+  const transition = useRef<ViewTransition | null>(null);
+  const menuId = useId();
   useEffect(() => {
     if (!open) return;
-    function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+    menuRef.current?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus();
+    function dismiss(event: PointerEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
     }
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("keydown", handleEscape);
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
   }, [open]);
 
-  function toggle() {
-    if (!open) setCurrent(activeTheme());
-    setOpen(!open);
-  }
-
   function switchTheme(name: ThemeName) {
-    setCurrent(name);
     setOpen(false);
-    try {
-      localStorage.setItem(STORAGE_KEY, name);
-    } catch {
-      /* storage unavailable: the theme still applies for this visit */
+    trigger.current?.focus();
+    if (name === current) {
+      try { localStorage.setItem(THEME_STORAGE_KEY, name); } catch { /* In-memory choice still works. */ }
+      return;
     }
     const apply = () => {
       document.documentElement.dataset.theme = name;
+      try { localStorage.setItem(THEME_STORAGE_KEY, name); } catch { /* In-memory choice still works. */ }
+      window.dispatchEvent(new Event("nsb:theme"));
     };
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (typeof document.startViewTransition === "function" && !reduced) document.startViewTransition(apply);
-    else apply();
+    transition.current?.skipTransition();
+    if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); return; }
+    const rect = trigger.current?.getBoundingClientRect();
+    const x = rect ? rect.left + rect.width / 2 : innerWidth / 2;
+    const y = rect ? rect.top + rect.height / 2 : 0;
+    const root = document.documentElement;
+    root.style.setProperty("--theme-x", `${x}px`);
+    root.style.setProperty("--theme-y", `${y}px`);
+    root.style.setProperty("--theme-radius", `${Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
+    root.setAttribute("data-theme-transition", "true");
+    const next = document.startViewTransition(apply);
+    transition.current = next;
+    void next.ready.catch(() => {});
+    void next.finished.catch(() => {}).finally(() => {
+      if (transition.current === next) { root.removeAttribute("data-theme-transition"); transition.current = null; }
+    });
   }
 
-  return (
-    <div className="theme-switcher" ref={menuRef}>
-      <button type="button" className="theme-trigger" onClick={toggle} aria-label="切换主题" aria-expanded={open}>
-        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="10" cy="10" r="4" />
-          <path d="M10 2v2m0 12v2M2 10h2m12 0h2m-2.8-5.2l-1.4 1.4m-9.6 9.6l-1.4 1.4m12-12l1.4 1.4m-9.6 9.6l1.4 1.4" />
-        </svg>
-      </button>
-      {open && (
-        <div className="theme-menu">
-          {(Object.keys(themes) as ThemeName[]).map((name) => (
-            <button
-              key={name}
-              type="button"
-              className={current === name ? "active" : ""}
-              aria-pressed={current === name}
-              onClick={() => switchTheme(name)}
-            >
-              <span className="theme-swatch" data-theme-preview={name} />
-              {themes[name].label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <div className="theme-switcher" ref={menuRef}
+    onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}
+    onKeyDown={event => {
+      if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); event.stopPropagation(); }
+      if (!open || !["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const options = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') || []);
+      const index = options.findIndex(option => option === document.activeElement);
+      const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+      options[next]?.focus();
+    }}>
+    <button ref={trigger} type="button" className="theme-trigger" onClick={() => setOpen(!open)} aria-label="切换主题" aria-haspopup="menu" aria-controls={open ? menuId : undefined} aria-expanded={open}
+      onKeyDown={event => { if (event.key === "ArrowDown" && !open) { event.preventDefault(); setOpen(true); } }}>
+      <span className="theme-current-swatch" aria-hidden="true" /><span className="theme-trigger-label">换个心情</span>
+    </button>
+    {open && <div id={menuId} className="theme-menu" role="menu" aria-label="选择主题">
+      <p>给今天换一种颜色</p>
+      {themeNames.map(name => <button key={name} type="button" role="menuitemradio" aria-checked={current === name} onClick={() => switchTheme(name)}>
+        <span className="theme-swatch" data-theme-preview={name} aria-hidden="true" />
+        <span><strong>{themes[name].label}</strong><small>{themes[name].description}</small></span>
+        <span className="theme-check" aria-hidden="true">{current === name ? "✓" : ""}</span>
+      </button>)}
+    </div>}
+  </div>;
 }

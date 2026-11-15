@@ -301,6 +301,8 @@ select:focus-visible {
   flex-direction: column;
 }
 .topbar {
+  position: relative;
+  z-index: 100;
   height: 79px;
   min-height: 79px;
   margin: 0 50px;

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { themeInitScript } from "@/lib/themes";
 import "./globals.css";
 import "./journal.css";
 import "./comfort.css";
 import "./studio.css";
+import "./themes.css";
+import "./home.css";
+import "./home-enhancements.css";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -24,7 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className={display.variable}>
+    <html lang="zh-CN" className={display.variable} data-theme="dusk" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body>
         <a className="skip-link" href="#main">
           跳到内容

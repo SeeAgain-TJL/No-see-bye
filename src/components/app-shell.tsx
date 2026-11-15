@@ -8,6 +8,7 @@ import { BrandMark } from "./brand-mark";
 import { Avatar } from "./avatar";
 import { api } from "@/lib/client";
 import { QuickSearch } from "./quick-search";
+import { ThemeSwitcher } from "./theme-provider";
 export function AppShell({children}:{children:React.ReactNode}) {
   return <Suspense fallback={<div className="loading-panel">加载中…</div>}><ShellContent>{children}</ShellContent></Suspense>;
 }
@@ -81,6 +82,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             <BrandMark />不说再见
           </Link>
           <div className="account">
+            <ThemeSwitcher />
             <QuickSearch />
             {loading ? (
               <span className="muted small">连接中…</span>

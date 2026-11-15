@@ -8,6 +8,7 @@ import { Daydream } from "@/components/daydream";
 import { CollectionCard } from "@/modules/memories/collection-card";
 import { QuickNote } from "@/modules/memories/quick-note";
 import { RevisitPanel } from "@/modules/memories/revisit-panel";
+import { MemorySky } from "@/modules/memories/memory-sky";
 import { api } from "@/lib/client";
 import type { MemoryList } from "@/modules/memories/types";
 
@@ -16,17 +17,28 @@ export default function Home() {
   const { user, loading } = useApp();
   const [kind, setKind] = useState("all");
   const [revision, setRevision] = useState(0);
-  const ownerKey = (user?.id || "guest") + ":" + kind + ":" + revision;
+  const ownerKey = (user?.id || "guest") + ":" + revision;
   const [response, setResponse] = useState<{ key: string; data?: MemoryList; error?: string } | null>(null);
+  const [filtered, setFiltered] = useState<{ key: string; data?: MemoryList; error?: string } | null>(null);
+  const filterKey = ownerKey + ":" + kind;
   useEffect(() => {
     if (loading) return;
     const abort = new AbortController();
-    api<MemoryList>("/api/memories?scope=" + (user ? "mine" : "public") + (kind === "all" ? "" : "&type=" + kind), { signal: abort.signal })
+    api<MemoryList>("/api/memories?scope=" + (user ? "mine" : "public"), { signal: abort.signal })
       .then(data => setResponse({ key: ownerKey, data }))
       .catch(error => { if (!abort.signal.aborted) setResponse({ key: ownerKey, error: error.message }); });
     return () => abort.abort();
-  }, [loading, user, kind, ownerKey]);
-  const current = response?.key === ownerKey ? response : null;
+  }, [loading, user, ownerKey]);
+  useEffect(() => {
+    if (loading || kind === "all") return;
+    const abort = new AbortController();
+    api<MemoryList>("/api/memories?scope=" + (user ? "mine" : "public") + "&type=" + kind, { signal: abort.signal })
+      .then(data => setFiltered({ key: filterKey, data }))
+      .catch(error => { if (!abort.signal.aborted) setFiltered({ key: filterKey, error: error.message }); });
+    return () => abort.abort();
+  }, [loading, user, kind, filterKey]);
+  const recent = response?.key === ownerKey ? response : null;
+  const current = kind === "all" ? recent : filtered?.key === filterKey ? filtered : null;
   const data = current?.data;
   const target = user ? "/memories" : "/memories?scope=public";
   return <AppShell><div className="studio-home">
@@ -40,14 +52,11 @@ export default function Home() {
       </div>
       <Daydream />
     </section>
-    <div className="studio-shortcuts" aria-label="记录快捷入口">
-      <Link href={target + (user ? "?" : "&") + "view=gallery"}><span className="shortcut-symbol peach"><Icon name="image" size={21} /></span><span><strong>镜头里的日常</strong><small>{user && data?.stats ? data.stats.photos + " 张照片 · 照片墙" : "照片墙 · 换个角度看生活"}</small></span><Icon name="arrow" size={17} /></Link>
-      <Link href={user ? "/memories?pinned=1" : "/memories?scope=public&view=timeline"}><span className="shortcut-symbol lilac"><Icon name={user ? "pin" : "calendar"} size={21} /></span><span><strong>{user ? "偏爱的那些瞬间" : "日常慢慢看"}</strong><small>{user ? "收藏夹 · 一直喜欢" : "时间线 · 每天都有新故事"}</small></span><Icon name="arrow" size={17} /></Link>
-      <Link href="/memories?scope=public"><span className="shortcut-symbol blue"><Icon name="globe" size={21} /></span><span><strong>去别人的日常串门</strong><small>发现 · 生活不止一种样子</small></span><Icon name="arrow" size={17} /></Link>
-    </div>
+    <div className="home-interlude"><span><Icon name="spark" size={18} />平凡的日子，也有自己的光。</span>{user && recent?.data?.stats ? <span className="home-keepsakes"><strong>{recent.data.stats.total}</strong> 条日常<span aria-hidden="true"> / </span><strong>{recent.data.stats.photos}</strong> 张照片<span aria-hidden="true"> / </span><strong>{recent.data.stats.videos}</strong> 段视频</span> : <span lang="en">A little more life, a little less hurry.</span>}</div>
     <div className={"studio-content" + (!user ? " studio-guest" : "")}>
       <div className="studio-main">
         {user && <QuickNote key={user.id} userId={user.id} onSaved={() => setRevision(v => v + 1)} />}
+        {user && <MemorySky key={user.id} data={recent?.data} error={recent?.error} onRetry={() => setRevision(v => v + 1)} />}
         <section className="studio-collection" aria-labelledby="collection-title">
           <div className="studio-section-heading"><div><span className="section-eyebrow">THE LITTLE THINGS</span><h2 id="collection-title">{user ? "日常正在发生" : "收集一点生活的可爱"}<span className="tiny-flower" aria-hidden="true">✳</span></h2></div><Link href={target} className="studio-text-link">查看全部<Icon name="arrow" size={16} /></Link></div>
           <div className="studio-filters" role="group" aria-label="最近记录类型">{categories.map(([value, label, icon]) => <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}><Icon name={icon} size={15} />{label}</button>)}</div>

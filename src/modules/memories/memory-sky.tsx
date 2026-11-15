@@ -1,77 +1,48 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { api } from "@/lib/client";
-import type { Memory } from "./types";
+import { Icon } from "@/components/icons";
+import { DecodedImage } from "@/components/decoded-image";
+import { dateText } from "@/lib/client";
+import { moodLabel } from "./moods";
+import type { MemoryList } from "./types";
 
-type SkyData = { items: Memory[]; nextCursor: string | null };
+// A bounded view of the existing first page, never an invented full-history chart.
+const positions = [[13, 24], [36, 18], [61, 30], [86, 19], [16, 53], [40, 47], [66, 59], [88, 47], [12, 80], [36, 76], [61, 84], [85, 78]];
 
-export function MemorySky({ userId }: { userId: string }) {
-  const [data, setData] = useState<SkyData | null>(null);
-  const [hover, setHover] = useState<string | null>(null);
+export function MemorySky({ data, error, onRetry }: { data?: MemoryList; error?: string; onRetry: () => void }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const items = data?.items.slice(0, positions.length) || [];
+  const selected = items.find(item => item.id === selectedId) || items[0];
+  const photo = selected?.assets.find(asset => asset.mime.startsWith("image/"));
 
-  useEffect(() => {
-    const abort = new AbortController();
-    api<SkyData>("/api/memories?scope=mine&limit=200", { signal: abort.signal })
-      .then(setData)
-      .catch(() => setData({ items: [], nextCursor: null }));
-    return () => abort.abort();
-  }, [userId]);
-
-  const stars = useMemo(() => {
-    if (!data?.items.length) return [];
-    const sorted = [...data.items].sort((a, b) => new Date(a.happenedAt).getTime() - new Date(b.happenedAt).getTime());
-    return sorted.map((memory, i) => {
-      const angle = (i / sorted.length) * Math.PI * 2 - Math.PI / 2;
-      const radius = 35 + (i % 5) * 8;
-      const x = 50 + Math.cos(angle) * radius;
-      const y = 50 + Math.sin(angle) * radius * 0.6;
-      const size = memory.assets.length > 0 ? 8 : 5;
-      const moodColors: Record<string, string> = {
-        "开心": "#f4a261", "平静": "#8b9dc3", "感动": "#e76f51", "疲惫": "#6d6875",
-        "想念": "#a8dadc", "雀跃": "#ffb703", "治愈": "#95d5b2", "委屈": "#b5838d", "元气": "#ffd60a"
-      };
-      const color = moodColors[memory.mood] || "#c9ada7";
-      return { id: memory.id, x, y, size, color, memory };
-    });
-  }, [data]);
-
-  if (!data) return <div className="sky-loading" role="status" aria-label="正在绘制星图" />;
-  if (!stars.length) return <div className="sky-empty">写下第一条记录，点亮你的星图</div>;
-
-  return (
-    <svg className="memory-sky" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet">
-      {stars.map((star, i) => {
-        const next = stars[i + 1];
-        return next ? (
-          <line key={"line" + star.id} x1={star.x} y1={star.y} x2={next.x} y2={next.y} stroke="currentColor" strokeWidth="0.1" opacity="0.2" />
-        ) : null;
-      })}
-      {stars.map(star => (
-        <g key={star.id}>
-          <Link href={"/memories/" + star.id}>
-            <circle
-              cx={star.x}
-              cy={star.y}
-              r={star.size / 10}
-              fill={star.color}
-              className="star"
-              onMouseEnter={() => setHover(star.id)}
-              onMouseLeave={() => setHover(null)}
-            >
-              <title>{star.memory.title || star.memory.content?.slice(0, 30) || "日常记录"}</title>
-            </circle>
-          </Link>
-          {hover === star.id && (
-            <g className="star-tooltip">
-              <rect x={star.x + 1} y={star.y - 2} width="15" height="3" fill="var(--surface)" stroke="var(--line)" strokeWidth="0.1" rx="0.3" />
-              <text x={star.x + 1.5} y={star.y} fontSize="1.2" fill="var(--ink)">
-                {new Date(star.memory.happenedAt).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })}
-              </text>
-            </g>
-          )}
-        </g>
-      ))}
-    </svg>
-  );
+  return <section className="memory-sky-section" aria-labelledby="memory-sky-title" aria-busy={!data && !error}>
+    <div className="memory-sky-heading">
+      <div><span className="section-eyebrow">A SMALL CONSTELLATION</span><h2 id="memory-sky-title">日子，连成星光。</h2></div>
+      <span className="sky-count">{data ? `最近 ${items.length} 条` : "记忆星图"}</span>
+    </div>
+    {error ? <div className="sky-message" role="alert"><p>星图暂时没能展开。{error}</p><button type="button" className="button secondary" onClick={onRetry}>重新加载星图</button></div>
+      : !data ? <div className="sky-message" role="status">正在连接这些小小的瞬间…</div>
+      : !selected ? <div className="sky-message sky-first-page"><Icon name="spark" size={30} /><div><h3>第一颗星，留给今天。</h3><p>在上方写下一句日常，它就会出现在这里。</p></div></div>
+      : <><p className="sky-description">每颗星都是一条记录。点一点，看看那天的自己。</p><div className="memory-sky-body">
+        <div className="memory-sky-map" role="group" aria-label="选择一颗记忆星星">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points={items.map((_, i) => positions[i].join(",")).join(" ")} fill="none" stroke="currentColor" strokeWidth=".3" strokeDasharray="1 1.7" /></svg>
+          {items.map((memory, index) => <button key={memory.id} type="button" className="memory-star"
+            style={{ "--star-x": `${positions[index][0]}%`, "--star-y": `${positions[index][1]}%` } as CSSProperties}
+            aria-label={`预览：${memory.title || memory.content?.slice(0, 28) || "日常随记"}，${dateText(memory.happenedAt, { month: "long", day: "numeric" })}`}
+            aria-pressed={selected.id === memory.id} aria-controls="memory-sky-preview" onClick={() => setSelectedId(memory.id)}>
+            <span aria-hidden="true">✦</span><small aria-hidden="true">{String(index + 1).padStart(2, "0")}</small>
+          </button>)}
+          <span className="sky-map-caption" aria-hidden="true">little days, little stars</span>
+        </div>
+        <div id="memory-sky-preview" className="memory-sky-preview" aria-live="polite" aria-atomic="true">
+          {photo && <DecodedImage src={photo.thumbnailUrl || photo.url} alt={selected.title || "这一天的照片"} className="sky-photo" loading="lazy" />}
+          <div className="sky-preview-copy"><time dateTime={selected.happenedAt}>{dateText(selected.happenedAt, { year: "numeric", month: "long", day: "numeric" })}</time>
+            <h3>{selected.title || "日常随记"}</h3><p>{selected.content || (selected.assets.some(asset => asset.mime.startsWith("video/")) ? "一段值得再看一次的画面。" : "把这一刻，好好留住。")}</p>
+            {selected.mood && <span className="sky-mood">{moodLabel(selected.mood)}</span>}
+            <Link className="studio-text-link" href={"/memories/" + selected.id}>翻开这一天<Icon name="arrow" size={15} /></Link>
+          </div>
+        </div>
+      </div><p className="sky-footnote">{data.nextCursor ? "这里点亮最近 12 条记录，更多故事在「我的日常」。" : "星光来自你留下的真实记录，仅自己可见。"}</p></>}
+  </section>;
 }
