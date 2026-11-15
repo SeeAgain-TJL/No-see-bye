@@ -53,3 +53,17 @@ export interface MemoryList {
   nextCursor: string | null;
   stats: MemoryStats | null;
 }
+
+export type StoryScope = "recent" | "month" | "anniversary" | "random";
+export interface JournalYear {
+  today: string;
+  year: number;
+  firstYear: number;
+  days: Record<string, { count: number; mood: string }>;
+  total: number;
+  recordedDays: number;
+  currentStreak: number;
+  streakThrough: string | null;
+  month: string;
+  monthMood: string;
+}

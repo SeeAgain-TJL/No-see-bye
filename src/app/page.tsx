@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
-import { Daydream } from "@/components/daydream";
+import { HomeHero } from "@/modules/memories/home-hero";
 import { CollectionCard } from "@/modules/memories/collection-card";
 import { QuickNote } from "@/modules/memories/quick-note";
 import { RevisitPanel } from "@/modules/memories/revisit-panel";
@@ -43,18 +43,10 @@ export default function Home() {
   const items = data?.items.slice(0, 6) || [];
   const featuredFirst = items.length % 2 === 1;
   return <AppShell><div className="studio-home">
-    <section className="studio-hero" aria-labelledby="hero-title">
-      <div className="studio-hero-copy">
-        <span className="studio-greeting"><span className="greeting-sun">☀</span>{user ? "好久不见，" + (user.displayName || user.username) : "HELLO, LITTLE WORLD"}</span>
-        <h1 id="hero-title" lang="en">Life feels<br /><span>better kept.</span><svg viewBox="0 0 260 13" aria-hidden="true"><path d="M3 10Q120-4 257 5" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg></h1>
-        <p>收藏生活的碎片，<br className="mobile-line" />也收藏当时的自己。</p>
-        <div className="studio-hero-actions"><Link href={user ? "/memories/new" : "/register"} className="studio-button">{user ? "记录此刻" : "开启我的空间"}<Icon name="plus" size={18} /></Link><Link href={target} className="studio-text-link">{user ? "翻开我的日常" : "先逛一逛"}<Icon name="arrow" size={17} /></Link></div>
-        <span className="hero-footnote"><Icon name="lock" size={13} />你的故事，由你决定分享给谁。</span>
-      </div>
-      <Daydream />
-    </section>
+    <HomeHero key={user?.id || "guest"} user={user} data={recent?.data} error={recent?.error} onRetry={() => setRevision(v => v + 1)} />
     <div className="home-interlude"><span><Icon name="spark" size={18} />平凡的日子，也有自己的光。</span>{user && recent?.data?.stats ? <span className="home-keepsakes"><strong>{recent.data.stats.total}</strong> 条日常<span aria-hidden="true"> / </span><strong>{recent.data.stats.photos}</strong> 张照片<span aria-hidden="true"> / </span><strong>{recent.data.stats.videos}</strong> 段视频</span> : <span lang="en">A little more life, a little less hurry.</span>}</div>
-    <div className={"studio-content" + (!user ? " studio-guest" : "")}>
+    {user && <RevisitPanel key={user.id + ":" + revision} />}
+    <div className="studio-content studio-guest">
       <div className="studio-main">
         {user && <QuickNote key={user.id} userId={user.id} onSaved={() => setRevision(v => v + 1)} />}
         <section className="studio-collection" aria-labelledby="collection-title">
@@ -82,7 +74,7 @@ export default function Home() {
           </div>
         </section>
       </div>
-      {user && <aside className="studio-aside"><RevisitPanel key={user.id + revision} /><div className="studio-small-note"><span aria-hidden="true">✿</span><p>不用每天都精彩。<br /><strong>普通的一天，也值得留下。</strong></p></div></aside>}
+
     </div>
     <footer className="studio-footer"><span>NO SEE BYE © 2026</span><span lang="en">Made of ordinary, lovely days.</span><Icon name="spark" size={15} /></footer>
   </div></AppShell>;

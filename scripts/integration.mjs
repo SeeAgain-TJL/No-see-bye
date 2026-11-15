@@ -768,6 +768,60 @@ try {
   assert.equal(otherCalendar.days["2025-01-01"], undefined);
   for (const month of ["invalid", "2025-13", "0000-01", "2101-01"]) await call("/api/memories/revisit?month=" + month, { cookie: oauthCookie, status: 400 });
   for (const day of ["2025-02-30", "2025-2-01", "invalid", "1899-01-01"]) await call("/api/memories?day=" + day, { cookie: oauthCookie, status: 400 });
+  // Story scopes and the mood year must use the full archive, not the 12-item list.
+  await call("/api/memories/revisit?year=" + archiveYear, { status: 401 });
+  await call("/api/memories/revisit?mode=story", { status: 401 });
+  const yearEmpty = (await call("/api/memories/revisit?year=" + archiveYear, { cookie: oauthCookie })).data;
+  assert.equal(yearEmpty.currentStreak, 0);
+  const storyFixtures = [];
+  const yesterday = new Date(Date.now() + 8 * 3600000 - 86400000).toISOString().slice(0, 10);
+  const storyCreate = async (day, mood, title) => {
+    const item = (await call("/api/memories", { cookie: oauthCookie, method: "POST", status: 201, body: memoryInput({ title, mood, happenedAt: day + "T12:00:00+08:00" }) })).data;
+    storyFixtures.push(item); return item;
+  };
+  const storyToday = await storyCreate(archiveToday, "开心", "Story today");
+  await storyCreate(yesterday, "平静", "Story yesterday one");
+  await storyCreate(yesterday, "平静", "Story yesterday two");
+  await storyCreate("2024-02-29", "治愈", "Leap day mood");
+  const oldDay = (archiveYear - 3) + "-06-01";
+  for (let i = 0; i < 31; i++) await storyCreate(oldDay, i < 20 ? "感动" : "疲惫", "Full archive story " + i);
+  const yearMood = (await call("/api/memories/revisit?year=" + archiveYear, { cookie: oauthCookie })).data;
+  assert.equal(yearMood.days[archiveToday].mood, "开心");
+  assert.equal(yearMood.days[yesterday].count, 2);
+  assert.equal(yearMood.currentStreak, 2);
+  assert.equal(yearMood.streakThrough, archiveToday);
+  assert.equal(yearMood.monthMood, archiveToday.slice(0, 7) === yesterday.slice(0, 7) ? "平静" : "开心");
+  const oldYear = (await call("/api/memories/revisit?year=" + (archiveYear - 3), { cookie: oauthCookie })).data;
+  assert.equal(oldYear.days[oldDay].count, 31);
+  assert.equal(oldYear.days[oldDay].mood, "感动");
+  assert.equal(oldYear.total, 31);
+  assert.equal(oldYear.recordedDays, 1);
+  const leapYear = (await call("/api/memories/revisit?year=2024", { cookie: oauthCookie })).data;
+  assert.equal(leapYear.days["2024-02-29"].mood, "治愈");
+  assert.equal(leapYear.days["2025-01-01"], undefined);
+  assert.equal((await call("/api/memories/revisit?year=2025", { cookie: oauthCookie })).data.days["2025-01-01"].count, 1);
+  const knownIds = new Set([archiveEntry, dayEdge, beforeEdge, ...storyFixtures].map(item => item.id));
+  for (const scope of ["recent", "month", "anniversary", "random"]) {
+    const response = await call("/api/memories/revisit?mode=story&scope=" + scope, { cookie: oauthCookie });
+    const stories = response.data.items;
+    assert.equal(response.res.headers.get("cache-control"), "private, no-store");
+    assert(stories.length > 0 && stories.length <= 30);
+    assert.equal(new Set(stories.map(item => item.id)).size, stories.length);
+    assert(stories.every(item => item.userId === archiveEntry.userId && knownIds.has(item.id)));
+    if (scope === "recent") { assert.equal(stories.length, 30); assert.equal(stories[0].id, storyToday.id); }
+    if (scope === "month") assert(stories.every(item => new Date(new Date(item.happenedAt).getTime() + 8 * 3600000).toISOString().slice(0, 7) === archiveToday.slice(0, 7)));
+    if (scope === "anniversary") assert(stories.every(item => new Date(new Date(item.happenedAt).getTime() + 8 * 3600000).toISOString().slice(5, 10) === archiveToday.slice(5)));
+    if (scope === "random") { assert.equal(stories.length, 30); assert(stories.some(item => item.title.startsWith("Full archive story"))); }
+    const other = (await call("/api/memories/revisit?mode=story&scope=" + scope + "&userId=" + archiveEntry.userId, { cookie: b.cookie })).data.items;
+    assert(other.every(item => !knownIds.has(item.id)));
+  }
+  assert(!(await call("/api/memories/revisit?year=" + archiveYear + "&userId=" + archiveEntry.userId, { cookie: b.cookie })).data.days[archiveToday]);
+  for (const year of ["invalid", "2026-01", "0000", "2101", "2024.0", ""]) await call("/api/memories/revisit?year=" + year, { cookie: oauthCookie, status: 400 });
+  await call("/api/memories/revisit?mode=story&scope=invalid", { cookie: oauthCookie, status: 400 });
+  for (const item of storyFixtures) await call("/api/memories/" + item.id, { cookie: oauthCookie, method: "DELETE" });
+  assert.equal((await call("/api/memories/revisit?year=" + archiveYear, { cookie: oauthCookie })).data.currentStreak, 0);
+  assert.equal((await call("/api/memories/revisit?year=" + (archiveYear - 3), { cookie: oauthCookie })).data.total, 0);
+  assert((await call("/api/memories/revisit?mode=story&scope=random", { cookie: oauthCookie })).data.items.every(item => !storyFixtures.some(fixture => fixture.id === item.id)));
   await call("/api/memories/" + archiveEntry.id, { cookie: oauthCookie, method: "DELETE" });
   assert(!(await call("/api/memories/revisit", { cookie: oauthCookie })).data.anniversaries.some(item => item.id === archiveEntry.id));
   await call("/api/memories/" + beforeEdge.id, { cookie: oauthCookie, method: "DELETE" });

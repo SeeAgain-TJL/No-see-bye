@@ -9,6 +9,7 @@ import "./studio.css";
 import "./themes.css";
 import "./home.css";
 import "./home-enhancements.css";
+import "./memory-experiences.css";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
