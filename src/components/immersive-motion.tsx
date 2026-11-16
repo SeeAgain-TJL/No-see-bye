@@ -24,6 +24,7 @@ export function ImmersiveMotion() {
     const animations = new Set<Animation>();
     const enhanced = new Set<HTMLElement>();
     const revealed = new WeakSet<Element>();
+    const observing = new Set<HTMLElement>();
     let observer: IntersectionObserver | null = null;
     let activeSurface: HTMLElement | null = null;
     let pointerFrame = 0, scrollFrame = 0, mutationFrame = 0;
@@ -53,19 +54,20 @@ export function ImmersiveMotion() {
     };
     if ("IntersectionObserver" in window) observer = new IntersectionObserver(entries => {
       batch = 0;
-      for (const entry of entries) if (entry.isIntersecting) { enter(entry.target as HTMLElement); observer?.unobserve(entry.target); }
+      for (const entry of entries) if (entry.isIntersecting) { enter(entry.target as HTMLElement); observer?.unobserve(entry.target); observing.delete(entry.target as HTMLElement); }
     }, { rootMargin: "0px 0px 35px 0px", threshold: .04 });
 
     const discover = () => {
       mutationFrame = 0;
+      for (const element of observing) if (!content.contains(element)) { observer?.unobserve(element); observing.delete(element); }
       for (const element of enhanced) if (!content.contains(element)) enhanced.delete(element);
       content.querySelectorAll<HTMLElement>(arrivals).forEach(element => {
         // Feed wrappers include their month heading and card. Animate that unit
         // once instead of fading both an ancestor and its child independently.
         if (element.parentElement?.closest(arrivals)) return;
         if (!revealed.has(element)) {
-          if (observer) observer.observe(element);
-          else enter(element);
+          if (observer && !observing.has(element)) { observer.observe(element); observing.add(element); }
+          else if (!observer) enter(element);
         }
       });
       content.querySelectorAll<HTMLElement>(surfaces).forEach(element => {

@@ -8,6 +8,10 @@
 :root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image { position: relative; display: block; inset: auto; width: 100%; height: auto; min-height: 0; background: transparent; }
 :root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image > img { position: static; inset: auto; display: block; width: 100%; height: auto; object-fit: contain; transform: none; }
 :root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image[data-state='loading']:not(:has(img[width])) { min-height: 120px; }
+:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image[data-state='error'] { min-height: 160px; }
+:root[data-theme] .media-grid .media-tile:has(.video-placeholder),
+:root[data-theme] .wall-image:has(.wall-video) { position: relative; aspect-ratio: 4 / 3; min-height: 140px; }
+:root[data-theme] .media-grid .media-tile > .video-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; }
 :root[data-theme] .wall-image { border-radius: 4px; }
 .wall-item { overflow: visible; }
 
