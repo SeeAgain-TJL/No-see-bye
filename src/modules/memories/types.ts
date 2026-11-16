@@ -12,6 +12,8 @@ export interface MediaAsset {
   sizeBytes: number;
   url: string;
   thumbnailUrl?: string | null;
+  width?: number | null;
+  height?: number | null;
 }
 export interface Memory {
   id: string;

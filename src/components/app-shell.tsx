@@ -9,6 +9,7 @@ import { Avatar } from './avatar';
 import { api } from '@/lib/client';
 import { QuickSearch } from './quick-search';
 import { ThemeSwitcher } from './theme-provider';
+import { ImmersiveMotion } from './immersive-motion';
 export function AppShell({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<div className='loading-panel'>加载中…</div>}><ShellContent>{children}</ShellContent></Suspense>;
 }
@@ -22,6 +23,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     try { await api('/api/auth/logout', { method: 'POST' }); await refresh(); router.push('/'); notify('已安全退出'); } catch (error) { notify((error as Error).message); }
   }
   return <div className='app-shell'>
+    <ImmersiveMotion />
     <aside className='sidebar'>
       <Link href='/' className='brand'><BrandMark /><span>不说再见<small>NO SEE BYE</small></span></Link>
       <nav aria-label='主要导航'>

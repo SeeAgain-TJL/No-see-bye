@@ -18,6 +18,10 @@ import './hero-keepsake.css';
 import './gallery-polish.css';
 import './theme-atmospheres.css';
 import './media-refinement.css';
+import './journal-atmosphere.css';
+import './immersive-motion.css';
+import './postcard-studio.css';
+import './intrinsic-photos.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

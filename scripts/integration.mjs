@@ -314,6 +314,7 @@ try {
   const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
   assert(thumbBuffer.length < png.length);
   const thumbInfo = await sharp(thumbBuffer).metadata();assert.equal(thumbInfo.width,960);assert.equal(thumbInfo.height,600);passed++;
+  assert.deepEqual([asset.width, asset.height], [thumbInfo.width, thumbInfo.height]);passed++;
   const thumbnailEtag = thumb.headers.get("etag");
   assert(thumbnailEtag);
   const cachedThumbnail = await fetch(base + asset.thumbnailUrl, { headers: { Cookie: a.cookie, "If-None-Match": thumbnailEtag } });
