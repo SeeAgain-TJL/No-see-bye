@@ -314,11 +314,36 @@ try {
   const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
   assert(thumbBuffer.length < png.length);
   const thumbInfo = await sharp(thumbBuffer).metadata();assert.equal(thumbInfo.width,960);assert.equal(thumbInfo.height,600);passed++;
+  const thumbnailEtag = thumb.headers.get("etag");
+  assert(thumbnailEtag);
+  const cachedThumbnail = await fetch(base + asset.thumbnailUrl, { headers: { Cookie: a.cookie, "If-None-Match": thumbnailEtag } });
+  assert.equal(cachedThumbnail.status, 304);
+  assert.equal((await cachedThumbnail.arrayBuffer()).byteLength, 0);
+  assert.match(cachedThumbnail.headers.get("cache-control"), /private.*no-cache.*must-revalidate/);
+  passed++;
+
+  // More missing originals than the conversion concurrency limit must fail
+  // promptly and release their slots, so a later real image can still load.
+  const missingPreviewDb = new DatabaseSync(env.DATABASE_URL.slice(5));
+  const missingPreviewIds = Array.from({ length: 3 }, (_, i) => "missing-preview-fixture-" + i);
+  for (const id of missingPreviewIds) {
+    missingPreviewDb.prepare("INSERT INTO Asset(id,ownerId,driver,key,mime,sizeBytes,status) VALUES (?,?,?,?,?,?,?)")
+      .run(id, a.data.user.id, "local", id + ".png", "image/png", 0, "ready");
+  }
+  missingPreviewDb.close();
+  const missingPreviews = await Promise.all(missingPreviewIds.map(id => fetch(base + "/api/assets/" + id + "?variant=display", {
+    headers: { Cookie: a.cookie }, signal: AbortSignal.timeout(10_000),
+  })));
+  for (const response of missingPreviews) {
+    assert.equal(response.status, 503);
+    await response.arrayBuffer();
+    passed++;
+  }
 
   const displayUrl = asset.url + "?variant=display";
   const beforeDisplay = await readdir(env.STORAGE_LOCAL_DIR, { recursive: true });
   const firstDisplays = await Promise.all(Array.from({ length: 4 }, () =>
-    fetch(base + displayUrl, { headers: { Cookie: a.cookie } })));
+    fetch(base + displayUrl, { headers: { Cookie: a.cookie }, signal: AbortSignal.timeout(10_000) })));
   for (const response of firstDisplays) assert.equal(response.status, 200);
   const displayBuffers = await Promise.all(firstDisplays.map(async response => Buffer.from(await response.arrayBuffer())));
   for (const buffer of displayBuffers) assert.deepEqual(buffer, displayBuffers[0]);
@@ -365,6 +390,8 @@ try {
 
   await call(asset.thumbnailUrl,{status:404});
   await call(asset.thumbnailUrl,{cookie:b.cookie,status:404});
+  await call(asset.thumbnailUrl, { status: 404, headers: { "If-None-Match": thumbnailEtag } });
+  await call(asset.thumbnailUrl, { cookie: b.cookie, status: 404, headers: { "If-None-Match": thumbnailEtag } });
   const video = await uploadFile(a.cookie,Buffer.from("1a45dfa300000000000000000000000000000000000000000000000000000000","hex"),"video/webm");
   await call(video.url+"?variant=display", {cookie:a.cookie,status:400});
   const posterResponse = await fetch(base+video.url+"/preview",{method:"POST",headers:{Cookie:a.cookie,Origin:base,"Content-Type":"image/png"},body:png});

@@ -59,16 +59,18 @@ async function serve(req: NextRequest, ctx: Context, head: boolean) {
     if (variant && !["preview", "display"].includes(variant)) throw new HttpError(400, "无效的图片规格");
     const preview = variant === "preview" || variant === "display";
     let mediaKey = asset.key;
+    let savedSize: number | null = null;
     if (preview) {
       if (variant === "display" && !asset.mime.startsWith("image/")) throw new HttpError(400, "该规格仅适用于图片");
       const field = variant === "display" ? "coverKey" : "thumbnailKey";
       const savedKey = asset[field];
-      if (savedKey && await storage.size(savedKey)) mediaKey = savedKey;
+      if (savedKey) savedSize = await storage.size(savedKey);
+      if (savedKey && savedSize) mediaKey = savedKey;
       else if (asset.mime.startsWith("image/")) mediaKey = await derivative(asset.id, asset.key, field, savedKey);
       else throw new HttpError(404, "暂无视频封面");
     }
     const isPreview = mediaKey !== asset.key;
-    const size = await storage.size(mediaKey);
+    const size = savedSize || await storage.size(mediaKey);
     if (!size) throw new HttpError(404, "文件已丢失，请联系站点主人");
     const headers = new Headers({
       "Content-Type": isPreview ? "image/webp" : asset.mime,
