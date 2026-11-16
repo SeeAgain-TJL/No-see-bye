@@ -4,8 +4,8 @@ import type { MediaAsset } from './types';
 import { Icon } from '@/components/icons';
 import { DecodedImage } from '@/components/decoded-image';
 
-export const previewUrl = (asset: MediaAsset) => asset.thumbnailUrl || asset.url + '?variant=preview';
-const displayUrl = (asset: MediaAsset) => asset.url + '?variant=display';
+export const previewUrl = (asset: MediaAsset) => asset.thumbnailUrl || asset.url + (asset.url.includes('?') ? '&' : '?') + 'variant=preview';
+const displayUrl = (asset: MediaAsset) => asset.url + (asset.url.includes('?') ? '&' : '?') + 'variant=display';
 
 export function MediaGrid({ assets, compact = false }: { assets: MediaAsset[]; compact?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -38,13 +38,16 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
   const [transform, setTransform] = useState<Transform>(resting);
   const [index, setIndex] = useState(initial);
   const [ready, setReady] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [buffering, setBuffering] = useState(false);
   const asset = assets[index], isVideo = asset.mime.startsWith('video/');
 
   function update(next: Transform) {
-    const box = stage.current, image = box?.querySelector<HTMLImageElement>('.immersive-image img');
+    const box = stage.current;
+    const fullImage = box?.querySelector<HTMLImageElement>('.immersive-image img');
+    const image = fullImage?.naturalWidth ? fullImage : box?.querySelector<HTMLImageElement>('.immersive-preview img');
     const scale = Math.max(1, Math.min(5, next.scale));
     let maxX = 0, maxY = 0;
     if (box && image?.naturalWidth) {
@@ -57,7 +60,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
   }
   function choose(next: number) {
     const target = (next + assets.length) % assets.length; if (target === index) return;
-    setIndex(target); update(resting); setReady(false); setFailed(false); setAttempt(0); setBuffering(false);
+    setIndex(target); update(resting); setReady(false); setPreviewReady(false); setFailed(false); setAttempt(0); setBuffering(false);
     pointers.current.clear(); gesture.current = null; pinch.current = null;
   }
   useEffect(() => {
@@ -84,8 +87,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (!ready || assets.length < 2 || connection?.saveData || connection?.effectiveType?.includes('2g')) return;
     const next = assets[(index + 1) % assets.length]; if (!next.mime.startsWith('image/')) return;
-    const image = new Image(); image.src = displayUrl(next); image.decode().catch(() => {});
-    return () => { image.src = ''; };
+    const image = new Image(); image.fetchPriority = 'low'; image.decoding = 'async'; image.src = displayUrl(next); void image.decode().catch(() => {});
   }, [ready, index, assets]);
   function pinchPoints() {
     const [a, b] = [...pointers.current.values()];
@@ -97,7 +99,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     if (!isVideo && ['+', '=', '-', '0'].includes(e.key)) { e.preventDefault(); update(e.key === '0' ? resting : { ...transformRef.current, scale: transformRef.current.scale * (e.key === '-' ? .8 : 1.25) }); }
   }}>
     <button type='button' className={'immersive-dismiss' + (isVideo ? ' for-video' : '')} aria-label='关闭预览' onClick={() => dialog.current?.close()}><Icon name='close' size={22} /></button>
-    <div ref={stage} className={'immersive-stage' + (transform.scale > 1 ? ' is-zoomed' : '') + (isVideo ? ' is-video' : '')} style={{ touchAction: isVideo ? 'auto' : 'none' }}
+    <div ref={stage} className={'immersive-stage' + (transform.scale > 1 ? ' is-zoomed' : '') + (isVideo ? ' is-video' : '')} data-preview-ready={previewReady} style={{ touchAction: isVideo ? 'auto' : 'none' }}
       onPointerDown={e => {
         if ((e.target as HTMLElement).closest('button, video, a') || e.button !== 0) return;
         pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); e.currentTarget.setPointerCapture(e.pointerId);
@@ -126,9 +128,10 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
       }}
       onPointerCancel={e => { pointers.current.delete(e.pointerId); gesture.current = null; pinch.current = null; }}
       onDragStart={e => e.preventDefault()}>
+      {!isVideo && !ready && <DecodedImage key={asset.id + ':preview'} className='immersive-preview' src={previewUrl(asset)} alt='' aria-hidden='true' fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => setPreviewReady(true)} />}
       {isVideo ? <video key={asset.id + ':' + attempt} src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline preload='auto' onWaiting={() => setBuffering(true)} onPlaying={() => setBuffering(false)} onCanPlay={() => setBuffering(false)} onError={() => { setFailed(true); setBuffering(false); }} />
         : <DecodedImage key={asset.id + ':' + attempt} className='immersive-image' src={displayUrl(asset) + (attempt ? '&retry=' + attempt : '')} alt='日常照片' fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => { setReady(true); setFailed(false); }} onFailure={() => setFailed(true)} />}
-      {failed ? <div className='immersive-status' role='alert'><span>{isVideo ? '暂时无法播放' : '图片加载失败'}</span><button type='button' onClick={() => { setAttempt(v => v + 1); setFailed(false); setReady(false); }}>重试</button></div> : ((!isVideo && !ready) || buffering) && <span className='immersive-loader' role='status' aria-label='加载中' />}
+      {failed ? <div className='immersive-status' role='alert'><span>{isVideo ? '暂时无法播放' : previewReady ? '清晰画面暂未加载，正在显示预览' : '图片加载失败'}</span><button type='button' onClick={() => { setAttempt(v => v + 1); setFailed(false); setReady(false); }}>重试</button></div> : ((!isVideo && !ready && !previewReady) || buffering) ? <span className='immersive-loader' role='status' aria-label='加载中' /> : !isVideo && !ready && previewReady ? <span className='immersive-refining' role='status'>正在加载清晰画面…</span> : null}
     </div>
     {assets.length > 1 && <><button type='button' className='immersive-prev' aria-label='上一张' onClick={() => choose(index - 1)}><Icon name='back' size={22} /></button><button type='button' className='immersive-next' aria-label='下一张' onClick={() => choose(index + 1)}><Icon name='arrow' size={22} /></button><span className='immersive-count' aria-live='polite'>{index + 1}<span> / {assets.length}</span></span></>}
   </dialog>;
