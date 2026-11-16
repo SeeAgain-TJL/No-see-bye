@@ -1,0 +1,133 @@
+/* A living postcard: paper, small drawings and a guardian of little memories. */
+:root[data-theme] .studio-home > .keepsake-hero {
+  min-height: 480px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 88% 12%, color-mix(in srgb, var(--warm) 10%, transparent), transparent 48%), var(--hero);
+  box-shadow: 0 10px 35px -30px var(--ink-muted), inset 0 0 0 6px color-mix(in srgb, var(--surface) 42%, transparent);
+}
+.keepsake-hero::before { content: ''; position: absolute; inset: 13px; border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent); border-radius: 13px; pointer-events: none; }
+.keepsake-hero::after { content: ''; position: absolute; inset: 0; opacity: .2; pointer-events: none; background-image: radial-gradient(var(--ink-muted) .55px, transparent .55px); background-size: 7px 7px; mask-image: linear-gradient(110deg, transparent 35%, #000); }
+.hero-corner { position: absolute; z-index: 2; color: var(--warm); line-height: 1; font-size: 24px; pointer-events: none; }
+.hero-corner-start { left: 5px; top: 5px; }
+.hero-corner-end { right: 5px; bottom: 5px; }
+.keepsake-hero .studio-hero-copy { min-width: 0; padding: 55px 0 44px 44px; }
+.keepsake-hero .studio-greeting { gap: 12px; font-size: 10px; letter-spacing: .15em; margin-bottom: 31px; }
+.hero-edition { font-size: 10px; font-weight: 600; letter-spacing: .19em; }
+.hero-greeting-line { width: 22px; height: 1px; background: var(--accent); opacity: .45; }
+.studio-home > .keepsake-hero h1 { font-size: clamp(35px, 3.9vw, 58px); font-weight: 600; line-height: 1.38; letter-spacing: -.045em; margin-bottom: 0; white-space: nowrap; }
+.keepsake-hero h1 > span { position: relative; display: inline-block; }
+.keepsake-hero h1 > span::after { content: ''; position: absolute; bottom: 2px; left: 1px; right: -8px; height: 7px; border-radius: 50%; border-top: 2px solid color-mix(in srgb, var(--warm) 65%, transparent); transform: rotate(-3deg); }
+.keepsake-hero .studio-hero-copy > .hero-memory-note { font-size: 12px; letter-spacing: .04em; margin: 21px 0 27px; line-height: 1.9; }
+.hero-keepsake-footer { display: flex; align-items: center; gap: 9px; margin-top: 35px; max-width: 305px; color: var(--ink-muted); }
+.hero-keepsake-footer > span:first-child { font-size: 16px; color: var(--warm); }
+.hero-keepsake-footer > span[lang] { font: italic 12px Georgia, serif; white-space: nowrap; }
+.hero-footer-rule { height: 1px; background: var(--line); flex: 1; margin-left: 5px; }
+.studio-hero .daydream-keepsake { min-height: 450px; padding: 47px 44px 115px 12px; z-index: 1; }
+.daydream-keepsake .daydream-postcard { position: relative; padding: 12px 12px 0; border-radius: 3px; box-shadow: 5px 8px 0 #b7a8b914, 0 18px 26px -15px #3b4e444d; transform: translate(var(--drift-x),var(--drift-y)) rotate(-6deg); transition: transform .55s cubic-bezier(.2,.8,.2,1); }
+.daydream-keepsake .daydream-art { border: 1px solid #8b9b932b; }
+.daydream-keepsake .daydream-caption { padding: 16px 4px; }
+.daydream-keepsake .daydream-postcard::after { content: ''; position: absolute; inset: 6px; border: 1px solid #a6a58f40; pointer-events: none; }
+.daydream-keepsake .daydream-tape { position: absolute; z-index: 3; width: 94px; height: 27px; left: 36%; top: -15px; transform: rotate(4deg); opacity: .86; background: repeating-linear-gradient(90deg, #c7bda22e 0 7px, #f3e8c65c 7px 8px), #d7c8a1; clip-path: polygon(0 3%,98% 0,96% 20%,100% 38%,96% 58%,99% 78%,97% 100%,1% 96%,3% 77%,0 61%,3% 38%); }
+.daydream-keepsake .postcard-stamp { background: #fff8e7b3; border: 1px dashed #8a8173; color: #62786e; right: 12px; top: 12px; transform: rotate(5deg); }
+.daydream-flight { position: absolute; width: 140px; height: 100px; right: 10px; top: 12px; color: color-mix(in srgb, var(--accent) 55%, var(--line)); z-index: -1; transform: rotate(8deg); }
+.daydream-star { position: absolute; font-family: Georgia, serif; color: var(--warm); pointer-events: none; animation: keepsake-twinkle 3.2s ease-in-out infinite; }
+.daydream-star-one { font-size: 25px; left: 1%; top: 23%; }
+.daydream-star-two { font-size: 37px; right: 8%; bottom: 27%; animation-delay: -1.5s; }
+.studio-hero .daydream-keepsake .daydream-spark { top: 37px; right: 25px; font-size: 37px; animation: keepsake-star-turn 12s ease-in-out infinite; }
+.studio-hero .daydream-keepsake .daydream-orbit { width: 300px; height: 300px; right: 50px; top: 53px; opacity: .52; }
+.daydream-keepsake .daydream-orbit::after { inset: -22px; border-style: dashed; }
+.daydream-keepsake .daydream-note { bottom: 105px; right: 20px; padding: 12px 16px 13px; transform: rotate(8deg); box-shadow: 0 5px 8px #66504b16; border-color: #c8ad7c; background: #eed9aa; }
+.daydream-keepsake .daydream-note::before { content: ''; position: absolute; width: 27px; height: 10px; background: #d8bfa88c; left: 35%; top: -5px; transform: rotate(-6deg); }
+.daydream-keepsake .daydream-note small { display: block; font: 9px/1.5 var(--font-body), sans-serif; letter-spacing: .08em; margin-bottom: 5px; }
+.daydream-keepsake .daydream-note > span[lang] { position: static; font: italic 19px/1.08 Georgia, serif; color: #65513d; }
+.daydream-keepsake .daydream-note > .daydream-note-arrow { left: -29px; bottom: 3px; color: var(--accent); }
+.studio-hero .daydream-keepsake .daydream-controls { bottom: 24px; gap: 10px; }
+.daydream-keepsake .daydream-scenes { padding: 4px; box-shadow: 0 3px 8px #4a5c4210; }
+.daydream-keepsake .daydream-scenes button { min-height: 34px; padding-inline: 13px; transition: background .2s, color .2s, box-shadow .2s, transform .2s; }
+.daydream-keepsake .daydream-scenes button:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); transform: translateY(-1px); }
+.daydream-keepsake .daydream-scenes button:active { transform: translateY(1px); }
+.daydream-keepsake .daydream-scenes button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.daydream-keepsake .daydream-status { letter-spacing: .06em; font-size: 10px; }
+.daydream-keepsake .daydream-clouds { animation: keepsake-cloud-sail 7s ease-in-out infinite alternate; }
+.daydream-keepsake .daydream-boat { animation: keepsake-boat-sway 3.5s ease-in-out infinite; }
+.daydream-keepsake .daydream-waves { animation: keepsake-waves 3s ease-in-out infinite alternate; }
+.daydream-birds { animation: keepsake-birds 6s ease-in-out infinite alternate; }
+.daydream-companion-body { transform-origin: 0 56px; animation: keepsake-companion 4s ease-in-out infinite; }
+.daydream-companion-eyes { transform-box: fill-box; transform-origin: center; animation: keepsake-blink 5s infinite; }
+.daydream-glints { animation: keepsake-twinkle 3s ease-in-out infinite; }
+@keyframes keepsake-cloud-sail { from { transform: translateX(-24px); } to { transform: translateX(57px); } }
+@keyframes keepsake-boat-sway { 0%,100% { transform: translate(-18px,2px) rotate(-6deg); } 50% { transform: translate(19px,-10px) rotate(6deg); } }
+@keyframes keepsake-waves { from { opacity: .25; transform: translateX(-25px); } to { opacity: .85; transform: translateX(27px); } }
+@keyframes keepsake-birds { from { transform: translate(-12px,3px); } to { transform: translate(23px,-7px); } }
+@keyframes keepsake-companion { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+@keyframes keepsake-blink { 0%,43%,47%,100% { transform: scaleY(1); } 45% { transform: scaleY(.1); } }
+@keyframes keepsake-twinkle { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+@keyframes keepsake-star-turn { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(40deg); } }
+.daydream-keepsake.daydream-paused .daydream-postcard { transform: rotate(-6deg); }
+.daydream-keepsake.daydream-paused * { animation: none; }
+.postcard-dialog .daydream-keepsake { min-height: 400px; padding: 35px 32px 78px; }
+.postcard-dialog .daydream-keepsake .daydream-controls { bottom: 10px; }
+.postcard-dialog .daydream-keepsake .daydream-flight { right: 0; }
+.postcard-dialog .daydream-keepsake .daydream-star-one { left: 0; }
+@media (max-width: 1200px) {
+  .keepsake-hero .studio-hero-copy { padding-left: 30px; }
+  .studio-home > .keepsake-hero h1 { font-size: clamp(34px, 4vw, 48px); }
+  .studio-hero .daydream-keepsake { padding-right: 28px; }
+}
+@media (max-width: 1050px) and (min-width: 761px) {
+  :root[data-theme] .studio-home > .keepsake-hero { grid-template-columns: 1fr; }
+  .keepsake-hero .studio-hero-copy { padding: 42px 42px 14px; }
+  .studio-home > .keepsake-hero h1 { font-size: 53px; }
+  .hero-keepsake-footer { margin-top: 24px; }
+  .studio-hero .daydream-keepsake { max-width: 510px; min-height: 410px; margin: 0 auto; padding: 38px 46px 115px 27px; }
+}
+@media (max-width: 760px) {
+  :root[data-theme] .studio-home > .keepsake-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; border-radius: 17px; }
+  .keepsake-hero::before { inset: 9px; border-radius: 10px; }
+  .keepsake-hero .studio-hero-copy { padding: 31px 25px 0; }
+  .keepsake-hero .studio-greeting { font-size: 9px; gap: 9px; margin-bottom: 22px; }
+  .hero-edition { font-size: 9px; }
+  .studio-home > .keepsake-hero h1 { font-size: clamp(27px, 7.9vw, 50px); line-height: 1.45; }
+  .keepsake-hero .studio-hero-copy > .hero-memory-note { font-size: 11px; margin: 15px 0 22px; }
+  .hero-keepsake-footer { margin-top: 24px; }
+  .hero-keepsake-footer > span[lang] { font-size: 11px; }
+  .studio-hero .daydream-keepsake { min-height: 350px; max-width: 440px; padding: 43px 46px 110px 33px; margin: 4px auto 0; }
+  .studio-hero .daydream-keepsake .daydream-postcard { width: 100%; max-width: 310px; padding: 9px 9px 0; }
+  .daydream-keepsake .daydream-tape { width: 72px; height: 23px; top: -12px; }
+  .studio-hero .daydream-keepsake .daydream-orbit { width: 210px; height: 210px; right: 40px; top: 41px; }
+  .studio-hero .daydream-keepsake .daydream-spark { font-size: 30px; right: 20px; top: 33px; }
+  .daydream-flight { width: 104px; right: 17px; top: 12px; }
+  .daydream-star-one { left: 4%; top: 25%; font-size: 19px; }
+  .daydream-star-two { right: 7%; bottom: 29%; font-size: 25px; }
+  .studio-hero .daydream-keepsake .daydream-note { display: block; right: 18px; bottom: 105px; padding: 9px 11px; }
+  .daydream-keepsake .daydream-note > span[lang] { font-size: 16px; }
+  .daydream-keepsake .daydream-note small { font-size: 8px; }
+  .studio-hero .daydream-keepsake .daydream-caption { padding: 12px 3px; }
+  .studio-hero .daydream-keepsake .daydream-controls { bottom: 21px; gap: 9px; }
+  .daydream-keepsake .daydream-scenes button { min-height: 36px; padding-inline: 12px; font-size: 10px; }
+  .postcard-dialog .daydream-keepsake { min-height: 345px; padding: 30px 18px 80px; }
+  .postcard-dialog .daydream-keepsake .daydream-caption { padding: 12px 3px; }
+  .postcard-dialog .daydream-keepsake .daydream-scenes button { padding-inline: 8px; }
+  .studio-auth .daydream-keepsake .daydream-flight, .studio-auth .daydream-keepsake .daydream-star { display: none; }
+  .studio-auth .daydream-keepsake .daydream-postcard { padding: 5px 5px 0; transform: rotate(9deg); }
+  .studio-auth .daydream-keepsake .daydream-caption { padding: 6px 2px; }
+  .studio-auth .daydream-keepsake .daydream-tape { width: 38px; height: 13px; top: -6px; left: 32%; }
+  .studio-auth .daydream-keepsake .daydream-postcard::after { inset: 3px; }
+  .studio-auth .daydream-keepsake * { animation: none; }
+}
+@media (max-width: 370px) {
+  .keepsake-hero .studio-hero-copy { padding-inline: 21px; }
+  .studio-home > .keepsake-hero h1 { font-size: 7.7vw; }
+  .keepsake-hero .studio-hero-actions { gap: 12px; }
+  .keepsake-hero .studio-hero-actions .studio-button { font-size: 11px; padding-inline: 12px; }
+  .studio-hero .daydream-keepsake { padding-inline: 29px 37px; min-height: 310px; }
+  .daydream-keepsake .daydream-scenes button { font-size: 9px; padding-inline: 10px; }
+  .daydream-keepsake .daydream-note small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daydream-keepsake *, .daydream-keepsake *::before, .daydream-keepsake *::after { animation: none !important; transition: none !important; }
+  .daydream-keepsake .daydream-postcard { transform: rotate(-6deg); }
+  .daydream-keepsake .daydream-scenes button:hover, .daydream-keepsake .daydream-scenes button:active { transform: none; }
+}

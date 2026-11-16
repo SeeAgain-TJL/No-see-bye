@@ -13,6 +13,8 @@ import "./memory-experiences.css";
 import './refinements.css';
 import './memory-album.css';
 import './collection-keepsake.css';
+import './album-keepsake.css';
+import './hero-keepsake.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

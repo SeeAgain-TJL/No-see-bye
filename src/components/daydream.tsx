@@ -18,16 +18,17 @@ const getServerReducedMotion = () => false;
 
 export function Daydream({ compact = false }: { compact?: boolean }) {
   const [scene, setScene] = useState(0);
-  const [manuallyPaused, setManuallyPaused] = useState(false);
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, getServerReducedMotion);
-  const paused = manuallyPaused || reducedMotion;
   const current = scenes[scene];
-  return <div className={"daydream" + (compact ? " daydream-compact" : "") + (paused ? " daydream-paused" : "")}
+  return <div className={"daydream daydream-keepsake" + (compact ? " daydream-compact" : "") + (reducedMotion ? " daydream-paused" : "")}
     style={{ "--scene-sky": current.sky, "--scene-sea": current.sea, "--scene-hill": current.hill, "--scene-sand": current.sand, "--scene-sun": current.sun } as CSSProperties}
-    onPointerMove={e => { if (e.pointerType !== "mouse" || paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; const r = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty("--drift-x", ((e.clientX - r.left) / r.width - .5) * 12 + "px"); e.currentTarget.style.setProperty("--drift-y", ((e.clientY - r.top) / r.height - .5) * 8 + "px"); }}
+    onPointerMove={e => { if (e.pointerType !== "mouse" || reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; const r = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty("--drift-x", ((e.clientX - r.left) / r.width - .5) * 22 + "px"); e.currentTarget.style.setProperty("--drift-y", ((e.clientY - r.top) / r.height - .5) * 14 + "px"); }}
     onPointerLeave={e => { e.currentTarget.style.setProperty("--drift-x", "0px"); e.currentTarget.style.setProperty("--drift-y", "0px"); }}>
     <div className="daydream-orbit" aria-hidden="true" /><span className="daydream-spark" aria-hidden="true">✳</span>
+    <svg className="daydream-flight" viewBox="0 0 160 110" fill="none" aria-hidden="true"><path d="M6 100c45 8 99-32 68-46-31-13-21 32 16 14 17-8 22-20 27-31" stroke="currentColor" strokeDasharray="3 5" /><path d="m108 16 40-10-18 33-7-15-15-8Z" fill="var(--surface)" stroke="currentColor" strokeLinejoin="round" /><path d="m123 24 25-18" stroke="currentColor" /></svg>
+    <span className="daydream-star daydream-star-one" aria-hidden="true">✦</span><span className="daydream-star daydream-star-two" aria-hidden="true">✧</span>
     <div className="daydream-postcard">
+      <span className="daydream-tape" aria-hidden="true" />
       <div className="daydream-art">
         <svg viewBox="0 0 560 380" fill="none" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
           <path fill="var(--scene-sky)" d="M0 0h560v380H0z" />
@@ -39,27 +40,34 @@ export function Daydream({ compact = false }: { compact?: boolean }) {
           <path d="M0 315c94-24 174 1 267-19 109-24 169 10 293-9v93H0Z" fill="var(--scene-sand)" />
           <path d="M0 331c122-22 205 13 325-14 78-17 141 1 235-4" stroke="#fff5df" strokeWidth="3" opacity=".75" />
           <g className="daydream-boat"><path d="m260 256 48 0-11 11h-26Z" fill="#574d67" /><path d="M284 218v36h-25Z" fill="#fff6e5" /><path d="M287 229v25h15Z" fill="#d58c6d" /></g>
-          <g stroke="#545064" strokeWidth="2" strokeLinecap="round"><path d="m187 108 8 4 8-4m23 16 6 3 6-3" /></g>
+          <g className="daydream-birds" stroke="#545064" strokeWidth="2" strokeLinecap="round"><path d="m187 108 8 4 8-4m23 16 6 3 6-3" /></g>
           <g transform="translate(75 311)"><path d="m0 26 4-25m8 25L5 6" stroke="#657a68" strokeWidth="3" /><ellipse cx="0" cy="2" rx="7" ry="13" fill="#e8a19b" transform="rotate(-28)" /><ellipse cx="9" cy="4" rx="7" ry="13" fill="#c97a74" transform="rotate(21 9 4)" /></g>
+          <g className="daydream-companion" transform="translate(435 283)">
+            <ellipse cx="0" cy="58" rx="31" ry="6" fill="#687f791c" />
+            <g className="daydream-companion-body">
+              <path d="M-28 27c-2-13 2-24 9-29l-1-22c0-4 4-5 7-2L1-10l15-12c3-3 7-1 6 3l-3 22c8 9 12 18 9 33-3 16-16 24-30 23-16-1-26-13-26-32Z" fill="#fff9e9" stroke="#62786e" strokeWidth="2.5" strokeLinejoin="round" />
+              <path d="m-17-15 8 10-7 2Zm32 2-6 9 7 3Z" fill="#dba9a0" />
+              <g className="daydream-companion-eyes" fill="#52675e"><ellipse cx="-11" cy="15" rx="2.5" ry="4" /><ellipse cx="10" cy="15" rx="2.5" ry="4" /></g>
+              <path d="M-4 24q4 4 8 0" stroke="#52675e" strokeWidth="1.5" strokeLinecap="round" />
+              <ellipse cx="-19" cy="23" rx="5" ry="2.5" fill="#e8b4a5" /><ellipse cx="18" cy="23" rx="5" ry="2.5" fill="#e8b4a5" />
+              <path d="M-22 34q23 10 45-1l-2 8q-21 7-42 0Z" fill="#95a896" /><path d="m12 40 5 16 7-4-4-14" fill="#95a896" />
+              <path className="daydream-companion-star" d="m-32 28 4 9 10 1-8 7 2 10-8-5-9 5 2-10-7-7 10-1Z" fill="#efc16f" stroke="#b38d54" strokeWidth="1.5" strokeLinejoin="round" />
+            </g>
+          </g>
+          <g className="daydream-glints" fill="#fff8db"><path d="m116 201 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" /><path d="m362 273 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" /><circle cx="192" cy="297" r="2" /><circle cx="485" cy="228" r="2" /></g>
         </svg>
         <span className="postcard-stamp">NSB<br /><Icon name="spark" size={17} /></span>
       </div>
       <div className="daydream-caption"><span lang="en">{current.english}</span><span>0{scene + 1} / 03</span></div>
     </div>
-    <span className="daydream-note" lang="en">little moments,<br />big feelings. <span>↗</span></span>
+    <span className="daydream-note"><small>给时光的一封信</small><span lang="en">keep a little<br />wonder.</span><span className="daydream-note-arrow" aria-hidden="true">↗</span></span>
     <div className="daydream-controls">
       <div className="daydream-toolbar">
         <div className="daydream-scenes" role="group" aria-label="切换插画场景">
           {scenes.map((item, index) => <button key={item.label} type="button" aria-pressed={index === scene} onClick={() => setScene(index)}>{item.label}</button>)}
         </div>
-        <button type="button" className="daydream-pause" aria-pressed={paused} disabled={reducedMotion}
-          title={reducedMotion ? "已跟随系统的减少动态效果设置" : undefined}
-          onClick={() => setManuallyPaused(v => !v)}>
-          <Icon name={reducedMotion ? "image" : paused ? "play" : "pause"} size={14} />
-          <span>{reducedMotion ? "静态画面" : paused ? "继续动画" : "暂停动画"}</span>
-        </button>
       </div>
-      <p className="daydream-status" role="status">{reducedMotion ? "已跟随系统，显示静态画面" : paused ? "画面已暂停，留住这一刻。" : "云在走，小船在轻轻摇。"}</p>
+      <p className="daydream-status" role="status">{reducedMotion ? "已跟随系统，显示静态画面" : "风吹过的地方，回忆还在。"}</p>
     </div>
   </div>;
 }
