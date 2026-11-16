@@ -2,7 +2,7 @@
 import { moodLabel } from "./moods";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
@@ -11,6 +11,8 @@ import { PhotoWall } from "./photo-wall";
 import { MediaGrid } from "./media";
 import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
+import { ThemeMotif } from "@/components/theme-motif";
+import { JournalAtmosphere } from "./journal-atmosphere";
 export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -116,8 +118,9 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     }
   }
   return (
-    <>
-      <section className="page-heading">
+    <div className={'journal-experience' + (trash ? ' journal-trash' : '')} data-journal-view={view}>
+      {!trash && <JournalAtmosphere title={scope === 'public' ? '发现日常' : '我的日常'} items={data?.items || []} publicScope={scope === 'public'} view={view} onView={value => filter('view', value === 'grid' ? '' : value)} />}
+      <section className="page-heading journal-page-heading">
         <div>
           <h1>
             {trash
@@ -317,7 +320,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               )}
             </div>
           ) : view === "gallery" ? <PhotoWall memories={data.items} /> : (
-            <div className={`memory-feed ${view}`}>
+            <div key={key + ':' + view} className={`memory-feed ${view}`}>
               {data.items.map((m, i) => {
                 const month = dateText(m.happenedAt, {
                   year: "numeric",
@@ -325,7 +328,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 });
                 const previous = data.items[i - 1];
                 return (
-                  <div key={m.id} className="memory-wrapper">
+                  <div key={m.id} id={'journal-entry-' + m.id} className="memory-wrapper motion-reveal" tabIndex={-1} style={{ '--journal-order': Math.min(i, 8) } as CSSProperties}>
                     {(!previous ||
                       dateText(previous.happenedAt, {
                         year: "numeric",
@@ -337,8 +340,10 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                     )}
                     <article
-                      className={`memory-card ${m.assets.length ? "has-media" : "text-memory"}`}
+                      className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}`}
                     >
+                      <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
+                      <span className="motion-spotlight" aria-hidden="true" />
                       <div className="memory-card-top">
                         <Link
                           className="memory-date"
@@ -485,7 +490,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           confirm={() => action(removing, "delete")}
         />
       )}
-    </>
+    </div>
   );
 }
 export function DeleteDialog({
