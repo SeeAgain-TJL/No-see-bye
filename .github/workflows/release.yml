@@ -1,5 +1,9 @@
 name: Linux deployment bundle
 
+concurrency:
+  group: no-see-bye-production
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
   push:
@@ -28,6 +32,8 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm run check
+      - name: Check deployment backup and rollback
+        run: bash scripts/test-deploy.sh
       - run: npm run release:pack
       # Test the extracted archive outside the checkout so missing dependencies
       # cannot be resolved accidentally from the source node_modules directory.
@@ -52,3 +58,48 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: true
+
+  deploy:
+    name: Deploy production
+    needs: package
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: no-see-bye-linux-x64
+          path: release
+      - name: Install deployment credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_SSH_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/no-see-bye-deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/no-see-bye-deploy ~/.ssh/known_hosts
+      - name: Upload and activate verified release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          sha256sum -c no-see-bye-linux-x64.tar.gz.sha256
+          digest=$(sha256sum no-see-bye-linux-x64.tar.gz | cut -d ' ' -f 1)
+          ssh -i ~/.ssh/no-see-bye-deploy -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" "deploy $digest $GITHUB_SHA" \
+            < no-see-bye-linux-x64.tar.gz
+      - name: Check public health endpoint
+        shell: bash
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 3 --retry-all-errors https://tingjieli.shop/api/health
+      - name: Remove deployment credentials
+        if: always()
+        shell: bash
+        run: rm -f ~/.ssh/no-see-bye-deploy
