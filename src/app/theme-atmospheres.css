@@ -1,0 +1,127 @@
+/* Theme materials live around the media. Photographs retain their own colours. */
+.theme-motif { display: block; width: 100%; height: 100%; flex-shrink: 0; }
+.theme-motif.keepsake-flower { width: 27px; height: 27px; }
+.theme-motif > [data-motif] { display: none; }
+.theme-motif[data-motif-theme='dusk'] > [data-motif='dusk'],
+.theme-motif[data-motif-theme='sea'] > [data-motif='sea'],
+.theme-motif[data-motif-theme='film'] > [data-motif='film'],
+.theme-motif[data-motif-theme='night'] > [data-motif='night'],
+:root[data-theme='dusk'] .theme-motif[data-motif-theme='current'] > [data-motif='dusk'],
+:root[data-theme='sea'] .theme-motif[data-motif-theme='current'] > [data-motif='sea'],
+:root[data-theme='film'] .theme-motif[data-motif-theme='current'] > [data-motif='film'],
+:root[data-theme='night'] .theme-motif[data-motif-theme='current'] > [data-motif='night'] { display: inline; }
+.daydream-atmosphere { display: none; }
+:root[data-theme='dusk'] .daydream-atmosphere[data-atmosphere='dusk'],
+:root[data-theme='sea'] .daydream-atmosphere[data-atmosphere='sea'],
+:root[data-theme='film'] .daydream-atmosphere[data-atmosphere='film'],
+:root[data-theme='night'] .daydream-atmosphere[data-atmosphere='night'] { display: inline; }
+.daydream-keepsake .postcard-stamp > .theme-motif { width: 22px; height: 22px; }
+.daydream-theme-token { position: absolute; width: 56px; height: 62px; bottom: 118px; left: 4px; z-index: 2; color: var(--accent); transform: rotate(-13deg); filter: drop-shadow(1px 2px 0 var(--surface)); pointer-events: none; }
+
+/* The theme menu shows a small sample of each material, not just a colour chip. */
+.theme-menu { width: 300px; padding: 12px; border-radius: 20px; box-shadow: 0 6px 12px -8px var(--album-shadow), 0 22px 55px -16px var(--album-shadow); }
+.theme-menu > p { margin: 7px 9px 13px; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: 12px; letter-spacing: .04em; color: var(--ink); }
+.theme-menu > p > small { margin-top: 6px; font-size: 10px; letter-spacing: .02em; }
+.theme-menu button { min-height: 76px; gap: 14px; padding: 9px; border: 1px solid transparent; transition: background .18s, border-color .18s; }
+.theme-menu button + button { margin-top: 3px; }
+.theme-menu button[aria-checked='true'] { border-color: color-mix(in srgb, var(--accent) 30%, var(--line)); }
+.theme-menu button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-menu small { font-size: 10px; line-height: 1.5; }
+.theme-menu .theme-check { width: 19px; height: 19px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; }
+.theme-menu button[aria-checked='true'] .theme-check { background: var(--accent); color: var(--on-accent); }
+.theme-current-swatch { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 0; background: transparent; box-shadow: none; color: var(--accent); transform: none; }
+.theme-current-swatch > .theme-motif { width: 23px; height: 23px; }
+.theme-trigger:hover .theme-current-swatch { transform: rotate(-9deg); }
+.theme-menu .theme-swatch { position: relative; display: grid; place-items: center; width: 57px; height: 54px; border-radius: 6px; border: 1px solid #00000012; box-shadow: 1px 2px 0 #00000008; overflow: hidden; }
+.theme-swatch .theme-motif { width: 32px; height: 32px; position: relative; z-index: 1; }
+.theme-swatch > i { position: absolute; bottom: 6px; right: 7px; width: 9px; height: 1px; background: currentColor; opacity: .4; }
+.theme-menu [data-theme-preview='dusk'] { color: #526959; background: linear-gradient(#5269590b 1px, transparent 1px) 0 0/9px 9px, linear-gradient(90deg, #5269590b 1px, transparent 1px) 0 0/9px 9px, #f6f5ec; }
+.theme-menu [data-theme-preview='sea'] { color: #4b7079; border-radius: 9px 9px 17px 9px; background: repeating-radial-gradient(ellipse at 50% 120%, transparent 0 7px, #4b707910 8px 9px, transparent 10px 14px), #e7f0ef; }
+.theme-menu [data-theme-preview='film'] { color: #886547; border-radius: 2px; background: repeating-linear-gradient(0deg, transparent 0 5px, #88654735 5px 8px, transparent 8px 12px) left 3px top/3px 100% no-repeat, repeating-linear-gradient(0deg, transparent 0 5px, #88654735 5px 8px, transparent 8px 12px) right 3px top/3px 100% no-repeat, #f0e0c3; }
+.theme-menu [data-theme-preview='night'] { color: #e1d8ad; background: radial-gradient(circle at 12% 20%, #e1d8ada0 0 1px, transparent 1.5px), radial-gradient(circle at 85% 67%, #e1d8ad90 0 1px, transparent 1.5px), #26372f; border-color: #bccaad4a; }
+
+/* Paper: pressed leaves, squared notebook paper and cloth binding. */
+:root[data-theme='dusk'] .studio-home > .keepsake-hero { background: linear-gradient(120deg, #f0f1e9, #e6ebdf); }
+:root[data-theme='dusk'] .keepsake-hero::after { background: linear-gradient(#73846418 1px, transparent 1px) 0 0/26px 26px, linear-gradient(90deg, #73846418 1px, transparent 1px) 0 0/26px 26px; opacity: .55; mask-image: linear-gradient(90deg, transparent 38%, #000); }
+:root[data-theme='dusk'] .keepsake-album { background: linear-gradient(#7586670d 1px, transparent 1px) 0 0/22px 22px, linear-gradient(90deg, #7586670d 1px, transparent 1px) 0 0/22px 22px, linear-gradient(135deg, #fffef9, #edf0e6); }
+:root[data-theme='dusk'] .keepsake-album::before { border-style: dashed; border-color: #87987b42; }
+:root[data-theme='dusk'] .studio-home .keepsake-entry { background: linear-gradient(105deg, #fdfdf7, #fffefb); border-color: #cfd4c4; box-shadow: 0 3px 1px -1px #e4e7db, 0 12px 25px -22px #46533f66; }
+:root[data-theme='dusk'] .keepsake-entry::after { background: repeating-linear-gradient(0deg, transparent 0 8px, #8491740c 8px 9px), #e8ecdf; }
+:root[data-theme='dusk'] .daydream-tape, :root[data-theme='dusk'] .album-washi { background: repeating-linear-gradient(90deg, #ffffff18 0 5px, #74885e12 5px 6px), #c8d1b7; }
+:root[data-theme='dusk'] .daydream-theme-token { color: #708260; }
+
+/* Sea: rounded shell edges, translucent paper and fine concentric tides. */
+:root[data-theme='sea'] .studio-home > .keepsake-hero { background: linear-gradient(135deg, #eef6f5, #dbe9e7); border-radius: 28px 28px 48px 28px; border-color: #b9d1cf; }
+:root[data-theme='sea'] .keepsake-hero::before { border-radius: 20px 20px 39px 20px; border-color: #a9c5c642; }
+:root[data-theme='sea'] .keepsake-hero::after { background: repeating-radial-gradient(ellipse at 100% 100%, transparent 0 24px, #73a2a31a 25px 26px, transparent 27px 49px); opacity: .75; mask-image: linear-gradient(90deg, transparent 40%, #000); }
+:root[data-theme='sea'] .keepsake-album { background: repeating-radial-gradient(ellipse at 50% 120%, transparent 0 24px, #80a9a311 25px 26px, transparent 27px 47px), linear-gradient(145deg, #fbfdfc, #e3eeeb); border-color: #b8cecb; }
+:root[data-theme='sea'] .keepsake-album::before { border-style: solid; border-color: #a7c5c33a; box-shadow: inset 0 0 0 3px #ffffff35; }
+:root[data-theme='sea'] .studio-home .keepsake-entry { border-radius: 9px 9px 23px 9px; background: linear-gradient(145deg, #ffffffd9, #f2f8f5); border-color: #c2d7d1; box-shadow: inset 0 1px 0 #fff, 0 16px 28px -23px #385c6666; }
+:root[data-theme='sea'] .keepsake-entry::after { border-color: #c6d9d4; background: #dfebe6; }
+:root[data-theme='sea'] .keepsake-tape, :root[data-theme='sea'] .album-washi, :root[data-theme='sea'] .daydream-tape { background: repeating-linear-gradient(135deg, #ffffff44 0 3px, transparent 3px 7px), #bbd6cf; }
+:root[data-theme='sea'] .daydream-keepsake .daydream-postcard { border-color: #a8c3bd; box-shadow: 4px 6px 0 #c8ddd94d, 0 18px 28px -17px #2f606866; }
+:root[data-theme='sea'] .daydream-keepsake .daydream-postcard::after { border-color: #789d902e; }
+:root[data-theme='sea'] .daydream-sea { fill: color-mix(in srgb, var(--scene-sea) 65%, #70a9ad); }
+:root[data-theme='sea'] .daydream-sea-details { animation: theme-tide 5s ease-in-out infinite; }
+:root[data-theme='sea'] .daydream-theme-token { color: #739799; transform: rotate(12deg); }
+:root[data-theme='sea'] .keepsake-number { border-radius: 12px; border-color: #9bbfbd; }
+
+/* Film: warm archival board, real frame perforations and typewritten labels. */
+:root[data-theme='film'] .studio-home > .keepsake-hero { background: linear-gradient(110deg, #f4ead8, #e9d8b9); border-radius: 12px; border-color: #c5ae87; box-shadow: inset 0 0 0 5px #fff4de66, 0 5px 0 -2px var(--page), 0 5px 0 -1px #c5ae8770; }
+:root[data-theme='film'] .keepsake-hero::before { border-style: double; border-width: 3px; border-radius: 5px; border-color: #a78a5f35; }
+:root[data-theme='film'] .keepsake-hero::after { opacity: .5; background: repeating-linear-gradient(90deg, #a68c5d66 0 8px, transparent 8px 19px) 30px 18px/calc(100% - 60px) 4px no-repeat, repeating-linear-gradient(90deg, #a68c5d66 0 8px, transparent 8px 19px) 30px calc(100% - 18px)/calc(100% - 60px) 4px no-repeat; mask-image: none; }
+:root[data-theme='film'] .keepsake-album { border-radius: 10px; border-color: #cbb796; background: repeating-linear-gradient(90deg, #866d4410 0 1px, transparent 1px 4px), linear-gradient(135deg, #f7ecda, #e8d9bd); }
+:root[data-theme='film'] .keepsake-album::before { border-style: double; border-width: 3px; border-radius: 4px; border-color: #9b7c4b35; }
+:root[data-theme='film'] .studio-home .keepsake-entry,
+:root[data-theme='film'] .keepsake-album .album-card { border-radius: 3px; border-color: #bfa780; background: repeating-linear-gradient(0deg, transparent 0 5px, #af966c66 5px 9px, transparent 9px 14px) left 3px top/3px 100% no-repeat, repeating-linear-gradient(0deg, transparent 0 5px, #af966c66 5px 9px, transparent 9px 14px) right 3px top/3px 100% no-repeat, linear-gradient(100deg, #f7edda, #fff8e9); }
+:root[data-theme='film'] .keepsake-entry::after { border-color: #c2ac89; background: #e4d3b4; }
+:root[data-theme='film'] .keepsake-entry .recent-entry-meta, :root[data-theme='film'] .album-caption time { font-family: 'Courier New', monospace; letter-spacing: .05em; }
+:root[data-theme='film'] .keepsake-number { border: 1px dashed #9c7751; border-radius: 1px; font-family: 'Courier New', monospace; color: #846044; }
+:root[data-theme='film'] .keepsake-tape, :root[data-theme='film'] .album-washi, :root[data-theme='film'] .daydream-tape { background: repeating-linear-gradient(90deg, #fff1d226 0 4px, #96724214 4px 5px), #d8bd89; }
+:root[data-theme='film'] .daydream-keepsake .daydream-postcard { border-color: #b89c6f; background: #f5e7c9; }
+:root[data-theme='film'] .daydream-keepsake .daydream-postcard::after { border-color: #a5875540; border-style: dashed; }
+:root[data-theme='film'] .daydream-sky { fill: color-mix(in srgb, var(--scene-sky) 70%, #efd1a1); }
+:root[data-theme='film'] .daydream-theme-token { color: #9b7952; transform: rotate(-9deg); }
+
+/* Night: a forest observatory, moonlit edges and tiny points of light. */
+:root[data-theme='night'] .studio-home > .keepsake-hero { background: radial-gradient(ellipse at 80% 20%, #4d625343, transparent 58%), linear-gradient(135deg, #283b32, #202f28); border-color: #697962; box-shadow: inset 0 0 0 6px #19261f35, 0 18px 40px -28px #020a06aa; }
+:root[data-theme='night'] .keepsake-hero::before { border-color: #b9c8a72b; }
+:root[data-theme='night'] .keepsake-hero::after { background: radial-gradient(circle at 15% 22%, #d4d4a7a0 0 1px, transparent 1.7px), radial-gradient(circle at 78% 16%, #d4d4a7a0 0 1.3px, transparent 2px), radial-gradient(circle at 54% 79%, #d4d4a780 0 1px, transparent 1.7px), radial-gradient(circle at 88% 72%, #d4d4a760 0 1.5px, transparent 2px); background-size: 290px 190px; opacity: .65; mask-image: linear-gradient(90deg, transparent 30%, #000); }
+:root[data-theme='night'] .keepsake-album { background: radial-gradient(circle at 17% 29%, #ced6aa44 0 1px, transparent 1.8px) 0 0/190px 170px, radial-gradient(circle at 73% 41%, #cdd9b144 0 1px, transparent 1.6px) 0 0/250px 210px, linear-gradient(140deg, #2c3d31, #202e26); border-color: #5b6e56; }
+:root[data-theme='night'] .keepsake-album::before { border-style: solid; border-color: #b9c8a724; }
+:root[data-theme='night'] .album-memory-thread path { stroke-dasharray: none; stroke-width: 1; opacity: .7; }
+:root[data-theme='night'] .album-memory-thread circle { fill: #d2d5ab; stroke: #d2d5ab; }
+:root[data-theme='night'] .studio-home .keepsake-entry { background: linear-gradient(135deg, #34473a, #2a3b31); border-color: #70826880; box-shadow: inset 0 1px 0 #d6dfc718, 0 15px 30px -22px #030b07bb; }
+:root[data-theme='night'] .keepsake-entry::after { background: #24372b; border-color: #52664c; }
+:root[data-theme='night'] .keepsake-tape, :root[data-theme='night'] .album-washi, :root[data-theme='night'] .daydream-tape { background: radial-gradient(circle, #e7dfb6 0 1px, transparent 1.5px) 0 0/13px 11px, #82916b; }
+:root[data-theme='night'] .daydream-keepsake .daydream-postcard { background: #d9ddc7; border-color: #9aa88e; box-shadow: 5px 7px 0 #131f1b30, 0 22px 30px -16px #030c08aa; }
+:root[data-theme='night'] .daydream-keepsake .daydream-postcard::before { background: #bfc8af; border-color: #8c9c82; }
+:root[data-theme='night'] .daydream-keepsake .daydream-caption { color: #3f5549; }
+:root[data-theme='night'] .daydream-sky { fill: color-mix(in srgb, var(--scene-sky) 15%, #20323e); }
+:root[data-theme='night'] .daydream-hill { fill: color-mix(in srgb, var(--scene-hill) 22%, #29483e); }
+:root[data-theme='night'] .daydream-sea { fill: color-mix(in srgb, var(--scene-sea) 25%, #31545a); }
+:root[data-theme='night'] .daydream-sand { fill: #728373; }
+:root[data-theme='night'] .daydream-sun, :root[data-theme='night'] .daydream-birds { display: none; }
+:root[data-theme='night'] .daydream-clouds { opacity: .2; }
+:root[data-theme='night'] .daydream-fireflies { animation: theme-firefly 4s ease-in-out infinite; }
+:root[data-theme='night'] .daydream-theme-token { color: #d4c99e; filter: drop-shadow(0 0 7px #d9dba923); }
+:root[data-theme='night'] .keepsake-number { border-color: #d0c79960; color: #e1d7b2; }
+
+@keyframes theme-tide { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes theme-firefly { 0%,100% { opacity: .35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
+@media (max-width: 760px) {
+  .theme-motif.keepsake-flower { width: 20px; height: 20px; }
+  .theme-menu { width: 290px; }
+  .theme-menu .theme-swatch { width: 51px; height: 50px; }
+  .daydream-theme-token { width: 38px; height: 42px; bottom: 116px; left: 5px; }
+  .studio-auth .daydream-theme-token { display: none; }
+  :root[data-theme='sea'] .studio-home > .keepsake-hero { border-radius: 20px 20px 34px 20px; }
+  :root[data-theme='sea'] .keepsake-hero::before { border-radius: 13px 13px 27px 13px; }
+  :root[data-theme='film'] .keepsake-hero::after { background-size: calc(100% - 44px) 3px; background-position: 22px 14px, 22px calc(100% - 14px); }
+}
+@media (hover: none) { .theme-trigger:hover .theme-current-swatch { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .theme-menu button, .theme-current-swatch { transition: none; }
+  .daydream-atmosphere { animation: none !important; }
+  .theme-trigger:hover .theme-current-swatch { transform: none; }
+}
