@@ -1,55 +1,87 @@
-/* Frames follow the actual image, rather than filling a fixed landscape matte. */
-:root[data-theme] :is(.media-grid, .media-grid.single, .media-grid.compact) { align-items: start; }
-:root[data-theme] :is(.media-grid.single, .media-grid.compact) { display: block; height: auto; }
-:root[data-theme] .studio-home .keepsake-entry .media-grid.archive-cover .media-tile,
-:root[data-theme] :is(.memory-card, .detail-article, .collection-card) .media-grid .media-tile,
-:root[data-theme] .media-grid .media-tile,
-:root[data-theme] .wall-image { display: block; width: 100%; height: auto; min-height: 0; aspect-ratio: auto; padding: 0; background: transparent; }
-:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image { position: relative; display: block; inset: auto; width: 100%; height: auto; min-height: 0; background: transparent; }
-:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image > img { position: static; inset: auto; display: block; width: 100%; height: auto; object-fit: contain; transform: none; }
-:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image[data-state='loading']:not(:has(img[width])) { min-height: 120px; }
-:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image[data-state='error'] { min-height: 160px; }
-:root[data-theme] .media-grid .media-tile:has(.video-placeholder),
-:root[data-theme] .wall-image:has(.wall-video) { position: relative; aspect-ratio: 4 / 3; min-height: 140px; }
-:root[data-theme] .media-grid .media-tile > .video-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; }
-:root[data-theme] .wall-image { border-radius: 4px; }
-.wall-item { overflow: visible; }
+/* One bounded composition: rows stay aligned, the photograph keeps its ratio. */
+:root[data-theme] :is(.media-grid, .media-grid.single, .media-grid.compact) { align-items: center; background: transparent; }
+:root[data-theme] .media-grid.single, :root[data-theme] .media-grid.compact { display: block; height: auto; max-height: none; }
+.media-print, .wall-preview-well { --preview-height: 228px; position: relative; display: grid; place-items: end center; width: 100%; height: var(--preview-height); min-width: 0; }
+:root[data-theme] .studio-home .keepsake-entry .media-grid.archive-cover { border-radius: 0; box-shadow: none; background: transparent; }
+:root[data-theme] .studio-home .keepsake-entry .media-grid.archive-cover .framed-preview,
+:root[data-theme] :is(.media-grid .framed-preview, .wall-preview-well .framed-preview) {
+  position: relative; display: block; flex: none;
+  width: min(100%, calc(var(--preview-height, 228px) * var(--media-ratio, 1.5)));
+  height: auto; min-height: 0; aspect-ratio: var(--media-ratio, 1.5);
+  padding: 0; margin: 0; overflow: hidden; border-radius: 3px;
+  background: var(--surface-dim); box-shadow: 0 1px 3px var(--album-shadow);
+}
+:root[data-theme] :is(.media-grid .framed-preview, .wall-preview-well .framed-preview) > .decoded-image {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; min-height: 0; background: transparent;
+}
+:root[data-theme] :is(.media-grid .framed-preview, .wall-preview-well .framed-preview) > .decoded-image > img {
+  position: static; inset: auto; display: block; width: 100%; height: 100%; object-fit: contain; transform: none;
+}
+:root[data-theme] .media-grid .framed-preview > .video-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; }
+.framed-preview > .cover-count { top: auto; left: auto; bottom: 8px; right: 9px; pointer-events: none; }
+:root[data-theme] .detail-article .media-print { --preview-height: min(65vh, 560px); }
 
-/* Natural-height columns remove the blank rows beside portrait photographs. */
+/* The archive is a grid, never balanced newspaper columns. */
 :root[data-theme] .studio-home .studio-records,
 :root[data-theme] .memory-feed.grid,
-:root[data-theme] .photo-wall-grid { display: block; column-count: 3; column-gap: 28px; }
-:root[data-theme] .studio-home .studio-records > .keepsake-entry { display: inline-flex; width: 100%; margin: 10px 0 25px; vertical-align: top; break-inside: avoid; }
-:root[data-theme] .memory-feed.grid > .memory-wrapper,
-:root[data-theme] .photo-wall-grid > .wall-item { display: inline-block; width: 100%; vertical-align: top; margin: 0 0 28px; break-inside: avoid; }
-:root[data-theme] .memory-feed.grid .memory-card { width: 100%; }
-:root[data-theme] .memory-feed.grid .month-divider { break-after: avoid; }
+:root[data-theme] .photo-wall-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-count: auto; gap: 28px 26px; align-items: stretch; }
+:root[data-theme] .studio-home .studio-records > .keepsake-entry { display: flex; width: auto; min-width: 0; margin: 0; }
+:root[data-theme] .memory-feed.grid > .memory-wrapper { display: flex; min-width: 0; width: auto; margin: 0; flex-direction: column; }
+:root[data-theme] .photo-wall-grid > .wall-item { display: flex; flex-direction: column; min-width: 0; width: auto; margin: 0; }
+:root[data-theme] .memory-feed.grid .memory-card { width: 100%; flex: 1; display: flex; flex-direction: column; }
+:root[data-theme] .memory-feed.grid .month-divider { display: none; }
 .studio-home .keepsake-entry .recent-entry-cover { flex: 0 0 auto; }
-.studio-home .keepsake-entry .recent-entry-info { flex: 0 0 auto; }
+:root[data-theme] .studio-home .keepsake-entry .recent-entry-info { flex: 1; min-height: 120px; padding: 15px 10px 10px; }
+.studio-home .keepsake-entry .recent-entry-footer { margin-top: auto; }
+:root[data-theme] .studio-home .keepsake-entry .recent-entry-title h3 { -webkit-line-clamp: 1; }
+:root[data-theme] .studio-home .keepsake-entry .recent-entry-excerpt { -webkit-line-clamp: 2; }
+:root[data-theme] .studio-home .keepsake-entry.recent-entry-note .recent-entry-info { min-height: 363px; padding: 26px 18px 12px; }
+:root[data-theme] .studio-home .keepsake-entry .keepsake-trim .keepsake-tape { width: 54px; height: 17px; top: -8px; }
+:root[data-theme] .studio-home .keepsake-entry { padding-top: 12px; }
+.memory-card .memory-card-bottom { margin-top: auto; }
+.wall-item .wall-caption { margin-top: auto; }
+.memory-feed.timeline .media-print { --preview-height: 250px; }
 
-/* A tall album print is narrower, with its paper edge hugging the photograph. */
-:root[data-theme] .keepsake-album .album-stage { --album-photo-height: 330px; height: 480px; }
-:root[data-theme] .keepsake-album .album-card { width: min(var(--album-card-width), calc(var(--album-photo-height) * var(--photo-ratio, 1.5) + 22px)); }
+/* Prints share a baseline and a height cap, with width-aware spacing in JS. */
+:root[data-theme] .keepsake-album { padding: 22px 24px 18px; }
+:root[data-theme] .keepsake-album .album-stage { --album-photo-height: 210px; height: 340px; margin-inline: -12px; }
+:root[data-theme] .keepsake-album .album-card { top: calc(100% - 34px); padding: 10px 10px 0; width: min(var(--album-card-width), calc(var(--album-photo-height) * var(--photo-ratio, 1.5) + 20px)); }
 :root[data-theme] .keepsake-album .album-photo { width: 100%; height: auto; aspect-ratio: var(--photo-ratio, 1.5); background: transparent; }
 :root[data-theme] .keepsake-album .album-photo > .decoded-image { width: 100%; height: 100%; }
 :root[data-theme] .keepsake-album .album-photo img { object-fit: contain; }
-.keepsake-album .album-caption { min-width: 0; overflow: hidden; }
-.keepsake-album .album-caption time { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+:root[data-theme] .keepsake-album .album-caption { min-width: 0; height: 41px; padding-inline: 2px; gap: 8px; overflow: hidden; }
+.keepsake-album .album-caption time { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.keepsake-album .album-card[data-orientation='portrait'] .album-print-number,
+.keepsake-album .album-card[data-orientation='portrait'] .album-caption > span:not(.album-print-number) { display: none; }
+.keepsake-album .album-card[data-orientation='portrait'] .album-caption time { font-size: 9px; letter-spacing: .025em; }
+.keepsake-album .album-caption > svg { flex-shrink: 0; }
+.keepsake-album .album-memory-thread { opacity: .28; }
+.keepsake-album .album-spark-one { top: 23px; right: 30px; font-size: 20px; }
+.keepsake-album .album-spark-two, .keepsake-album .album-spark-three { display: none; }
+.keepsake-album .album-footer { padding-top: 12px; }
+.keepsake-album .album-footer-note { font-size: 12px; }
 
 @media (min-width: 1700px) {
-  :root[data-theme] .photo-wall-grid, :root[data-theme] .memory-feed.grid { column-count: 4; }
+  :root[data-theme] .photo-wall-grid, :root[data-theme] .memory-feed.grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 1100px) {
-  :root[data-theme] .studio-home .studio-records, :root[data-theme] .memory-feed.grid, :root[data-theme] .photo-wall-grid { column-count: 2; column-gap: 24px; }
-  :root[data-theme] .keepsake-album .album-stage { --album-photo-height: 265px; height: 405px; }
+  :root[data-theme] .studio-home .studio-records, :root[data-theme] .memory-feed.grid, :root[data-theme] .photo-wall-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 22px; }
+  .media-print, .wall-preview-well { --preview-height: 218px; }
+  :root[data-theme] .keepsake-album .album-stage { --album-photo-height: 196px; height: 318px; }
 }
 @media (max-width: 760px) {
-  :root[data-theme] .studio-home .studio-records, :root[data-theme] .memory-feed.grid, :root[data-theme] .photo-wall-grid { column-count: 2; column-gap: 16px; }
-  :root[data-theme] .studio-home .studio-records > .keepsake-entry { margin-bottom: 22px; }
-  :root[data-theme] .memory-feed.grid > .memory-wrapper, :root[data-theme] .photo-wall-grid > .wall-item { margin-bottom: 18px; }
-  :root[data-theme] .keepsake-album .album-stage { --album-photo-height: 238px; height: 360px; }
+  :root[data-theme] .studio-home .studio-records, :root[data-theme] .memory-feed.grid, :root[data-theme] .photo-wall-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+  .media-print, .wall-preview-well { --preview-height: 178px; }
+  :root[data-theme] .studio-home .keepsake-entry .recent-entry-info { min-height: 109px; padding: 12px 5px 6px; }
+  :root[data-theme] .studio-home .keepsake-entry.recent-entry-note .recent-entry-info { min-height: 290px; padding-inline: 10px; }
+  :root[data-theme] .keepsake-album { padding: 18px 15px 15px; }
+  :root[data-theme] .keepsake-album .album-stage { --album-photo-height: 182px; height: 286px; }
+  :root[data-theme] .keepsake-album .album-card { padding: 8px 8px 0; width: min(var(--album-card-width), calc(var(--album-photo-height) * var(--photo-ratio, 1.5) + 16px)); }
+  :root[data-theme] .keepsake-album .album-caption { height: 37px; gap: 5px; }
+  .keepsake-album .album-caption time { font-size: 9px; }
 }
 @media (max-width: 380px) {
-  :root[data-theme] .studio-home .studio-records, :root[data-theme] .memory-feed.grid { column-count: 1; }
-  :root[data-theme] .keepsake-album .album-stage { --album-photo-height: 210px; height: 325px; }
+  :root[data-theme] .studio-home .studio-records, :root[data-theme] .memory-feed.grid { grid-template-columns: minmax(0, 1fr); }
+  .media-print { --preview-height: 200px; }
+  :root[data-theme] .keepsake-album .album-stage { --album-photo-height: 172px; height: 276px; }
 }

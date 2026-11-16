@@ -17,19 +17,7 @@ function AlbumDecoration() {
       <path d='M70 355c54-27 63-10 57 5s-36 2-21-17c16-22 53-18 76-9' />
       <circle cx='28' cy='188' r='5' /><circle cx='964' cy='248' r='4' />
     </svg>
-    <span className='album-margin-note'>把时光，轻轻夹好。<svg viewBox='0 0 84 28' fill='none'><path d='M2 9c23 17 53 16 76-4m-14 1 15-2-5 12' /></svg></span>
     <span className='album-spark album-spark-one'>✦</span><span className='album-spark album-spark-two'>✧</span><span className='album-spark album-spark-three'>+</span>
-    <span className='album-memory-keeper'>
-      <svg viewBox='0 0 76 88' fill='none'>
-        <path d='m24 30-8-19 21 12 17-14-1 25c10 8 13 20 9 30-5 12-37 14-46 2-9-12-4-27 8-36Z' fill='var(--album-paper)' stroke='currentColor' strokeWidth='1.7' strokeLinejoin='round' />
-        <path d='m22 52 5-1m18 0 5 1m-17 5c2 3 5 3 7 0' stroke='currentColor' strokeWidth='2.4' strokeLinecap='round' />
-        <ellipse cx='23' cy='58' rx='4' ry='2' fill='var(--warm)' opacity='.45' /><ellipse cx='49' cy='58' rx='4' ry='2' fill='var(--warm)' opacity='.45' />
-        <path d='m58 4 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z' fill='var(--warm)' />
-        <path d='M26 72v9m22-9v9' stroke='currentColor' strokeWidth='2' strokeLinecap='round' />
-        <path d='m30 66 7-4 7 4-1 10-6 3-6-3Z' fill='var(--accent-soft)' stroke='currentColor' strokeWidth='1.2' /><path d='M37 63v15' stroke='currentColor' strokeWidth='1' />
-      </svg>
-      <span>记忆保管员</span>
-    </span>
   </div>;
 }
 
@@ -53,7 +41,7 @@ function Album({ items }: { items: Memory[] }) {
 
   return <>
     <section className='memory-album keepsake-album' aria-labelledby={titleId} aria-roledescription='轮播相册'>
-      <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2 id={titleId}>时光相册<ThemeMotif className='album-theme-mark' /></h2></div><span className='album-gesture'>滑动翻阅<Icon name='arrow' size={13} /></span></header>
+      <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2 id={titleId}>旧光成册<ThemeMotif className='album-theme-mark' /></h2></div><span className='album-gesture'>轻翻旧页<Icon name='arrow' size={13} /></span></header>
       <div ref={stage} className='album-stage' onPointerDown={e => controls.current?.down(e)} onPointerMove={e => controls.current?.move(e)} onPointerUp={e => controls.current?.up(e)} onPointerCancel={() => controls.current?.cancel()}
         onClickCapture={e => { if (e.detail > 0 && controls.current?.wasDragged()) { e.preventDefault(); e.stopPropagation(); } }}
         onDragStart={e => e.preventDefault()}
@@ -71,7 +59,7 @@ function Album({ items }: { items: Memory[] }) {
           const asset = memory.assets.find(asset => asset.mime.startsWith('image/') || asset.thumbnailUrl);
           const video = asset?.mime.startsWith('video/') || (!asset && memory.assets.some(asset => asset.mime.startsWith('video/')));
           const ratio = asset ? ratios[asset.id] || (asset.width && asset.height ? asset.width / asset.height : 1.5) : 1.5;
-          return <button type='button' key={memory.id} data-album-card data-active={i === index} data-paper-tone={i % 3} className={'album-card' + (!asset ? ' album-card-note' : '')} style={{ '--photo-ratio': ratio } as CSSProperties}
+          return <button type='button' key={memory.id} data-album-card data-active={i === index} data-paper-tone={i % 3} data-orientation={ratio < .9 ? 'portrait' : 'landscape'} className={'album-card' + (!asset ? ' album-card-note' : '')} style={{ '--photo-ratio': ratio } as CSSProperties}
             aria-label={(i === index ? '打开' : '翻到') + dateText(memory.happenedAt) + '的日常'} aria-current={i === index ? 'true' : undefined}
             aria-hidden={distance > 2} tabIndex={i === index ? 0 : -1}
             onClick={() => i === index ? open(memory) : choose(i)}>
@@ -94,7 +82,7 @@ function Album({ items }: { items: Memory[] }) {
           <span className='album-counter' aria-hidden='true'>{String(index + 1).padStart(2, '0')}<span> / {String(items.length).padStart(2, '0')}</span></span>
           <button type='button' className='album-arrow' aria-label='下一段日常' disabled={items.length < 2} onClick={() => choose(index + 1)}><Icon name='arrow' size={18} /></button>
         </div>
-        <span className='album-footer-note' aria-hidden='true'>每一页，都值得被记得。</span>
+        <span className='album-footer-note' aria-hidden='true'>一页旧光，等你重读。</span>
         <Link className='album-open' href={`/memories/${selected.id}`} aria-label={'查看' + dateText(selected.happenedAt) + '的日常详情'}>查看日常<Icon name='arrow' size={14} /></Link>
       </footer>
       <span className='sr-only' aria-live='polite' aria-atomic='true'>{dateText(selected.happenedAt)}，第 {index + 1} 段，共 {items.length} 段日常</span>
@@ -107,7 +95,7 @@ export function MemoryAlbum({ data, error, onRetry }: { data?: MemoryList; error
   const items = useMemo(() => (data?.items || []).slice(0, 12), [data]);
   if (data && !error && items.length) return <Album key={items.map(item => item.id).join(':')} items={items} />;
   return <section className='memory-album keepsake-album album-unpopulated' aria-label='时光相册' aria-busy={!data && !error}>
-    <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2>时光相册<ThemeMotif className='album-theme-mark' /></h2></div></header>
+    <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2>旧光成册<ThemeMotif className='album-theme-mark' /></h2></div></header>
     <div className='album-state' role={error ? 'alert' : 'status'}><div className='album-empty-frame' aria-hidden='true'><Icon name='image' size={29} /></div>
       {error ? <><p>{error}</p><button type='button' className='album-state-action' onClick={onRetry}>重新加载<Icon name='restore' size={15} /></button></> : !data ? <p>正在整理相册…</p> : <Link href='/memories/new' className='album-state-action'>留下第一段日常<Icon name='plus' size={16} /></Link>}
     </div>

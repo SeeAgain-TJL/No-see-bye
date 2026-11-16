@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Icon } from '@/components/icons';
 import { ThemeMotif } from '@/components/theme-motif';
+import { MemorySprite } from '@/components/memory-sprite';
 import { DecodedImage } from '@/components/decoded-image';
 import { useApp } from '@/components/providers';
 import { api, dateText } from '@/lib/client';
@@ -166,7 +167,7 @@ export function PostcardStudio({ user, data, close, onSaved }: { user: UserInfo;
   }
 
   return <dialog ref={dialog} className='postcard-studio' aria-labelledby='ps-title' onClose={close} onClick={event => { if (event.target === event.currentTarget) dialog.current?.close(); }}>
-    <header className='ps-header'><div><span>THE LETTER ATELIER</span><h2 id='ps-title'>把想念，写成一封信。</h2></div><button type='button' className='icon-button' aria-label='关闭明信片工作台' onClick={() => dialog.current?.close()}><Icon name='close' size={23} /></button></header>
+    <header className='ps-header'><div><span>明信片 · THE LETTER ATELIER</span><h2 id='ps-title'>尺素寄相思。</h2></div><button type='button' className='icon-button' aria-label='关闭明信片工作台' onClick={() => dialog.current?.close()}><Icon name='close' size={23} /></button></header>
     <div className='ps-workspace'>
       <section className='ps-preview' aria-label='明信片预览'>
         <div className='ps-preview-caption'><ThemeMotif /><span>{p.mark}</span><span className='ps-edition'>NO. 01 / YOUR OWN LETTER</span></div>
@@ -176,13 +177,13 @@ export function PostcardStudio({ user, data, close, onSaved }: { user: UserInfo;
             <div className='ps-card ps-front' inert={flipped}>
               <div ref={art} className='ps-cover'>{photo ? <DecodedImage src={previewUrl(photo.asset)} alt='选择的明信片照片' /> : <Landscape theme={theme} />}</div>
               <div className='ps-front-caption'><span>给 {draft.recipient.trim() || '此刻的自己'}</span><time dateTime={today}>{dateText(today, { month: 'long', day: 'numeric' })}</time></div>
-              <p className='ps-front-note'>{p.subtitle}</p><span className='ps-corner-mark' aria-hidden='true'><ThemeMotif /></span>
+              <p className='ps-front-note'>{p.subtitle}</p><span className='ps-corner-mark' aria-hidden='true'><MemorySprite pose='peek' /></span>
             </div>
             <div className='ps-card ps-back' inert={!flipped}>
               <div className='ps-postage' aria-hidden='true'><ThemeMotif /><span>NO SEE BYE</span></div>
               <span className='ps-back-eyebrow'>POSTCARD / 私人来信</span>
               <strong className='ps-to'>To. {draft.recipient.trim() || '此刻的自己'}</strong>
-              <p className={'ps-letter' + (!message ? ' is-empty' : '')} tabIndex={flipped ? 0 : -1} aria-label='完整信件，可滚动阅读'>{message || '有些话，值得认真写下来。\n写下今天想寄出的心情。'}</p>
+              <p className={'ps-letter' + (!message ? ' is-empty' : '')} tabIndex={flipped ? 0 : -1} aria-label='完整信件，可滚动阅读'>{message || '山水迢迢，见字如晤。\n愿这一纸，收好未尽的心事。'}</p>
               <div className='ps-sign'><span>From. {draft.signature.trim() || user.username}</span><time dateTime={today}>{dateText(today, { year: 'numeric', month: 'long', day: 'numeric' })}</time></div>
             </div>
           </div>
@@ -192,8 +193,8 @@ export function PostcardStudio({ user, data, close, onSaved }: { user: UserInfo;
       <form className='ps-editor' onSubmit={event => { event.preventDefault(); void save(); }}>
         <div className='ps-editor-title'><span>01 — 写信</span><span className='ps-draft-status' role='status'>{draftStatus}</span></div>
         <label className='ps-field'>寄给谁<input value={draft.recipient} maxLength={32} disabled={!restored} onChange={event => edit('recipient', event.target.value)} placeholder='未来的自己，或想念的人' /></label>
-        <label className='ps-field'>想说的话<textarea value={draft.message} maxLength={320} disabled={!restored} onFocus={() => setFlipped(true)} onChange={event => edit('message', event.target.value)} placeholder='今天遇见了什么，或者突然想起了谁？' rows={6} /></label>
-        <div className='ps-writing-meta'><span>不用写得漂亮，写下此刻就好。</span><span>{draft.message.length} / 320</span></div>
+        <label className='ps-field'>想说的话<textarea value={draft.message} maxLength={320} disabled={!restored} onFocus={() => setFlipped(true)} onChange={event => edit('message', event.target.value)} placeholder='写一程山水，或一缕想念…' rows={6} /></label>
+        <div className='ps-writing-meta'><span>纸短情长，落笔皆是此刻。</span><span>{draft.message.length} / 320</span></div>
         <div className='ps-prompts' aria-label='写信灵感'>{prompts.map((prompt, index) => <button type='button' key={prompt} disabled={!restored || draft.message.length + prompt.length + 1 > 320} onClick={() => { edit('message', (draft.message ? draft.message + '\n' : '') + prompt); setFlipped(true); }}>{['留住今天', '写给未来', '寄出想念'][index]}<span aria-hidden='true'>＋</span></button>)}</div>
         <label className='ps-field ps-signature-field'>署名<input value={draft.signature} maxLength={32} disabled={!restored} onChange={event => edit('signature', event.target.value)} /></label>
         <div className='ps-cover-heading'><span>02 — 挑一张封面</span><span>照片完整保留</span></div>

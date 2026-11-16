@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AmbientScene } from "./ambient-scene";
 
@@ -11,6 +11,7 @@ const arrivals = `${surfaces}, .keepsake-album, .keepsake-hero, .journal-hero, .
 export function ImmersiveMotion() {
   const anchor = useRef<HTMLDivElement>(null);
   const [awake, setAwake] = useState(false);
+  const toggleScene = useCallback(() => setAwake(value => !value), []);
   const path = usePathname();
   const enabled = path === "/" || path === "/memories";
 
@@ -147,6 +148,6 @@ export function ImmersiveMotion() {
 
   return enabled ? <div ref={anchor} className="immersive-motion-root">
     <div className="immersive-reading-track" aria-hidden="true"><span /></div>
-    <AmbientScene awake={awake} onToggle={() => setAwake(value => !value)} />
+    <AmbientScene awake={awake} onToggle={toggleScene} />
   </div> : null;
 }
