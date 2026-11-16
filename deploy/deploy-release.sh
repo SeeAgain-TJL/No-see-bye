@@ -85,6 +85,10 @@ for attempt in {1..45}; do
 done
 [[ $healthy == true ]] || { echo 'Health check failed' >&2; exit 1; }
 systemctl is-active --quiet no-see-bye
+# Verify the real HTTPS virtual host and certificate through the local Nginx.
+# The separate runner probe reports Internet routing problems independently.
+curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+  --resolve tingjieli.shop:443:127.0.0.1 https://tingjieli.shop/api/health | grep -q '"status":"ok"'
 success=true
 echo "DEPLOYED $commit"
 echo "BACKUP $backup"
