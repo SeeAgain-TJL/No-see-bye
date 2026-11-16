@@ -15,9 +15,9 @@ export function MediaGrid({ assets, compact = false }: { assets: MediaAsset[]; c
     <div className={'media-grid ' + (shown.length === 1 ? 'single ' : '') + (compact ? 'compact archive-cover' : '')}>
       {shown.map((asset, index) => <button type='button' key={asset.id} className='media-tile' onClick={() => setSelected(index)} aria-label={'查看第 ' + (index + 1) + ' 个' + (asset.mime.startsWith('video/') ? '视频' : '照片')}>
         {asset.mime.startsWith('video/') ? <>
-          {asset.thumbnailUrl ? <DecodedImage src={asset.thumbnailUrl} alt='视频封面' loading='lazy' /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
+          {asset.thumbnailUrl ? <DecodedImage src={asset.thumbnailUrl} alt='视频封面' loading='lazy' width={asset.width || undefined} height={asset.height || undefined} /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
           <span className='play-icon'><Icon name='play' size={23} /></span>
-        </> : <DecodedImage src={previewUrl(asset)} alt='日常照片' loading='lazy' />}
+        </> : <DecodedImage src={previewUrl(asset)} alt='日常照片' loading='lazy' width={asset.width || undefined} height={asset.height || undefined} />}
         {compact && assets.length > 1 && <span className='cover-count'><Icon name='image' size={13} />{assets.length}</span>}
       </button>)}
     </div>

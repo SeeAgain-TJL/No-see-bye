@@ -40,6 +40,8 @@ export const assetDTO = (a: {
   mime: string;
   sizeBytes: number;
   thumbnailKey?: string | null;
+  width?: number | null;
+  height?: number | null;
 }) => ({
   id: a.id,
   filename: a.filename,
@@ -47,6 +49,8 @@ export const assetDTO = (a: {
   sizeBytes: a.sizeBytes,
   url: `/api/assets/${a.id}`,
   thumbnailUrl: a.thumbnailKey ? `/api/assets/${a.id}?variant=preview` : null,
+  width: a.width ?? null,
+  height: a.height ?? null,
 });
 export function memoryDTO(entry: FullEntry) {
   const { attachments, media, tags, user, ...rest } = entry;

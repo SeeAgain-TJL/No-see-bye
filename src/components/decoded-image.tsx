@@ -7,13 +7,14 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "onLoad" | "onError"> & {
   src: string;
   onReady?: () => void;
   onFailure?: () => void;
+  onDimensions?: (size: { width: number; height: number }) => void;
 };
 export function DecodedImage(props: Props) { return <ImageFrame key={props.src} {...props} />; }
-function ImageFrame({ className = "", onReady, onFailure, alt = "", ...props }: Props) {
+function ImageFrame({ className = "", onReady, onFailure, onDimensions, alt = "", ...props }: Props) {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const image = useRef<HTMLImageElement>(null);
-  const callbacks = useRef({ onReady, onFailure });
-  useEffect(() => { callbacks.current = { onReady, onFailure }; }, [onReady, onFailure]);
+  const callbacks = useRef({ onReady, onFailure, onDimensions });
+  useEffect(() => { callbacks.current = { onReady, onFailure, onDimensions }; }, [onReady, onFailure, onDimensions]);
   useEffect(() => {
     const element = image.current;
     if (!element) return;
@@ -25,7 +26,10 @@ function ImageFrame({ className = "", onReady, onFailure, alt = "", ...props }: 
       decoding = true;
       try {
         await element.decode();
-        if (active) { setState("ready"); callbacks.current.onReady?.(); }
+        if (active) {
+          callbacks.current.onDimensions?.({ width: element.naturalWidth, height: element.naturalHeight });
+          setState("ready"); callbacks.current.onReady?.();
+        }
       } catch { failed(); }
     };
     element.addEventListener("load", loaded);

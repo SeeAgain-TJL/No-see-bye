@@ -1,5 +1,5 @@
 'use client';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/icons';
@@ -35,6 +35,7 @@ function AlbumDecoration() {
 
 function Album({ items }: { items: Memory[] }) {
   const [selectedId, setSelectedId] = useState(items[0].id);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
   const [viewing, setViewing] = useState<{ memory: Memory; initial: number } | null>(null);
   const index = Math.max(0, items.findIndex(item => item.id === selectedId));
   const selected = items[index];
@@ -69,13 +70,14 @@ function Album({ items }: { items: Memory[] }) {
           const distance = Math.abs(albumOffset(i, index, items.length));
           const asset = memory.assets.find(asset => asset.mime.startsWith('image/') || asset.thumbnailUrl);
           const video = asset?.mime.startsWith('video/') || (!asset && memory.assets.some(asset => asset.mime.startsWith('video/')));
-          return <button type='button' key={memory.id} data-album-card data-active={i === index} data-paper-tone={i % 3} className={'album-card' + (!asset ? ' album-card-note' : '')}
+          const ratio = asset ? ratios[asset.id] || (asset.width && asset.height ? asset.width / asset.height : 1.5) : 1.5;
+          return <button type='button' key={memory.id} data-album-card data-active={i === index} data-paper-tone={i % 3} className={'album-card' + (!asset ? ' album-card-note' : '')} style={{ '--photo-ratio': ratio } as CSSProperties}
             aria-label={(i === index ? '打开' : '翻到') + dateText(memory.happenedAt) + '的日常'} aria-current={i === index ? 'true' : undefined}
             aria-hidden={distance > 2} tabIndex={i === index ? 0 : -1}
             onClick={() => i === index ? open(memory) : choose(i)}>
             <span className='album-washi' aria-hidden='true' />
             <span className='album-photo'>
-              {asset ? distance <= 2 && <DecodedImage src={previewUrl(asset)} alt='' draggable={false} fetchPriority={i === index ? 'high' : 'low'} loading={distance > 1 ? 'lazy' : 'eager'} />
+              {asset ? distance <= 2 && <DecodedImage src={previewUrl(asset)} alt='' draggable={false} fetchPriority={i === index ? 'high' : 'low'} loading={distance > 1 ? 'lazy' : 'eager'} onDimensions={({ width, height }) => { if (width > 0 && height > 0) setRatios(previous => previous[asset.id] === width / height ? previous : { ...previous, [asset.id]: width / height }); }} />
                 : <span className='album-note'><Icon name={video ? 'play' : 'edit'} size={22} />{(memory.content || memory.title) && <span>{memory.content || memory.title}</span>}</span>}
               {video && asset && <span className='album-video'><Icon name='play' size={21} /></span>}
               {memory.assets.length > 1 && <span className='album-assets'><Icon name='image' size={12} />{memory.assets.length}</span>}
