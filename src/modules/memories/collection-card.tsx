@@ -11,6 +11,7 @@ export function CollectionCard({ memory, index = 0 }: { memory: Memory; index?: 
   const href = '/memories/' + memory.id;
   const context = [memory.location, moodLabel(memory.mood)].filter(Boolean).join(' · ');
   return <article className={'recent-entry keepsake-entry' + (!memory.assets.length ? ' recent-entry-note' : '')} data-keepsake={index % 3}>
+    <span className='motion-spotlight' aria-hidden='true' />
     <div className='keepsake-trim' aria-hidden='true'><span className='keepsake-tape' /><span className='keepsake-number'>NO. {String(index + 1).padStart(2, '0')}</span><ThemeMotif className='keepsake-flower' /></div>
     {!!memory.assets.length && <div className='recent-entry-cover'><MediaGrid assets={memory.assets} compact /></div>}
     <div className='recent-entry-info'>

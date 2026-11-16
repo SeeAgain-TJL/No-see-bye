@@ -14,6 +14,7 @@ export function PhotoWall({ memories }: { memories: Memory[] }) {
   return <section className="photo-wall" aria-label="照片墙">
     <div className="photo-wall-heading"><span>照片墙</span><span>{items.length} 个已加载片段</span></div>
     <div className="photo-wall-grid">{items.map(({ memory, asset }, index) => <article className="wall-item" key={asset.id}>
+      <span className="motion-spotlight" aria-hidden="true" />
       <button type="button" className="wall-image" onClick={() => setSelected(index)} aria-label={'查看' + (asset.mime.startsWith("video/") ? "视频" : "图片") + '：' + asset.filename}>
         {asset.mime.startsWith("image/") || asset.thumbnailUrl ? <DecodedImage src={previewUrl(asset)} alt={memory.title || '日常影像'} loading="lazy" width={asset.width || undefined} height={asset.height || undefined} /> : <span className="wall-video"><Icon name="video" size={34} />视频</span>}
         {asset.mime.startsWith("video/") && <span className="wall-video-badge"><Icon name="video" size={17} /></span>}

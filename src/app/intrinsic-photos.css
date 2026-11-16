@@ -6,7 +6,7 @@
 :root[data-theme] .media-grid .media-tile,
 :root[data-theme] .wall-image { display: block; width: 100%; height: auto; min-height: 0; aspect-ratio: auto; padding: 0; background: transparent; }
 :root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image { position: relative; display: block; inset: auto; width: 100%; height: auto; min-height: 0; background: transparent; }
-:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image > img { display: block; width: 100%; height: auto; object-fit: contain; transform: none; }
+:root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image > img { position: static; inset: auto; display: block; width: 100%; height: auto; object-fit: contain; transform: none; }
 :root[data-theme] :is(.media-grid .media-tile, .wall-image) > .decoded-image[data-state='loading']:not(:has(img[width])) { min-height: 120px; }
 :root[data-theme] .wall-image { border-radius: 4px; }
 .wall-item { overflow: visible; }
