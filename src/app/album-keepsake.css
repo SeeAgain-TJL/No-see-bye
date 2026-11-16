@@ -1,0 +1,117 @@
+/* A stitched album mat, with decoration kept outside the photographs. */
+.keepsake-album {
+  --album-thread: color-mix(in srgb, var(--accent) 34%, var(--line));
+  padding: 25px 26px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 21%, var(--line));
+  border-radius: 22px;
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent) .7px, transparent .8px) 0 0 / 12px 12px,
+    linear-gradient(125deg, color-mix(in srgb, var(--surface) 72%, var(--page)), color-mix(in srgb, var(--accent-soft) 33%, var(--page)));
+  box-shadow: 0 5px 0 -2px var(--page), 0 5px 0 -1px var(--line), 0 14px 35px -27px var(--album-shadow);
+}
+.keepsake-album::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 19%, transparent);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.keepsake-album .album-heading { position: relative; z-index: 1; }
+.album-title-group > span { display: block; margin-bottom: 8px; font-size: 9px; letter-spacing: .2em; color: var(--ink-muted); }
+.keepsake-album .album-heading h2 { gap: 10px; font-size: 19px; letter-spacing: .06em; }
+.keepsake-album .album-heading h2::before { display: none; }
+.keepsake-album .album-heading h2 > svg { color: var(--warm); }
+.keepsake-album .album-gesture { padding: 8px 12px; border: 1px solid var(--line); border-radius: 20px; background: color-mix(in srgb, var(--surface) 65%, transparent); }
+.keepsake-album .album-stage { height: 438px; margin-inline: -20px; }
+.keepsake-album .album-ground { inset: 18% 6% 0; }
+.album-decoration { position: absolute; inset: 0; pointer-events: none; color: var(--accent); }
+.album-memory-thread { position: absolute; width: 100%; height: 100%; color: var(--album-thread); }
+.album-memory-thread path { stroke: currentColor; stroke-width: 1.4; stroke-dasharray: 4 6; vector-effect: non-scaling-stroke; }
+.album-memory-thread circle { fill: var(--album-paper); stroke: currentColor; stroke-width: 1.5; }
+.album-margin-note { position: absolute; top: 14px; left: 34px; color: var(--ink-muted); font: italic 12px/1.6 Georgia, 'KaiTi', 'STKaiti', serif; transform: rotate(-7deg); }
+.album-margin-note svg { display: block; width: 72px; height: 24px; margin: 0 0 0 25px; stroke: var(--album-thread); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.album-spark { position: absolute; line-height: 1; color: var(--warm); }
+.album-spark-one { top: 24px; right: 49px; font-size: 35px; transform: rotate(12deg); }
+.album-spark-two { left: 31px; bottom: 45px; font-size: 30px; }
+.album-spark-three { left: 65px; bottom: 32px; font-size: 16px; color: var(--accent); }
+.album-memory-keeper { position: absolute; right: 34px; bottom: 5px; display: grid; justify-items: center; transform: rotate(7deg); color: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
+.album-memory-keeper > svg { width: 61px; height: 72px; filter: drop-shadow(0 3px 2px color-mix(in srgb, var(--album-shadow) 12%, transparent)); }
+.album-memory-keeper > span { margin-top: 0; font-size: 9px; letter-spacing: .06em; color: var(--ink-muted); }
+.keepsake-album .album-card { top: 48%; padding: 11px 11px 0; border-radius: 5px; overflow: visible; border-color: color-mix(in srgb, var(--ink) 16%, var(--album-paper)); transition: box-shadow .3s ease, border-color .3s ease; }
+.keepsake-album .album-card::after { content: ''; position: absolute; inset: 5px; border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 2px; pointer-events: none; }
+.album-washi { position: absolute; z-index: 2; width: 84px; height: 24px; top: -11px; left: calc(50% - 42px); background: repeating-linear-gradient(100deg, transparent 0 5px, #ffffff35 5px 6px), color-mix(in srgb, var(--accent) 28%, #e9dfc7); opacity: .9; transform: rotate(-5deg); clip-path: polygon(2% 0, 98% 2%, 97% 20%, 100% 40%, 97% 60%, 99% 80%, 97% 100%, 1% 98%, 3% 80%, 0 60%, 3% 40%, 0 20%); pointer-events: none; transition: transform .3s ease; }
+.album-card[data-paper-tone='1'] .album-washi { background-color: color-mix(in srgb, var(--warm) 42%, #eee1c7); transform: rotate(5deg); }
+.album-card[data-paper-tone='2'] .album-washi { background-color: color-mix(in srgb, var(--ink-muted) 30%, #e4ddef); transform: rotate(-3deg); }
+.keepsake-album .album-photo { border-radius: 1px; }
+.keepsake-album .album-caption { height: 48px; gap: 10px; padding-inline: 4px; }
+.keepsake-album .album-caption .album-print-number { flex: 0 0 auto; margin: 0; padding: 4px 5px; border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); color: var(--accent); font: 10px/1 var(--font-display), sans-serif; letter-spacing: .04em; }
+.keepsake-album .album-caption time { font-size: 10px; letter-spacing: .08em; }
+.keepsake-album .album-photo-shine { background: linear-gradient(115deg, transparent 25%, #ffffff29 44%, transparent 63%); background-size: 250% 100%; background-position: 100% 0; transition: background-position .7s ease; }
+.keepsake-album .album-footer { position: relative; gap: 20px; padding-top: 13px; border-top: 1px solid color-mix(in srgb, var(--accent) 15%, var(--line)); }
+.keepsake-album .album-pager { width: min(350px, 58%); }
+.keepsake-album .album-arrow { width: 40px; height: 40px; background: color-mix(in srgb, var(--album-paper) 80%, transparent); border-color: color-mix(in srgb, var(--accent) 21%, var(--line)); }
+.keepsake-album .album-range input::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-soft) 33%, var(--page)); }
+.keepsake-album .album-range input::-moz-range-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-soft) 33%, var(--page)); }
+.album-footer-note { font: italic 12px/1.7 Georgia, 'KaiTi', 'STKaiti', serif; color: var(--ink-muted); }
+.keepsake-album .album-open { gap: 12px; padding: 0 13px; border: 1px solid var(--line); border-radius: 24px; color: var(--accent); background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.keepsake-album .album-state { position: relative; }
+.keepsake-album .album-empty-frame { border-radius: 2px; outline: 1px solid var(--line); }
+@media (hover: hover) {
+  .keepsake-album .album-card[data-active=true]:hover, .keepsake-album .album-card[data-active=true]:focus-visible { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: 0 3px 5px -2px var(--album-shadow), 0 18px 30px -14px var(--album-shadow), 0 32px 44px -22px var(--album-shadow); }
+  .keepsake-album .album-card[data-active=true]:hover .album-photo-shine, .keepsake-album .album-card:focus-visible .album-photo-shine { background-position: 0 0; }
+  .keepsake-album .album-card[data-active=true]:hover .album-washi { transform: rotate(0); }
+  .keepsake-album .album-open:hover { background: var(--accent-soft); }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .keepsake-album { padding: 22px 22px 18px; }
+  .keepsake-album .album-stage { height: 365px; }
+  .album-footer-note { display: none; }
+  .keepsake-album .album-pager { width: min(330px, 68%); }
+  .album-memory-keeper { right: 25px; bottom: 2px; }
+  .album-memory-keeper > svg { width: 48px; height: 57px; }
+  .keepsake-album .album-caption { height: 42px; gap: 7px; }
+  .keepsake-album .album-caption time { font-size: 9px; }
+}
+@media (max-width: 760px) {
+  .keepsake-album { padding: 20px 15px 16px; border-radius: 16px; }
+  .keepsake-album::before { inset: 5px; border-radius: 12px; }
+  .album-title-group > span { font-size: 8px; letter-spacing: .13em; margin-bottom: 7px; }
+  .keepsake-album .album-heading h2 { font-size: 16px; gap: 7px; }
+  .keepsake-album .album-heading h2 > svg { width: 13px; }
+  .keepsake-album .album-gesture { padding: 7px 8px; font-size: 8px; }
+  .keepsake-album .album-stage { height: clamp(290px, 78vw, 350px); margin-inline: -15px; }
+  .keepsake-album .album-card { top: 49%; padding: 8px 8px 0; border-radius: 4px; }
+  .keepsake-album .album-card::after { inset: 4px; }
+  .album-washi { width: 65px; height: 19px; top: -9px; left: calc(50% - 32px); }
+  .keepsake-album .album-caption { height: 41px; gap: 7px; padding-inline: 2px; }
+  .keepsake-album .album-caption time { font-size: 9px; letter-spacing: .04em; }
+  .keepsake-album .album-caption .album-print-number { font-size: 8px; padding: 3px; }
+  .album-margin-note { font-size: 10px; top: 9px; left: 18px; }
+  .album-margin-note svg { width: 44px; height: 16px; margin-left: 19px; }
+  .album-spark-one { top: 19px; right: 23px; font-size: 25px; }
+  .album-spark-two { left: 19px; bottom: 18px; font-size: 23px; }
+  .album-spark-three { left: 44px; bottom: 15px; font-size: 12px; }
+  .album-memory-keeper { right: 15px; bottom: 2px; }
+  .album-memory-keeper > svg { width: 37px; height: 44px; }
+  .album-memory-keeper > span { display: none; }
+  .album-memory-thread { opacity: .7; }
+  .keepsake-album .album-footer { padding: 10px 0 0; gap: 9px; }
+  .keepsake-album .album-pager { width: auto; gap: 7px; }
+  .keepsake-album .album-arrow { width: 33px; height: 38px; }
+  .keepsake-album .album-counter { font-size: 9px; }
+  .keepsake-album .album-open { font-size: 9px; padding-inline: 8px; min-height: 38px; gap: 4px; }
+  .album-footer-note { display: none; }
+}
+@media (max-width: 370px) {
+  .keepsake-album { padding-inline: 12px; }
+  .keepsake-album .album-stage { margin-inline: -12px; height: 275px; }
+  .keepsake-album .album-pager { gap: 5px; }
+  .keepsake-album .album-arrow { width: 29px; }
+  .keepsake-album .album-range { min-width: 20px; }
+  .keepsake-album .album-caption .album-print-number { display: none; }
+  .album-title-group > span { font-size: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keepsake-album *, .keepsake-album *::before, .keepsake-album *::after { animation: none !important; transition: none !important; }
+}

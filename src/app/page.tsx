@@ -45,14 +45,14 @@ export default function Home() {
       <div className="studio-main">
         <section className="studio-collection" aria-labelledby="collection-title">
           <div className="studio-section-heading">
-            <div><h2 id="collection-title">{user ? "最近的日常" : "大家的日常"}</h2></div>
+            <div className="keepsake-heading"><span className="keepsake-eyebrow">LIFE, FRAME BY FRAME</span><h2 id="collection-title">{user ? "最近的日常" : "大家的日常"}<Icon name="spark" size={18} /></h2></div>
             <Link href={target} className="studio-text-link">查看全部<Icon name="arrow" size={16} /></Link>
           </div>
           <div className="studio-filters" role="group" aria-label="最近记录类型">{categories.map(([value, label, icon]) => <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}><Icon name={icon} size={15} />{label}</button>)}</div>
           <div aria-busy={loading || !current}>
             {current?.error ? <div className="home-error" role="alert">{current.error}<button onClick={() => setRevision(v => v + 1)}>重新加载</button></div>
               : loading || !data ? <div className="studio-skeleton" role="status" aria-label="正在加载记录"><span /><span /></div>
-              : items.length ? <div className="studio-records" data-count={items.length}>{items.map(memory => <CollectionCard key={memory.id} memory={memory} />)}</div>
+              : items.length ? <div className="studio-records" data-count={items.length}>{items.map((memory, index) => <CollectionCard key={memory.id} memory={memory} index={index} />)}</div>
               : kind !== "all" ? <div className="studio-empty studio-filter-empty" role="status">
                 <Icon name={categories.find(([value]) => value === kind)?.[2] || "book"} size={28} />
                 <h3>还没有{categories.find(([value]) => value === kind)?.[1]}记录</h3>
@@ -70,6 +70,6 @@ export default function Home() {
       </div>
 
     </div>
-    <footer className="studio-footer"><span>NO SEE BYE © 2026</span><Icon name="spark" size={15} /></footer>
+    <footer className="studio-footer"><span>NO SEE BYE © 2026</span><span className="keepsake-footer-note">每一帧，都有回声。<Icon name="spark" size={15} /></span></footer>
   </div></AppShell>;
 }
