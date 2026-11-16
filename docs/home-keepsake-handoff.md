@@ -4,6 +4,7 @@
 
 - 分支：`feat/home-memory-scrapbook`，基于 `master` 的 `3335a01`。
 - 本次按用户要求独立分支开发、分阶段提交，不直接修改或合并本地 master。
+- 草稿 PR：[丰富首页与时光相册的手账质感和动态插画 #1](https://github.com/SeeAgain-TJL/No-see-bye/pull/1)。
 - 目标是完成验收后通过 PR 合并到 master；当前尚待浏览器视觉验收。
 
 ## 已完成
