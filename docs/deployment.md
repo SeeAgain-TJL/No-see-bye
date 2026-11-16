@@ -2,6 +2,16 @@
 
 发布包已包含 Node 运行时。直接解压到 /root/no-see-bye，配置后用 systemd 启动，通过 https://tingjieli.shop 访问。以下命令用 root 执行。
 
+## GitHub 合并后自动上线
+
+`master` 更新后，GitHub Actions 依次完成构建、代码检查、发布包隔离测试和部署脚本回退测试，再将同一次构建的发布包上传到服务器。部署过程校验 SHA-256 与提交号，暂停应用和附件清理任务，备份后切换版本；本机健康检查失败时恢复上一版代码。最后检查公网 HTTPS 健康接口。
+
+服务器固定使用 `/root/no-see-bye`，备份位于 `/root/no-see-bye-backups/<时间>-<提交号>/`，包含旧版程序和 `state.tar.gz`（数据库、媒体与配置）。部署保留当前 `data/`、`config.env` 和本地 `.env` 文件。代码回退保留当前数据，数据备份供需要时人工恢复。
+
+GitHub 仓库已配置四个加密 Secrets：`DEPLOY_HOST`、`DEPLOY_USER`、`DEPLOY_SSH_KEY`、`DEPLOY_KNOWN_HOSTS`。部署使用独立 SSH 密钥，服务器 `authorized_keys` 将其限制为 `deploy/ci-receiver.sh`；该密钥不能执行其他命令、打开终端或转发端口。服务器密码不进入仓库或工作流。
+
+手动重跑可在 GitHub Actions 的 **Linux deployment bundle** 中选择 `master` 运行。标签只生成安装包，不执行生产部署。部署脚本的成功、校验失败和健康检查失败回退由 `bash scripts/test-deploy.sh` 验证。
+
 ## 1. 解压并加执行权限
 
 在安装包所在目录执行：
