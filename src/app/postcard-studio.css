@@ -1,0 +1,141 @@
+/* A working postal atelier, rather than an empty back of an illustration. */
+.postcard-studio { width: min(1210px, calc(100vw - 44px)); max-width: none; max-height: calc(100dvh - 40px); margin: auto; padding: 0; overflow: auto; overscroll-behavior: contain; color: var(--ink); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 25px; background: var(--page); box-shadow: 0 30px 100px #07150d55; animation: ps-open .55s cubic-bezier(.16,1,.3,1) both; }
+.postcard-studio::backdrop { background: #0e1a176e; backdrop-filter: blur(12px); }
+.ps-header { display: flex; align-items: center; justify-content: space-between; gap: 25px; padding: 25px 33px 23px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.ps-header > div > span { font-size: 9px; letter-spacing: .2em; color: var(--ink-muted); }
+.ps-header h2 { margin: 9px 0 0; font-size: clamp(23px,2.2vw,31px); line-height: 1.45; font-weight: 500; letter-spacing: -.025em; }
+.ps-header > button { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; }
+.ps-workspace { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(320px,.85fr); }
+.ps-preview { position: sticky; top: 0; align-self: start; min-width: 0; padding: 30px 35px 32px; overflow: hidden; background: radial-gradient(ellipse at 40% 35%, var(--accent-soft), transparent 70%), var(--surface-dim); perspective: 1400px; }
+.ps-preview-caption { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; padding-bottom: 22px; color: var(--accent); font-size: 13px; letter-spacing: .1em; }
+.ps-preview-caption > .theme-motif { width: 29px; height: 29px; }
+.ps-edition { margin-left: auto; color: var(--ink-muted); font: 8px/1.5 var(--font-display),sans-serif; letter-spacing: .12em; text-align: right; }
+.ps-envelope { position: absolute; width: 80%; height: 36%; top: 36%; left: 10%; border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(145deg, var(--warm-soft), var(--surface)); transform: rotate(-7deg); box-shadow: 0 20px 30px -25px var(--ink-muted); animation: ps-envelope 1.15s cubic-bezier(.2,.8,.2,1) both; }
+.ps-envelope::before { content: ''; position: absolute; inset: 0; background: linear-gradient(150deg, transparent calc(50% - .5px), var(--line) 50%, transparent calc(50% + .5px)), linear-gradient(30deg, transparent calc(50% - .5px), var(--line) 50%, transparent calc(50% + .5px)); }
+.ps-turntable { position: relative; z-index: 1; aspect-ratio: 1.29; margin: 25px 0 28px; perspective: 1300px; animation: ps-letter-rise 1.05s cubic-bezier(.16,1,.3,1) both; }
+.ps-turntable-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.2,.75,.25,1); transform: rotateY(0deg) rotateZ(-2deg); }
+.ps-turntable[data-flipped=true] .ps-turntable-inner { transform: rotateY(180deg) rotateZ(1.5deg); }
+.ps-card { position: absolute; inset: 0; padding: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); border-radius: 5px; background: var(--album-paper); box-shadow: 0 4px 6px -4px var(--album-shadow), 0 25px 45px -24px var(--ink-muted); }
+.ps-front { display: flex; flex-direction: column; }
+.ps-cover { min-height: 0; flex: 1; position: relative; display: grid; place-items: center; background: var(--accent-soft); border-radius: 2px; overflow: hidden; }
+.ps-cover > .decoded-image { width: 100%; height: 100%; background: transparent; }
+.ps-cover > .decoded-image img { width: 100%; height: 100%; object-fit: contain; }
+.ps-landscape { width: 100%; height: 100%; display: block; object-fit: contain; }
+.ps-front-caption { display: flex; justify-content: space-between; gap: 18px; padding: 19px 8px 0; font-size: 15px; color: var(--ink); }
+.ps-front-caption > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-front-caption time { font-size: 10px; color: var(--ink-muted); white-space: nowrap; }
+.ps-front-note { margin: 10px 8px 9px; padding-right: 30px; color: var(--ink-muted); font-size: 11px; line-height: 1.7; }
+.ps-corner-mark { position: absolute; width: 28px; height: 28px; bottom: 11px; right: 14px; color: var(--warm); }
+.ps-back { transform: rotateY(180deg); display: flex; flex-direction: column; padding: 26px 28px; overflow: hidden; background: repeating-linear-gradient(transparent 0 27px, color-mix(in srgb, var(--line) 65%, transparent) 27px 28px) 26px 104px / calc(100% - 52px) calc(100% - 160px) no-repeat, var(--album-paper); }
+.ps-back-eyebrow { color: var(--ink-muted); font-size: 8px; letter-spacing: .18em; margin-bottom: 23px; }
+.ps-to { padding-right: 65px; font-weight: 500; font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+.ps-letter { flex: 1; min-height: 0; max-height: 100%; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; margin: 17px 0 14px; font: 16px/28px 'KaiTi','STKaiti',serif; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+.ps-letter.is-empty { color: var(--ink-muted); }
+.ps-postage { position: absolute; top: 17px; right: 18px; width: 49px; height: 61px; display: grid; justify-items: center; gap: 2px; padding: 5px; border: 1px dashed var(--warm); transform: rotate(4deg); color: var(--accent); }
+.ps-postage > .theme-motif { width: 31px; height: 31px; }
+.ps-postage > span { font-size: 6px; letter-spacing: .08em; white-space: nowrap; }
+.ps-sign { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 7px 15px; font-size: 12px; color: var(--ink-muted); }
+.ps-sign > span { max-width: 100%; overflow-wrap: anywhere; }
+.ps-sign time { font-size: 9px; }
+.ps-preview-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 9px 1px; }
+.ps-preview-controls > span { font-size: 9px; color: var(--ink-muted); }
+.ps-flip { display: inline-flex; align-items: center; gap: 10px; min-height: 42px; padding: 11px 16px; border: 1px solid var(--line); border-radius: 23px; background: var(--album-paper); color: var(--accent); font-size: 12px; transition: background .2s, transform .3s; }
+.ps-flip > span { font-size: 16px; }
+.ps-flip:hover { background: var(--accent-soft); transform: translateY(-2px); }
+.ps-editor { min-width: 0; padding: 28px 29px 25px; background: var(--surface); border-left: 1px solid var(--line); }
+.ps-editor-title { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 23px; color: var(--accent); font-size: 11px; letter-spacing: .08em; }
+.ps-draft-status { font-size: 9px; color: var(--ink-muted); letter-spacing: 0; text-align: right; }
+.ps-field { display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: var(--ink-muted); margin-top: 18px; }
+.ps-field input, .ps-field textarea { width: 100%; min-width: 0; font-family: inherit; font-size: 13px; line-height: 1.8; border: 1px solid var(--line); border-radius: 9px; padding: 11px 13px; color: var(--ink); background: color-mix(in srgb, var(--page) 55%, var(--surface)); outline-offset: 3px; transition: border-color .2s, box-shadow .2s; }
+.ps-field input:focus, .ps-field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: none; }
+.ps-field textarea { min-height: 155px; resize: vertical; line-height: 1.85; }
+.ps-field input::placeholder, .ps-field textarea::placeholder { color: var(--ink-muted); opacity: .8; }
+.ps-writing-meta { display: flex; justify-content: space-between; gap: 15px; margin-top: 9px; font-size: 9px; color: var(--ink-muted); }
+.ps-writing-meta > span:last-child { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.ps-prompts { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+.ps-prompts button { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; min-height: 32px; border: 1px solid var(--line); border-radius: 20px; color: var(--accent); background: var(--surface); font-size: 10px; transition: background .2s; }
+.ps-prompts button:hover:not(:disabled) { background: var(--accent-soft); }
+.ps-prompts button:disabled { opacity: .4; cursor: default; }
+.ps-signature-field { flex-direction: row; align-items: center; gap: 15px; margin-top: 19px; }
+.ps-signature-field input { flex: 1; }
+.ps-cover-heading { display: flex; justify-content: space-between; gap: 15px; margin: 25px 0 13px; font-size: 11px; color: var(--accent); }
+.ps-cover-heading > span:last-child { font-size: 9px; color: var(--ink-muted); }
+.ps-cover-options { display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 3px 3px 8px; scrollbar-width: thin; overscroll-behavior: contain; }
+.ps-cover-choice { position: relative; width: 61px; height: 65px; flex: 0 0 auto; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-dim); color: var(--accent); }
+.ps-cover-choice > .decoded-image { width: 100%; height: 100%; border-radius: 3px; }
+.ps-cover-choice img { object-fit: contain; }
+.ps-cover-choice[aria-pressed=true] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.ps-cover-choice.is-illustration { display: grid; place-items: center; gap: 3px; padding: 6px 4px; }
+.ps-cover-choice.is-illustration > .theme-motif { width: 28px; height: 28px; }
+.ps-cover-choice.is-illustration > span { font-size: 8px; }
+.ps-save-note { color: var(--ink-muted); font-size: 10px; line-height: 1.8; margin: 14px 0 18px; }
+.ps-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+:root[data-theme] .ps-actions :is(.button,.studio-button) { flex: 1; justify-content: center; white-space: nowrap; padding-inline: 11px; font-size: 11px; }
+.ps-error, .ps-success { margin: 13px 0; padding: 10px 12px; border-radius: 8px; font-size: 11px; line-height: 1.8; }
+.ps-error { color: #a34836; background: color-mix(in srgb, #cf7d5d 12%, var(--surface)); }
+.ps-success { color: var(--accent); background: var(--accent-soft); }
+.ps-success a { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.postcard-studio button:focus-visible, .ps-success a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+:root[data-theme='dusk'] .ps-preview { background: linear-gradient(#7f8b6910 1px,transparent 1px) 0 0/25px 25px, linear-gradient(90deg,#7f8b6910 1px,transparent 1px) 0 0/25px 25px, #e9edde; }
+:root[data-theme='sea'] .ps-preview { background: repeating-radial-gradient(ellipse at 50% 120%,transparent 0 31px,#7fa3a51a 32px 33px,transparent 34px 62px), #e2efec; }
+:root[data-theme='sea'] .ps-card { border-radius: 9px 9px 29px 9px; }
+:root[data-theme='film'] .ps-preview { background: repeating-linear-gradient(90deg,transparent 0 6px,#8f714513 6px 7px), #e9d6b4; }
+:root[data-theme='film'] .ps-card { border-radius: 2px; border-color: #baa17c; }
+:root[data-theme='film'] .ps-back-eyebrow, :root[data-theme='film'] .ps-sign time { font-family: 'Courier New',monospace; }
+:root[data-theme='night'] .ps-preview { background: radial-gradient(circle at 15% 25%,#d9d6ad99 0 1px,transparent 2px) 0 0/147px 193px, radial-gradient(circle at 80% 70%,#d9d6ad66 0 1px,transparent 2px) 0 0/213px 165px, #263c31; }
+:root[data-theme='night'] .ps-card { border-color: #778b6c; }
+:root[data-theme='night'] .ps-error { color: #f0ba9e; }
+@keyframes ps-open { from { opacity: 0; transform: translateY(45px) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes ps-envelope { from { transform: translateY(25px) rotate(0); opacity: 0; } to { transform: rotate(-7deg); opacity: 1; } }
+@keyframes ps-letter-rise { from { transform: translateY(95px) rotate(8deg) scale(.82); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 1000px) {
+  .ps-workspace { grid-template-columns: minmax(0,1fr) minmax(305px,.95fr); }
+  .ps-preview { padding: 24px 23px; }
+  .ps-editor { padding: 25px 22px; }
+  .ps-turntable { aspect-ratio: 1.08; }
+  .ps-edition { display: none; }
+  .ps-back { padding: 23px; }
+}
+@media (max-width: 760px) {
+  .postcard-studio { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); border-radius: 18px; }
+  .ps-header { padding: 20px; gap: 15px; }
+  .ps-header h2 { font-size: 24px; }
+  .ps-header > div > span { font-size: 8px; }
+  .ps-workspace { display: block; }
+  .ps-preview { position: relative; padding: 21px 25px 17px; }
+  .ps-preview-caption { padding-bottom: 5px; }
+  .ps-preview-caption > .theme-motif { width: 25px; height: 25px; }
+  .ps-turntable { aspect-ratio: 1.14; margin: 20px 0 17px; }
+  .ps-card { padding: 10px; }
+  .ps-front-caption { padding-top: 14px; font-size: 14px; }
+  .ps-front-note { margin-top: 7px; font-size: 10px; }
+  .ps-back { padding: 19px 21px; }
+  .ps-back-eyebrow { font-size: 7px; margin-bottom: 18px; }
+  .ps-to { font-size: 15px; }
+  .ps-letter { font-size: 15px; line-height: 27px; margin-top: 14px; }
+  .ps-sign { font-size: 11px; }
+  .ps-preview-controls { gap: 12px; }
+  .ps-preview-controls > span { font-size: 8px; }
+  .ps-flip { min-height: 44px; font-size: 11px; padding-inline: 14px; }
+  .ps-editor { border-left: 0; border-top: 1px solid var(--line); padding: 24px 22px; }
+  .ps-editor-title { font-size: 11px; }
+  .ps-field input, .ps-field textarea { font-size: 16px; }
+  .ps-field textarea { min-height: 160px; }
+  .ps-prompts button { min-height: 40px; font-size: 10px; }
+  .ps-cover-choice { width: 62px; height: 66px; }
+  .ps-actions { position: sticky; bottom: -24px; z-index: 3; background: var(--surface); padding-bottom: 14px; margin-bottom: -14px; }
+  :root[data-theme] .ps-actions :is(.button,.studio-button) { min-height: 46px; font-size: 11px; }
+}
+@media (max-width: 370px) {
+  .ps-preview { padding-inline: 17px; }
+  .ps-turntable { aspect-ratio: 1.04; }
+  .ps-header h2 { font-size: 21px; }
+  .ps-editor { padding-inline: 18px; }
+  .ps-preview-controls > span { display: none; }
+  .ps-actions { gap: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .postcard-studio, .ps-envelope, .ps-turntable { animation: none; }
+  .ps-turntable-inner, .ps-flip, .ps-field input, .ps-field textarea, .ps-prompts button { transition: none; }
+  .ps-flip:hover { transform: none; }
+}
