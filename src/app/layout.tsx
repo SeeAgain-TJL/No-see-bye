@@ -15,6 +15,9 @@ import './memory-album.css';
 import './collection-keepsake.css';
 import './album-keepsake.css';
 import './hero-keepsake.css';
+import './gallery-polish.css';
+import './theme-atmospheres.css';
+import './media-refinement.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

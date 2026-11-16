@@ -1,0 +1,39 @@
+/* Treat the whole photograph as the keepsake, including portrait and long images. */
+.keepsake-album .album-heading .album-theme-mark { display: block; width: 20px; height: 20px; }
+:root[data-theme] :is(.media-tile, .wall-image, .album-photo, .scene-photo) {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-dim) 80%, var(--page)), color-mix(in srgb, var(--accent-soft) 35%, var(--surface)));
+}
+:root[data-theme] :is(.media-tile, .wall-image, .album-photo, .scene-photo) > .decoded-image { background: transparent; }
+:root[data-theme] .studio-home .keepsake-entry .media-grid.archive-cover .media-tile img,
+:root[data-theme] :is(.recent-entry, .memory-card, .collection-card, .detail-article) .media-grid .media-tile img,
+:root[data-theme] :is(.media-grid .media-tile, .wall-image, .album-photo, .scene-photo) img {
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+  transition: opacity .24s ease;
+}
+/* Hover still lifts the paper frame; the photograph itself stays inside its bounds. */
+:root[data-theme] .studio-home .keepsake-entry:hover .media-grid.archive-cover .media-tile img,
+:root[data-theme] :is(.recent-entry, .memory-card, .collection-card):hover .media-grid .media-tile img,
+:root[data-theme] :is(.media-grid .media-tile:hover, .wall-image:hover) img { transform: none; }
+
+/* One visible photo is enough: this matte replaces a second blurred image download. */
+.stories-mat { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 25% 20%, #7e738026, transparent 60%), radial-gradient(ellipse at 80% 85%, #788b7c20, transparent 60%), #191b20; }
+.stories-photo { animation: none; }
+.stories-photo > img { object-fit: contain; animation: story-full-frame 2.5s ease-out both; animation-play-state: inherit; }
+@keyframes story-full-frame { from { transform: scale(.99); } to { transform: scale(1); } }
+
+/* Show the cached preview while the larger image loads, retaining the same fit and gestures. */
+.immersive-stage > .immersive-image, .immersive-stage > .immersive-preview { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; }
+.immersive-stage > .immersive-preview { z-index: 0; pointer-events: none; }
+.immersive-stage > .immersive-image { z-index: 1; }
+.immersive-image[data-state='ready'] > img { transition: none; }
+.immersive-preview img { width: 100%; height: 100%; object-fit: contain; transform-origin: center; user-select: none; }
+.immersive-image .image-placeholder, .immersive-image .image-unavailable, .immersive-preview .image-placeholder, .immersive-preview .image-unavailable { display: none; }
+.immersive-status, .immersive-loader { z-index: 2; }
+.immersive-refining { position: absolute; z-index: 2; bottom: max(24px, env(safe-area-inset-bottom)); right: 22px; padding: 8px 12px; border: 1px solid #ffffff18; border-radius: 18px; background: #15151b9c; color: #e1dfe7; font-size: 10px; pointer-events: none; }
+@media (max-width: 760px) { .immersive-refining { bottom: max(70px, calc(env(safe-area-inset-bottom) + 50px)); right: 14px; } }
+@media (prefers-reduced-motion: reduce) {
+  .stories-photo > img { animation: none; }
+  :root[data-theme] :is(.media-tile, .wall-image, .album-photo, .scene-photo) img { transition: none; }
+}

@@ -3,6 +3,7 @@ import { useId, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/icons';
+import { ThemeMotif } from '@/components/theme-motif';
 import { DecodedImage } from '@/components/decoded-image';
 import { dateText } from '@/lib/client';
 import { MediaViewer, previewUrl } from './media';
@@ -51,7 +52,7 @@ function Album({ items }: { items: Memory[] }) {
 
   return <>
     <section className='memory-album keepsake-album' aria-labelledby={titleId} aria-roledescription='轮播相册'>
-      <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2 id={titleId}>时光相册<Icon name='spark' size={15} /></h2></div><span className='album-gesture'>滑动翻阅<Icon name='arrow' size={13} /></span></header>
+      <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2 id={titleId}>时光相册<ThemeMotif className='album-theme-mark' /></h2></div><span className='album-gesture'>滑动翻阅<Icon name='arrow' size={13} /></span></header>
       <div ref={stage} className='album-stage' onPointerDown={e => controls.current?.down(e)} onPointerMove={e => controls.current?.move(e)} onPointerUp={e => controls.current?.up(e)} onPointerCancel={() => controls.current?.cancel()}
         onClickCapture={e => { if (e.detail > 0 && controls.current?.wasDragged()) { e.preventDefault(); e.stopPropagation(); } }}
         onDragStart={e => e.preventDefault()}
@@ -74,7 +75,7 @@ function Album({ items }: { items: Memory[] }) {
             onClick={() => i === index ? open(memory) : choose(i)}>
             <span className='album-washi' aria-hidden='true' />
             <span className='album-photo'>
-              {asset ? distance <= 2 && <DecodedImage src={previewUrl(asset)} alt='' draggable={false} fetchPriority={i === index ? 'high' : 'auto'} />
+              {asset ? distance <= 2 && <DecodedImage src={previewUrl(asset)} alt='' draggable={false} fetchPriority={i === index ? 'high' : 'low'} loading={distance > 1 ? 'lazy' : 'eager'} />
                 : <span className='album-note'><Icon name={video ? 'play' : 'edit'} size={22} />{(memory.content || memory.title) && <span>{memory.content || memory.title}</span>}</span>}
               {video && asset && <span className='album-video'><Icon name='play' size={21} /></span>}
               {memory.assets.length > 1 && <span className='album-assets'><Icon name='image' size={12} />{memory.assets.length}</span>}
@@ -104,7 +105,7 @@ export function MemoryAlbum({ data, error, onRetry }: { data?: MemoryList; error
   const items = useMemo(() => (data?.items || []).slice(0, 12), [data]);
   if (data && !error && items.length) return <Album key={items.map(item => item.id).join(':')} items={items} />;
   return <section className='memory-album keepsake-album album-unpopulated' aria-label='时光相册' aria-busy={!data && !error}>
-    <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2>时光相册<Icon name='spark' size={15} /></h2></div></header>
+    <header className='album-heading'><div className='album-title-group'><span lang='en'>THE MEMORY ARCHIVE</span><h2>时光相册<ThemeMotif className='album-theme-mark' /></h2></div></header>
     <div className='album-state' role={error ? 'alert' : 'status'}><div className='album-empty-frame' aria-hidden='true'><Icon name='image' size={29} /></div>
       {error ? <><p>{error}</p><button type='button' className='album-state-action' onClick={onRetry}>重新加载<Icon name='restore' size={15} /></button></> : !data ? <p>正在整理相册…</p> : <Link href='/memories/new' className='album-state-action'>留下第一段日常<Icon name='plus' size={16} /></Link>}
     </div>

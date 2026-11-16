@@ -1,9 +1,9 @@
-// Color tokens live in themes.css; this list is shared by the UI and first-paint script.
+// Palette tokens live in themes.css; materials and motifs live in theme-atmospheres.css.
 export const themes = {
-  dusk: { label: "纸白", description: "米白 · 鼠尾草绿" },
-  sea: { label: "海盐", description: "雾白 · 青灰" },
-  film: { label: "麦芽", description: "暖纸 · 浅棕" },
-  night: { label: "墨林", description: "深绿 · 月白" },
+  dusk: { label: "纸白", description: "植物标本 · 方格手账" },
+  sea: { label: "海盐", description: "贝壳水纹 · 海边来信" },
+  film: { label: "麦芽", description: "胶片齿孔 · 旧日档案" },
+  night: { label: "墨林", description: "月光星轨 · 萤火森林" },
 } as const;
 export type ThemeName = keyof typeof themes;
 export const themeNames = Object.keys(themes) as ThemeName[];

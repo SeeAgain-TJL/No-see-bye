@@ -1,0 +1,83 @@
+/* A consistent reading rhythm and tactile controls across the journal. */
+:root {
+  --control-radius: 12px;
+  --frame-radius: 12px;
+  --control-shadow: 0 2px 3px color-mix(in srgb, var(--album-shadow) 45%, transparent);
+}
+.main-content { padding-top: 42px; }
+.studio-home { max-width: 1280px; margin-inline: auto; }
+.home-welcome { align-items: center; margin-bottom: 30px; }
+.home-welcome h1 { font-size: clamp(26px, 2.3vw, 34px); letter-spacing: -.025em; font-weight: 500; line-height: 1.4; }
+.welcome-eyebrow { font-size: 12px; letter-spacing: .08em; }
+.studio-home .studio-section-heading { margin-bottom: 22px; }
+.studio-home .studio-section-heading h2 { font-size: 23px; line-height: 1.5; letter-spacing: -.015em; }
+.keepsake-heading { gap: 7px; }
+.keepsake-eyebrow { letter-spacing: .16em; font-size: 10px; }
+.studio-home .studio-records { gap: 34px 28px; }
+.studio-home .keepsake-entry { border-color: color-mix(in srgb, var(--line) 85%, var(--warm)); border-radius: var(--frame-radius); box-shadow: 0 2px 5px -3px var(--album-shadow), 0 14px 30px -24px var(--album-shadow); }
+.studio-home .keepsake-entry::after { inset: 5px -3px -4px 4px; border-radius: inherit; }
+.studio-home .keepsake-entry .recent-entry-info { padding: 18px 10px 12px; }
+.studio-home .keepsake-entry .recent-entry-meta { font-size: 11px; line-height: 1.8; padding-bottom: 12px; }
+.studio-home .keepsake-entry .recent-entry-title h3 { font-size: 18px; line-height: 1.65; margin-top: 13px; letter-spacing: -.01em; }
+.studio-home .keepsake-entry .recent-entry-excerpt { font-size: 13px; line-height: 1.9; margin-top: 7px; }
+.studio-home .keepsake-entry .recent-entry-footer { padding-top: 12px; gap: 12px; }
+.keepsake-flower { opacity: .7; }
+.studio-home .keepsake-entry .entry-open { width: 36px; height: 36px; border-radius: var(--control-radius); background: transparent; }
+:root[data-theme] :is(.studio-button, .button:not(.danger):not(.danger-outline)) { min-height: 42px; padding: 11px 19px; border-radius: var(--control-radius); font-size: 13px; font-weight: 500; letter-spacing: .015em; box-shadow: var(--control-shadow), inset 0 1px 0 #ffffff20; transition: background .18s ease, box-shadow .18s ease, translate .18s ease; }
+:root[data-theme] .button.secondary { box-shadow: inset 0 1px 0 #ffffff12; background: var(--surface); }
+:root[data-theme] :is(.studio-button, .button):disabled { box-shadow: none; }
+:root[data-theme] :is(.icon-button, .home-small-actions button, .keepsake-album .album-arrow, .calendar-heading > button) { border-radius: var(--control-radius); border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--accent); box-shadow: var(--control-shadow); }
+.home-small-actions button { min-height: 42px; padding: 10px 13px; }
+.home-small-actions button span { display: inline; font-size: 11px; }
+.studio-text-link { min-height: 36px; text-decoration: none; }
+:root[data-theme] .studio-home .studio-filters { width: fit-content; max-width: 100%; padding: 4px; margin-bottom: 32px; gap: 4px; border: 1px solid var(--line); border-radius: calc(var(--control-radius) + 4px); background: var(--surface-dim); }
+:root[data-theme] .studio-home .studio-filters button { border-radius: var(--control-radius); padding: 9px 15px; min-height: 36px; font-size: 12px; gap: 7px; }
+:root[data-theme] .studio-home .studio-filters button[aria-pressed=true] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px var(--album-shadow), inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent); }
+.studio-home .studio-filters button[aria-pressed=true]::after { display: none; }
+.keepsake-album .album-footer { padding-top: 18px; }
+.keepsake-album .album-open { min-height: 40px; font-size: 12px; border-radius: var(--control-radius); gap: 10px; }
+.keepsake-album .album-gesture { border: 0; padding-right: 0; background: none; font-size: 11px; }
+.keepsake-album .album-caption { height: 50px; }
+.keepsake-album .album-caption time { font-size: 11px; }
+.keepsake-album .album-title-group > span { font-size: 10px; letter-spacing: .16em; }
+:root[data-theme] .theme-menu { padding: 12px; border-radius: 18px; box-shadow: 0 8px 16px -12px var(--album-shadow), 0 20px 56px -20px var(--album-shadow); }
+:root[data-theme] :is(.search-box, .month-filter) { border-radius: var(--control-radius); }
+.memory-card { border-radius: var(--frame-radius); }
+.memory-title h2 { line-height: 1.5; }
+.memory-excerpt { line-height: 1.9; }
+.studio-footer { margin-top: 48px; padding-top: 22px; border-top-style: solid; }
+.image-placeholder { background: linear-gradient(120deg, var(--surface-dim), var(--album-paper)); }
+.image-placeholder > span { border-color: var(--line); border-radius: 5px; }
+.image-unavailable { color: var(--ink-muted); background: var(--surface-dim); }
+@media (hover: hover) {
+  :root[data-theme] :is(.studio-button, .button:not(:disabled)):hover { translate: 0 -1px; box-shadow: 0 5px 12px -5px var(--album-shadow); }
+  :root[data-theme] :is(.icon-button, .home-small-actions button, .keepsake-album .album-arrow):hover { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+  .studio-home .keepsake-entry .entry-open:hover { transform: translateX(2px); }
+}
+:root[data-theme] :is(.studio-button, .button, .icon-button, .home-small-actions button, .keepsake-album .album-arrow):active:not(:disabled) { translate: 0 1px; box-shadow: none; }
+:root[data-theme] :is(.studio-button, .button, .icon-button, .home-small-actions button, .studio-filters button, .entry-open):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+@media (max-width: 760px) {
+  .main-content { padding-top: 26px; }
+  .home-small-actions button { min-width: 44px; min-height: 44px; }
+  .home-small-actions button span { display: none; }
+  .studio-home .studio-section-heading h2 { font-size: 20px; }
+  .studio-home .studio-records { gap: 28px 18px; }
+  .studio-home .keepsake-entry .recent-entry-info { padding: 13px 5px 6px; }
+  .studio-home .keepsake-entry .recent-entry-title h3 { font-size: 15px; margin-top: 10px; }
+  .studio-home .keepsake-entry .recent-entry-meta { font-size: 10px; }
+  .studio-home .keepsake-entry .recent-entry-excerpt { font-size: 12px; }
+  .studio-home .keepsake-entry .recent-entry-context { font-size: 11px; }
+  .studio-home .keepsake-entry .entry-open { min-width: 34px; min-height: 44px; }
+  :root[data-theme] .studio-home .studio-filters { width: 100%; margin-bottom: 27px; }
+  :root[data-theme] .studio-home .studio-filters button { flex: 1; padding-inline: 6px; min-height: 40px; font-size: 11px; }
+  :root[data-theme] :is(.studio-button, .button, .icon-button, .keepsake-album .album-arrow) { min-height: 44px; }
+  .keepsake-album .album-open { font-size: 10px; min-height: 44px; padding-inline: 8px; }
+  .keepsake-album .album-caption { height: 43px; }
+  .keepsake-album .album-caption time { font-size: 9px; }
+  .keepsake-album .album-title-group > span { font-size: 8px; }
+  .keepsake-album .album-gesture { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme] :is(.studio-button, .button, .icon-button, .entry-open) { transition: none; }
+  :root[data-theme] :is(.studio-button, .button):hover, :root[data-theme] :is(.studio-button, .button, .icon-button):active { translate: none; }
+}

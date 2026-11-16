@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { isTheme, themes, themeNames, THEME_STORAGE_KEY, type ThemeName } from "@/lib/themes";
+import { ThemeMotif } from "./theme-motif";
 
 function activeTheme(): ThemeName {
   const value = document.documentElement.dataset.theme;
@@ -78,12 +79,12 @@ export function ThemeSwitcher() {
     }}>
     <button ref={trigger} type="button" className="theme-trigger" onClick={() => setOpen(!open)} aria-label="切换主题" aria-haspopup="menu" aria-controls={open ? menuId : undefined} aria-expanded={open}
       onKeyDown={event => { if (event.key === "ArrowDown" && !open) { event.preventDefault(); setOpen(true); } }}>
-      <span className="theme-current-swatch" aria-hidden="true" /><span className="theme-trigger-label">主题</span>
+      <span className="theme-current-swatch" aria-hidden="true"><ThemeMotif theme={current} /></span><span className="theme-trigger-label">主题</span>
     </button>
     {open && <div id={menuId} className="theme-menu" role="menu" aria-label="选择主题">
-      <p>界面配色</p>
-      {themeNames.map(name => <button key={name} type="button" role="menuitemradio" aria-checked={current === name} onClick={() => switchTheme(name)}>
-        <span className="theme-swatch" data-theme-preview={name} aria-hidden="true" />
+      <p><span>选一处，安放回忆</span><small>四种风景，四种心情</small></p>
+      {themeNames.map(name => <button key={name} type="button" role="menuitemradio" aria-checked={current === name} data-theme-choice={name} onClick={() => switchTheme(name)}>
+        <span className="theme-swatch" data-theme-preview={name} aria-hidden="true"><ThemeMotif theme={name} /><i /></span>
         <span><strong>{themes[name].label}</strong><small>{themes[name].description}</small></span>
         <span className="theme-check" aria-hidden="true">{current === name ? "✓" : ""}</span>
       </button>)}
