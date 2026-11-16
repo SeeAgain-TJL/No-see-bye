@@ -10,6 +10,8 @@ import "./themes.css";
 import "./home.css";
 import "./home-enhancements.css";
 import "./memory-experiences.css";
+import './refinements.css';
+import './memory-album.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

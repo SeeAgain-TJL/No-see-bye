@@ -225,11 +225,13 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
   }
   async function transfer(item:Selected,signal:AbortSignal) {
     setItems(v=>v.map(x=>x.key===item.key?{...x,error:undefined,progress:0}:x));
+    // Decode a cover while the original is in flight, rather than after it.
+    const posterTask = item.file?.type.startsWith('video/') ? videoPoster(item.file, signal) : null;
     const asset=await upload(item.file!,progress=>setItems(v=>v.map(x=>x.key===item.key?{...x,progress}:x)),signal);
     // Keep a completed original even if poster generation fails or upload is cancelled.
     setItems(v=>v.map(x=>x.key===item.key?{...x,asset,progress:100}:x));
     if(item.file?.type.startsWith("video/")) {
-      const poster=await videoPoster(item.file,signal);
+      const poster=await posterTask;
       if(poster&&!signal.aborted)try{
         const response=await fetch(asset.url+"/preview",{method:"POST",body:poster,headers:{"Content-Type":poster.type},signal});
         if(response.ok){const ready=await response.json() as MediaAsset;setItems(v=>v.map(x=>x.key===item.key?{...x,asset:ready}:x));}
@@ -261,32 +263,34 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     setBusy(true);
     setError("");
     try {
-      const assetIds: string[] = [];
-      for (let index = 0; index < items.length; index++) {
-        const item = items[index];
-        if (item.asset) {
-          assetIds.push(item.asset.id);
-          continue;
-        }
-        if (!item.file) continue;
-        setStage(`正在上传 ${index + 1} / ${items.length}`);
-        setItems((v) =>
-          v.map((x) =>
-            x.key === item.key ? { ...x, error: undefined, progress: 0 } : x,
-          ),
-        );
-        try {
-          const asset = await transfer(item,controller.signal);
-          assetIds.push(asset.id);
-        } catch (err) {
-          setItems((v) =>
-            v.map((x) =>
-              x.key === item.key ? { ...x, error: (err as Error).message } : x,
-            ),
-          );
-          throw err;
+      // Two workers keep the connection useful while preserving attachment order.
+      // Stay below the API's three-pending-upload limit, including other requests.
+      const uploaded = new Array<string>(items.length);
+      let cursor = 0, completed = 0;
+      let failure: unknown;
+      async function worker() {
+        while (!controller.signal.aborted) {
+          const index = cursor++;
+          if (index >= items.length) return;
+          const item = items[index];
+          if (item.asset) { uploaded[index] = item.asset.id; completed++; continue; }
+          if (!item.file) continue;
+          setStage('正在上传 ' + completed + ' / ' + items.length);
+          try {
+            const asset = await transfer(item, controller.signal);
+            uploaded[index] = asset.id;
+            completed++;
+            setStage('正在上传 ' + completed + ' / ' + items.length);
+          } catch (err) {
+            setItems(v => v.map(x => x.key === item.key ? { ...x, error: (err as Error).message } : x));
+            if (!failure) failure = err;
+            controller.abort();
+          }
         }
       }
+      await Promise.all(Array.from({ length: Math.min(2, items.length) }, () => worker()));
+      if (failure) throw failure;
+      const assetIds = uploaded.filter(Boolean);
       if (controller.signal.aborted) return;
       setStage("保存中…");
       const saved = await api<Memory>(

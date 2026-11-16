@@ -6,8 +6,6 @@ import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { HomeHero } from "@/modules/memories/home-hero";
 import { CollectionCard } from "@/modules/memories/collection-card";
-import { QuickNote } from "@/modules/memories/quick-note";
-import { RevisitPanel } from "@/modules/memories/revisit-panel";
 import { api } from "@/lib/client";
 import type { MemoryList } from "@/modules/memories/types";
 
@@ -41,24 +39,20 @@ export default function Home() {
   const data = current?.data;
   const target = user ? "/memories" : "/memories?scope=public";
   const items = data?.items.slice(0, 6) || [];
-  const featuredFirst = items.length % 2 === 1;
   return <AppShell><div className="studio-home">
     <HomeHero key={user?.id || "guest"} user={user} data={recent?.data} error={recent?.error} onRetry={() => setRevision(v => v + 1)} />
-    <div className="home-interlude"><span><Icon name="spark" size={18} />平凡的日子，也有自己的光。</span>{user && recent?.data?.stats ? <span className="home-keepsakes"><strong>{recent.data.stats.total}</strong> 条日常<span aria-hidden="true"> / </span><strong>{recent.data.stats.photos}</strong> 张照片<span aria-hidden="true"> / </span><strong>{recent.data.stats.videos}</strong> 段视频</span> : <span lang="en">A little more life, a little less hurry.</span>}</div>
-    {user && <RevisitPanel key={user.id + ":" + revision} />}
     <div className="studio-content studio-guest">
       <div className="studio-main">
-        {user && <QuickNote key={user.id} userId={user.id} onSaved={() => setRevision(v => v + 1)} />}
         <section className="studio-collection" aria-labelledby="collection-title">
           <div className="studio-section-heading">
-            <div><span className="section-eyebrow">RECENT DAYS</span><h2 id="collection-title">{user ? "最近的日常" : "大家的日常"}</h2></div>
+            <div><h2 id="collection-title">{user ? "最近的日常" : "大家的日常"}</h2></div>
             <Link href={target} className="studio-text-link">查看全部<Icon name="arrow" size={16} /></Link>
           </div>
           <div className="studio-filters" role="group" aria-label="最近记录类型">{categories.map(([value, label, icon]) => <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}><Icon name={icon} size={15} />{label}</button>)}</div>
           <div aria-busy={loading || !current}>
             {current?.error ? <div className="home-error" role="alert">{current.error}<button onClick={() => setRevision(v => v + 1)}>重新加载</button></div>
               : loading || !data ? <div className="studio-skeleton" role="status" aria-label="正在加载记录"><span /><span /></div>
-              : items.length ? <div className="studio-records" data-count={items.length}>{items.map((memory, index) => <CollectionCard key={memory.id} memory={memory} featured={featuredFirst && index === 0} />)}</div>
+              : items.length ? <div className="studio-records" data-count={items.length}>{items.map(memory => <CollectionCard key={memory.id} memory={memory} />)}</div>
               : kind !== "all" ? <div className="studio-empty studio-filter-empty" role="status">
                 <Icon name={categories.find(([value]) => value === kind)?.[2] || "book"} size={28} />
                 <h3>还没有{categories.find(([value]) => value === kind)?.[1]}记录</h3>
@@ -76,6 +70,6 @@ export default function Home() {
       </div>
 
     </div>
-    <footer className="studio-footer"><span>NO SEE BYE © 2026</span><span lang="en">Made of ordinary, lovely days.</span><Icon name="spark" size={15} /></footer>
+    <footer className="studio-footer"><span>NO SEE BYE © 2026</span><Icon name="spark" size={15} /></footer>
   </div></AppShell>;
 }

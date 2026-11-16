@@ -26,8 +26,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const refresh = useCallback(async () => {
+    // Do not leave the whole shell blocked when the session endpoint is slow.
+    const signal = typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
+      ? AbortSignal.timeout(8000)
+      : undefined;
     try {
-      const data = await api<{ user: UserInfo | null }>("/api/auth/me");
+      const data = await api<{ user: UserInfo | null }>("/api/auth/me", { signal });
       setUser(data.user);
     } finally {
       setLoading(false);

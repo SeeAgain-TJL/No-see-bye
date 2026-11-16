@@ -136,9 +136,9 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                aria-pressed={showPassword} aria-label={showPassword ? "隐藏密码" : "显示密码"}
               >
-                {showPassword ? "隐藏" : "显示"}
+                <Icon name={showPassword ? 'eye-off' : 'eye'} size={19} />
               </button>
             </div>
           </label>

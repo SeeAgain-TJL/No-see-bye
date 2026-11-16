@@ -9,6 +9,7 @@ import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
 import { PhotoWall } from "./photo-wall";
 import { MediaGrid } from "./media";
+import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
 export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const params = useSearchParams();
@@ -50,6 +51,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const data = current?.data;
   function filter(name: string, value: string) {
     const next = new URLSearchParams(params.toString());
+    next.delete('cursor');
     if (value) next.set(name, value);
     else next.delete(name);
     if (name === "month") next.delete("day");
@@ -254,16 +256,11 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               />
               <button type="submit">搜索</button>
             </form>
-            <label className="month-filter">
-              <Icon name="calendar" size={17} />
-              <input
-                type="month"
-                value={params.get("month") || ""}
-                aria-label="按月份筛选（北京时间）"
-                onChange={(e) => filter("month", e.target.value)}
-              />
-            </label>
-            {params.get("day") && <span className="day-filter-chip"><Icon name="calendar" size={15} />{params.get("day")}<button aria-label="清除日期筛选" onClick={() => filter("day", "")}><Icon name="close" size={14} /></button></span>}
+            <DateFilter month={params.get('month') || ''} day={params.get('day') || ''} onChange={(month, day) => {
+              const next = new URLSearchParams(params.toString()); next.delete('cursor'); next.delete('month'); next.delete('day');
+              if (month) next.set('month', month); if (day) next.set('day', day);
+              router.push((trash ? '/memories/trash' : '/memories') + '?' + next.toString(), { scroll: false });
+            }} />
             {(params.get("day") || params.get("q") ||
               params.get("month") ||
               params.get("pinned")) && (
@@ -376,15 +373,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                       <MediaGrid assets={m.assets} compact />
                       <div className="memory-card-copy">
-                        <Link
-                          className="memory-title"
-                          href={`/memories/${m.id}`}
-                        >
-                          <h2>
-                            {m.title ||
-                              (m.assets.length ? "生活的一帧" : "日常随记")}
-                          </h2>
-                        </Link>
+                        {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
                         {m.content && (
                           <p className="memory-excerpt">{m.content}</p>
                         )}

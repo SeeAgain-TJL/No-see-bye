@@ -144,7 +144,7 @@ export function MemoryDetail({
             {memory.visibility === "public" ? "公开" : "仅自己"}
           </span>
         </div>
-        <h1>{memory.title || "生活的一帧"}</h1>
+        {memory.title && <h1>{memory.title}</h1>}
         <div className="detail-byline">
           <Avatar name={memory.user.displayName || memory.user.username} src={memory.user.avatarUrl} />
           <span>{memory.user.displayName || memory.user.username}</span>

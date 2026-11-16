@@ -1,5 +1,8 @@
 import type { CSSProperties } from "react";
 const paths: Record<string, React.ReactNode> = {
+  eye: <><path d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z' /><circle cx='12' cy='12' r='3' /></>,
+  'eye-off': <><path d='m3 3 18 18M10.6 5.1A12 12 0 0 1 12 5c6.5 0 10 7 10 7a19 19 0 0 1-3.2 4.1M6.1 6.1A19 19 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.2-1.2M10 10a3 3 0 0 0 4 4' /></>,
+  postcard: <><rect x='2' y='4' width='20' height='16' rx='3' /><path d='M14 7v10M17 13h2m-2 3h2M5 15l3-4 3 4' /><circle cx='7' cy='8' r='1' /></>,
   play: <path d="m8 4 12 8-12 8Z" />,
   pause: <><path d="M8 4v16M16 4v16" /></>,
   download: <><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4" /></>,

@@ -78,10 +78,10 @@ export function ThemeSwitcher() {
     }}>
     <button ref={trigger} type="button" className="theme-trigger" onClick={() => setOpen(!open)} aria-label="切换主题" aria-haspopup="menu" aria-controls={open ? menuId : undefined} aria-expanded={open}
       onKeyDown={event => { if (event.key === "ArrowDown" && !open) { event.preventDefault(); setOpen(true); } }}>
-      <span className="theme-current-swatch" aria-hidden="true" /><span className="theme-trigger-label">换个心情</span>
+      <span className="theme-current-swatch" aria-hidden="true" /><span className="theme-trigger-label">主题</span>
     </button>
     {open && <div id={menuId} className="theme-menu" role="menu" aria-label="选择主题">
-      <p>给今天换一种颜色</p>
+      <p>界面配色</p>
       {themeNames.map(name => <button key={name} type="button" role="menuitemradio" aria-checked={current === name} onClick={() => switchTheme(name)}>
         <span className="theme-swatch" data-theme-preview={name} aria-hidden="true" />
         <span><strong>{themes[name].label}</strong><small>{themes[name].description}</small></span>

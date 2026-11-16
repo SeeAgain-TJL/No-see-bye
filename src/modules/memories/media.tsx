@@ -1,104 +1,135 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import type { MediaAsset } from "./types";
-import { Icon } from "@/components/icons";
-import { DecodedImage } from "@/components/decoded-image";
-import { bytes } from "@/lib/client";
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import type { MediaAsset } from './types';
+import { Icon } from '@/components/icons';
+import { DecodedImage } from '@/components/decoded-image';
 
-export const previewUrl = (asset: MediaAsset) => asset.thumbnailUrl || asset.url + "?variant=preview";
-const displayUrl = (asset: MediaAsset) => asset.url + "?variant=display";
+export const previewUrl = (asset: MediaAsset) => asset.thumbnailUrl || asset.url + '?variant=preview';
+const displayUrl = (asset: MediaAsset) => asset.url + '?variant=display';
 
 export function MediaGrid({ assets, compact = false }: { assets: MediaAsset[]; compact?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
   if (!assets.length) return null;
   const shown = compact ? assets.slice(0, 1) : assets;
   return <>
-    <div className={'media-grid ' + (shown.length === 1 ? "single " : "") + (compact ? "compact archive-cover" : "")}>
-      {shown.map((asset, index) => <button type="button" key={asset.id} className="media-tile" onClick={() => setSelected(index)} aria-label={'查看' + (asset.mime.startsWith("video/") ? "视频" : "图片") + '：' + asset.filename}>
-        {asset.mime.startsWith("video/") ? <>
-          {asset.thumbnailUrl ? <DecodedImage src={asset.thumbnailUrl} alt={asset.filename} loading="lazy" /> : <div className="video-placeholder"><Icon name="video" size={32} /><span>视频</span></div>}
-          <span className="play-icon"><Icon name="video" size={23} /></span>
-        </> : <DecodedImage src={previewUrl(asset)} alt={asset.filename} loading="lazy" />}
-        {compact && <span className="cover-count"><Icon name={asset.mime.startsWith("video/") ? "video" : "image"} size={13} />{assets.length > 1 ? assets.length + " 个附件" : asset.mime.startsWith("video/") ? "影像" : "照片"}</span>}
+    <div className={'media-grid ' + (shown.length === 1 ? 'single ' : '') + (compact ? 'compact archive-cover' : '')}>
+      {shown.map((asset, index) => <button type='button' key={asset.id} className='media-tile' onClick={() => setSelected(index)} aria-label={'查看第 ' + (index + 1) + ' 个' + (asset.mime.startsWith('video/') ? '视频' : '照片')}>
+        {asset.mime.startsWith('video/') ? <>
+          {asset.thumbnailUrl ? <DecodedImage src={asset.thumbnailUrl} alt='视频封面' loading='lazy' /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
+          <span className='play-icon'><Icon name='play' size={23} /></span>
+        </> : <DecodedImage src={previewUrl(asset)} alt='日常照片' loading='lazy' />}
+        {compact && assets.length > 1 && <span className='cover-count'><Icon name='image' size={13} />{assets.length}</span>}
       </button>)}
     </div>
     {selected !== null && <MediaViewer assets={assets} initial={selected} close={() => setSelected(null)} />}
   </>;
 }
 
+type Transform = { scale: number; x: number; y: number };
+type Point = { x: number; y: number };
+const resting = { scale: 1, x: 0, y: 0 };
 export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; initial: number; close: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const strip = useRef<HTMLDivElement>(null);
-  const touch = useRef<{ x: number; y: number } | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const pointers = useRef(new Map<number, Point>());
+  const gesture = useRef<{ start: Point; last: Point; time: number; transform: Transform; moved: boolean; pinched: boolean } | null>(null);
+  const pinch = useRef<{ distance: number; center: Point; transform: Transform } | null>(null);
+  const transformRef = useRef<Transform>(resting);
+  const [transform, setTransform] = useState<Transform>(resting);
   const [index, setIndex] = useState(initial);
-  const [portrait, setPortrait] = useState(false);
-  const [zoom, setZoom] = useState(false);
-  const [original, setOriginal] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const asset = assets[index];
-  const isVideo = asset.mime.startsWith("video/");
-  const source = original ? asset.url : displayUrl(asset);
+  const [buffering, setBuffering] = useState(false);
+  const asset = assets[index], isVideo = asset.mime.startsWith('video/');
+
+  function update(next: Transform) {
+    const box = stage.current, image = box?.querySelector<HTMLImageElement>('.immersive-image img');
+    const scale = Math.max(1, Math.min(5, next.scale));
+    let maxX = 0, maxY = 0;
+    if (box && image?.naturalWidth) {
+      const fit = Math.min(box.clientWidth / image.naturalWidth, box.clientHeight / image.naturalHeight);
+      maxX = Math.max(0, (image.naturalWidth * fit * scale - box.clientWidth) / 2);
+      maxY = Math.max(0, (image.naturalHeight * fit * scale - box.clientHeight) / 2);
+    }
+    const value = { scale, x: Math.max(-maxX, Math.min(maxX, next.x)), y: Math.max(-maxY, Math.min(maxY, next.y)) };
+    transformRef.current = value; setTransform(value);
+  }
   function choose(next: number) {
-    const target = (next + assets.length) % assets.length;
-    if (target === index) return;
-    setIndex(target);
-    setPortrait(false); setZoom(false); setOriginal(false); setReady(false); setFailed(false); setAttempt(0);
+    const target = (next + assets.length) % assets.length; if (target === index) return;
+    setIndex(target); update(resting); setReady(false); setFailed(false); setAttempt(0); setBuffering(false);
+    pointers.current.clear(); gesture.current = null; pinch.current = null;
   }
   useEffect(() => {
-    ref.current?.showModal();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = overflow; };
+    const previous = document.activeElement as HTMLElement | null;
+    if (!dialog.current?.open) dialog.current?.showModal();
+    const overflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    const resize = () => { transformRef.current = resting; setTransform(resting); };
+    window.addEventListener('resize', resize);
+    return () => { document.body.style.overflow = overflow; window.removeEventListener('resize', resize); previous?.focus(); };
   }, []);
   useEffect(() => {
-    strip.current?.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [index]);
+    const box = stage.current; if (!box || isVideo) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const old = transformRef.current, rect = box.getBoundingClientRect();
+      const cx = event.clientX - rect.left - rect.width / 2, cy = event.clientY - rect.top - rect.height / 2;
+      const scale = Math.max(1, Math.min(5, old.scale * Math.exp(-event.deltaY * .002)));
+      update({ scale, x: cx - (cx - old.x) * scale / old.scale, y: cy - (cy - old.y) * scale / old.scale });
+    };
+    box.addEventListener('wheel', wheel, { passive: false });
+    return () => box.removeEventListener('wheel', wheel);
+  }, [isVideo]);
   useEffect(() => {
-    // Preload only the next screen-sized image, after the current one is ready.
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    if (!ready || assets.length < 2 || connection?.saveData || connection?.effectiveType?.includes("2g")) return;
-    const next = assets[(index + 1) % assets.length];
-    if (!next.mime.startsWith("image/")) return;
-    const image = new Image();
-    image.src = displayUrl(next);
-    image.decode().catch(() => {});
-    return () => { image.src = ""; };
+    if (!ready || assets.length < 2 || connection?.saveData || connection?.effectiveType?.includes('2g')) return;
+    const next = assets[(index + 1) % assets.length]; if (!next.mime.startsWith('image/')) return;
+    const image = new Image(); image.src = displayUrl(next); image.decode().catch(() => {});
+    return () => { image.src = ''; };
   }, [ready, index, assets]);
-  return <dialog ref={ref} className={"media-dialog gallery-viewer" + (assets.length === 1 ? " is-single" : "") + (portrait ? " is-portrait" : "")} aria-label="媒体预览" onClose={close}
-    onClick={event => { if (event.target === event.currentTarget) ref.current?.close(); }}
-    onKeyDown={event => {
-      if ((event.target as HTMLElement).tagName === "VIDEO") return;
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); choose(index + (event.key === "ArrowLeft" ? -1 : 1)); }
-    }}>
-    <div className="viewer-bar"><span className="viewer-counter">{String(index + 1).padStart(2, "0")} <span>/ {String(assets.length).padStart(2, "0")}</span><span className="viewer-filename">{asset.filename}</span></span>
-      <button type="button" className="icon-button" aria-label="关闭预览" autoFocus onClick={() => ref.current?.close()}><Icon name="close" /></button>
+  function pinchPoints() {
+    const [a, b] = [...pointers.current.values()];
+    return { distance: Math.hypot(b.x - a.x, b.y - a.y), center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+  }
+  return <dialog ref={dialog} className='immersive-viewer' aria-label='媒体预览，照片可双指缩放、拖动，轻点关闭' onClose={close} onKeyDown={e => {
+    if ((e.target as HTMLElement).tagName === 'VIDEO') return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); choose(index + (e.key === 'ArrowLeft' ? -1 : 1)); }
+    if (!isVideo && ['+', '=', '-', '0'].includes(e.key)) { e.preventDefault(); update(e.key === '0' ? resting : { ...transformRef.current, scale: transformRef.current.scale * (e.key === '-' ? .8 : 1.25) }); }
+  }}>
+    <button type='button' className={'immersive-dismiss' + (isVideo ? ' for-video' : '')} aria-label='关闭预览' onClick={() => dialog.current?.close()}><Icon name='close' size={22} /></button>
+    <div ref={stage} className={'immersive-stage' + (transform.scale > 1 ? ' is-zoomed' : '') + (isVideo ? ' is-video' : '')} style={{ touchAction: isVideo ? 'auto' : 'none' }}
+      onPointerDown={e => {
+        if ((e.target as HTMLElement).closest('button, video, a') || e.button !== 0) return;
+        pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); e.currentTarget.setPointerCapture(e.pointerId);
+        if (pointers.current.size === 1) gesture.current = { start: { x: e.clientX, y: e.clientY }, last: { x: e.clientX, y: e.clientY }, time: performance.now(), transform: transformRef.current, moved: false, pinched: false };
+        if (pointers.current.size >= 2) { const p = pinchPoints(); pinch.current = { ...p, transform: transformRef.current }; if (gesture.current) gesture.current.pinched = true; }
+      }}
+      onPointerMove={e => {
+        if (!pointers.current.has(e.pointerId)) return;
+        pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const g = gesture.current; if (!g) return;
+        g.last = { x: e.clientX, y: e.clientY }; if (Math.hypot(e.clientX - g.start.x, e.clientY - g.start.y) > 8) g.moved = true;
+        if (pointers.current.size >= 2 && pinch.current) {
+          const p = pinchPoints(), base = pinch.current, rect = e.currentTarget.getBoundingClientRect();
+          const scale = Math.max(1, Math.min(5, base.transform.scale * p.distance / Math.max(1, base.distance))), ratio = scale / base.transform.scale;
+          update({ scale, x: p.center.x - rect.left - rect.width / 2 - (base.center.x - rect.left - rect.width / 2 - base.transform.x) * ratio, y: p.center.y - rect.top - rect.height / 2 - (base.center.y - rect.top - rect.height / 2 - base.transform.y) * ratio });
+        } else if (transformRef.current.scale > 1) update({ ...g.transform, x: g.transform.x + e.clientX - g.start.x, y: g.transform.y + e.clientY - g.start.y });
+      }}
+      onPointerUp={e => {
+        if (!pointers.current.has(e.pointerId)) return;
+        pointers.current.delete(e.pointerId); const g = gesture.current;
+        if (pointers.current.size) { const remaining = [...pointers.current.values()][0]; gesture.current = { start: remaining, last: remaining, time: performance.now(), transform: transformRef.current, moved: true, pinched: true }; pinch.current = null; return; }
+        gesture.current = null; pinch.current = null; if (!g || g.pinched) return;
+        const dx = e.clientX - g.start.x, dy = e.clientY - g.start.y;
+        if (!g.moved && Math.hypot(dx, dy) < 8 && performance.now() - g.time < 350) dialog.current?.close();
+        else if (transformRef.current.scale === 1 && Math.abs(dx) > 55 && Math.abs(dy) < 75) choose(index + (dx < 0 ? 1 : -1));
+      }}
+      onPointerCancel={e => { pointers.current.delete(e.pointerId); gesture.current = null; pinch.current = null; }}
+      onDragStart={e => e.preventDefault()}>
+      {isVideo ? <video key={asset.id + ':' + attempt} src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline preload='auto' onWaiting={() => setBuffering(true)} onPlaying={() => setBuffering(false)} onCanPlay={() => setBuffering(false)} onError={() => { setFailed(true); setBuffering(false); }} />
+        : <DecodedImage key={asset.id + ':' + attempt} className='immersive-image' src={displayUrl(asset) + (attempt ? '&retry=' + attempt : '')} alt='日常照片' fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => { setReady(true); setFailed(false); }} onFailure={() => setFailed(true)} />}
+      {failed ? <div className='immersive-status' role='alert'><span>{isVideo ? '暂时无法播放' : '图片加载失败'}</span><button type='button' onClick={() => { setAttempt(v => v + 1); setFailed(false); setReady(false); }}>重试</button></div> : ((!isVideo && !ready) || buffering) && <span className='immersive-loader' role='status' aria-label='加载中' />}
     </div>
-    <div className={'viewer-content' + (zoom ? " is-zoomed" : "")}
-      onTouchStart={event => { const t = event.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; }}
-      onTouchEnd={event => { const t = event.changedTouches[0], start = touch.current; touch.current = null; if (!start || zoom || isVideo) return; const dx = t.clientX - start.x; if (Math.abs(dx) > 60 && Math.abs(t.clientY - start.y) < 60) choose(index + (dx < 0 ? 1 : -1)); }}>
-      {isVideo ? <video key={asset.id} src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline onError={() => setFailed(true)} /> : <>
-        <DecodedImage className="viewer-backfill" src={previewUrl(asset)} alt="" />
-        <DecodedImage key={source + ":" + attempt} className="viewer-image" src={source + (attempt ? (source.includes("?") ? "&" : "?") + "retry=" + attempt : "")} alt={asset.filename} fetchPriority="high" onReady={() => {
-          const image = ref.current?.querySelector<HTMLImageElement>(".viewer-image img");
-          setPortrait(!!image && image.naturalHeight > image.naturalWidth * 1.15);
-          setReady(true); setFailed(false);
-        }} onFailure={() => setFailed(true)} />
-      </>}
-      {assets.length > 1 && !zoom && <div className="viewer-navigation">
-        <button type="button" className="viewer-prev" aria-label="上一张" onClick={() => choose(index - 1)}><Icon name="back" size={21} /></button>
-        <button type="button" className="viewer-next" aria-label="下一张" onClick={() => choose(index + 1)}><Icon name="arrow" size={21} /></button>
-      </div>}
-      {failed ? <div className="viewer-status" role="status"><span>{isVideo ? "此视频暂时无法播放" : "图片加载失败"}</span>{!isVideo && <button type="button" onClick={() => { setFailed(false); setReady(false); setAttempt(v => v + 1); }}>重新加载</button>}</div> : !isVideo && !ready && <span className="viewer-status" role="status"><span className="image-loading-dot" />{original ? "正在加载原图…" : "正在加载清晰预览…"}</span>}
-    </div>
-    <div className="viewer-tools">
-      <span>{isVideo ? "VIDEO" : original ? "ORIGINAL" : "HD PREVIEW"}</span>
-      <div>{!isVideo && <><button type="button" disabled={!ready} aria-pressed={zoom} onClick={() => setZoom(v => !v)}>{zoom ? "适应屏幕" : "放大查看"}</button><button type="button" aria-pressed={original} onClick={() => { setOriginal(v => !v); setReady(false); setFailed(false); setZoom(false); }}>{original ? "返回高清预览" : "查看原图 · " + bytes(asset.sizeBytes)}</button></>}<a href={asset.url} download={asset.filename}>下载原文件<Icon name="download" size={15} /></a></div>
-    </div>
-    {assets.length > 1 && <div className="viewer-filmstrip" ref={strip} aria-label="选择影像">{assets.map((item, i) => <button key={item.id} type="button" aria-label={'第 ' + (i + 1) + ' 个附件：' + item.filename} aria-pressed={index === i} onClick={() => choose(i)}>
-      {item.mime.startsWith("image/") || item.thumbnailUrl ? <DecodedImage src={previewUrl(item)} alt="" loading="lazy" /> : <Icon name="video" size={20} />}
-    </button>)}</div>}
-
+    {assets.length > 1 && <><button type='button' className='immersive-prev' aria-label='上一张' onClick={() => choose(index - 1)}><Icon name='back' size={22} /></button><button type='button' className='immersive-next' aria-label='下一张' onClick={() => choose(index + 1)}><Icon name='arrow' size={22} /></button><span className='immersive-count' aria-live='polite'>{index + 1}<span> / {assets.length}</span></span></>}
   </dialog>;
 }
