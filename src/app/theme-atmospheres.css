@@ -19,7 +19,7 @@
 .daydream-theme-token { position: absolute; width: 56px; height: 62px; bottom: 118px; left: 4px; z-index: 2; color: var(--accent); transform: rotate(-13deg); filter: drop-shadow(1px 2px 0 var(--surface)); pointer-events: none; }
 
 /* The theme menu shows a small sample of each material, not just a colour chip. */
-.theme-menu { width: 300px; padding: 12px; border-radius: 20px; box-shadow: 0 6px 12px -8px var(--album-shadow), 0 22px 55px -16px var(--album-shadow); }
+.theme-menu { width: 300px; max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; padding: 12px; border-radius: 20px; box-shadow: 0 6px 12px -8px var(--album-shadow), 0 22px 55px -16px var(--album-shadow); }
 .theme-menu > p { margin: 7px 9px 13px; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: 12px; letter-spacing: .04em; color: var(--ink); }
 .theme-menu > p > small { margin-top: 6px; font-size: 10px; letter-spacing: .02em; }
 .theme-menu button { min-height: 76px; gap: 14px; padding: 9px; border: 1px solid transparent; transition: background .18s, border-color .18s; }
