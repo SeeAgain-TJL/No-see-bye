@@ -12,6 +12,7 @@ import "./home-enhancements.css";
 import "./memory-experiences.css";
 import './refinements.css';
 import './memory-album.css';
+import './collection-keepsake.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
