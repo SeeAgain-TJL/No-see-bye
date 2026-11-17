@@ -33,8 +33,8 @@ function Album({ items }: { items: Memory[] }) {
       <div className='album-spread' data-orientation={ratio < .9 ? 'portrait' : 'landscape'}>
         <div className='album-exhibit' style={{ '--exhibit-ratio': ratio } as CSSProperties}>
           <span className='exhibit-corner exhibit-corner-one' aria-hidden='true' /><span className='exhibit-corner exhibit-corner-two' aria-hidden='true' />
-          {selected.assets.length ? <button type='button' className='album-exhibit-image' aria-label={'放大' + dateText(selected.happenedAt) + '的影像'} onClick={() => { if (!dragged.current) setViewing(selected); }}
-            onPointerDown={e => { if (e.button !== 0 || !e.isPrimary) return; dragged.current = false; gesture.current = { x: e.clientX, y: e.clientY, moved: false }; }}
+          {selected.assets.length ? <button type='button' className='album-exhibit-image' aria-label={'放大' + dateText(selected.happenedAt) + '的影像'} onClick={e => { if (e.detail === 0 || !dragged.current) setViewing(selected); }}
+            onPointerDown={e => { if (e.button !== 0 || !e.isPrimary) return; dragged.current = false; gesture.current = { x: e.clientX, y: e.clientY, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); }}
             onPointerMove={e => { const g = gesture.current; if (g && Math.abs(e.clientX - g.x) > 8) g.moved = true; }}
             onPointerUp={e => { const g = gesture.current; gesture.current = null; if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; dragged.current = g.moved; if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) choose(index + (dx < 0 ? 1 : -1)); }}
             onPointerCancel={() => { gesture.current = null; dragged.current = false; }} onDragStart={e => e.preventDefault()}>
