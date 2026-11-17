@@ -13,7 +13,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const [index, setIndex] = useState(0);
   const [ratios, setRatios] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState<Record<string, boolean>>({});
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(() => photos.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [hidden, setHidden] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [viewing, setViewing] = useState<number | null>(null);
@@ -35,6 +35,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   };
 
   const choose = useCallback((next: number, smooth = true) => {
+    if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
     const value = (next + photos.length) % photos.length;
     const candidates = photos.length > 1 ? [value, value + photos.length, value + photos.length * 2] : [value];
     const position = candidates.reduce((best, candidate) => Math.abs(candidate - physical.current) < Math.abs(best - physical.current) ? candidate : best);
@@ -66,7 +67,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   }, []);
   useEffect(() => {
     if (!playing || hidden || hovered || viewing !== null || !loaded[selected.asset.id] || photos.length < 2) return;
-    const timer = window.setTimeout(() => choose(index + 1, index < photos.length - 1), 2500);
+    const timer = window.setTimeout(() => choose(index + 1), 1000);
     return () => clearTimeout(timer);
   }, [playing, hidden, hovered, viewing, loaded, selected.asset.id, photos.length, index, choose]);
   function observeScroll() {
@@ -87,7 +88,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
       active.current = closest % photos.length; setIndex(active.current);
       if (settleTimer.current) clearTimeout(settleTimer.current);
       settleTimer.current = setTimeout(() => {
-        if (dragging.current || photos.length < 2 || (physical.current >= photos.length && physical.current < photos.length * 2)) return;
+        if (dragging.current || destination.current !== null || photos.length < 2 || (physical.current >= photos.length && physical.current < photos.length * 2)) return;
         const position = active.current + photos.length;
         const frame = frames[position];
         physical.current = position;
@@ -111,7 +112,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
     }}>
       <header className='gallery-heading'><div><span className='gallery-eyebrow'>THE STILL, ALIVE</span><h2 id={titleId}>时光相册<ThemeMotif /></h2></div><span className='gallery-page'><strong>{String(index + 1).padStart(2, '0')}</strong><span>/ {String(photos.length).padStart(2, '0')}</span></span></header>
       <div className='photo-gallery-viewport' style={{ '--first-ratio': ratio(photos[0]), '--last-ratio': ratio(photos[photos.length - 1]) } as CSSProperties}>
-        <span className='gallery-orbit' aria-hidden='true' />
+        <div className='gallery-rail' aria-hidden='true'><span>PHOTO ARCHIVE</span><span>DRAG TO EXPLORE</span></div>
         <div ref={reel} className='photo-reel' onScroll={observeScroll} onWheel={() => { destination.current = null; setPlaying(false); }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setPlaying(false)}
           onPointerDown={e => {
             setPlaying(false); dragged.current = false; destination.current = null;
@@ -137,7 +138,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
       </div>
       <div className='gallery-caption'>
         <div className='gallery-authored' key={selected.asset.id}><time dateTime={selected.memory.happenedAt}>{dateText(selected.memory.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time>{selected.memory.title && <h3>{selected.memory.title}</h3>}{selected.memory.content && <p>{selected.memory.content}</p>}</div>
-        <div className='gallery-controls'><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张2.5秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
+        <div className='gallery-controls'><span className='gallery-speed'>1s / FRAME</span><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张1秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
       </div>
       <div className='gallery-bottom'><div ref={thumbs} className='gallery-contacts' role='group' aria-label='选择照片'>{photos.map((photo, i) => <button key={photo.asset.id} type='button' aria-label={'第' + (i + 1) + '张照片'} aria-pressed={i === index} onClick={() => { setPlaying(false); choose(i); }}><DecodedImage src={previewUrl(photo.asset)} alt='' loading='lazy' /><span>{String(i + 1).padStart(2, '0')}</span></button>)}</div><Link href={'/memories/' + selected.memory.id} className='gallery-detail' aria-label='打开这张照片的日常详情'><Icon name='arrow' size={21} /></Link></div>
       <span className='sr-only' aria-live='polite' aria-atomic='true'>第 {index + 1} 张，共 {photos.length} 张照片</span>

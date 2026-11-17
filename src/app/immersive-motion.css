@@ -3,7 +3,7 @@
 :root[data-theme='sea'] { --motion-pop: #ffc58b; --motion-on-pop: #234859; --motion-deep: #1e5268; --motion-on-deep: #f5f3dc; }
 :root[data-theme='film'] { --motion-pop: #efa574; --motion-on-pop: #492f24; --motion-deep: #51392d; --motion-on-deep: #fff1d2; }
 :root[data-theme='night'] { --motion-pop: #c9baf1; --motion-on-pop: #253142; --motion-deep: #243443; --motion-on-deep: #ede8ff; }
-.motion-pulse { position: fixed; z-index: 112; width: 68px; height: 68px; border: 2px solid var(--motion-pop); border-radius: 50%; background: radial-gradient(circle,transparent 40%,color-mix(in srgb,var(--motion-pop) 28%,transparent)); opacity: 0; pointer-events: none; }
+.motion-pulse { position: fixed; z-index: 112; width: 68px; height: 68px; border: 1px solid var(--accent); border-radius: 50%; background: none; opacity: 0; pointer-events: none; }
 .app-shell { position: relative; isolation: isolate; }
 .immersive-motion-root { position: static; }
 .immersive-reading-track { position: fixed; z-index: 110; top: 0; left: var(--environment-left, 198px); right: 0; height: 3px; pointer-events: none; overflow: hidden; }
@@ -11,7 +11,7 @@
 .environment-toggle { position: fixed; z-index: 25; right: 22px; bottom: 22px; display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 8px 13px 8px 10px; border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); border-radius: 24px; background: color-mix(in srgb, var(--surface) 94%, transparent); color: var(--accent); box-shadow: 0 6px 24px -14px var(--album-shadow); font-size: 11px; letter-spacing: .04em; transition: border-color .25s, background .25s, translate .25s; }
 .environment-toggle > .memory-sprite { width: 30px; height: 27px; }
 .environment-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.motion-spotlight { position: absolute; z-index: 3; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at var(--surface-x, 50%) var(--surface-y, 50%), color-mix(in srgb, var(--warm) 17%, transparent), transparent 62%); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent); transition: opacity .45s ease; }
+.motion-spotlight { display: none; }
 .main-content [data-motion-surface] { position: relative; transform-origin: center; }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
  .home-small-actions button, .gallery-control, .auth-submit, .studio-button, .journal-cover-write, .world-toggle { translate: var(--magnet-x,0) var(--magnet-y,0); transition: translate .4s cubic-bezier(.16,1,.3,1),background .35s,border-color .35s,box-shadow .35s; }
@@ -19,7 +19,6 @@
  :root[data-theme] .auth-editorial .auth-submit:not(:disabled):hover { background: var(--motion-pop); color: var(--motion-on-pop); }
  :root[data-theme] .main-content .memory-card:hover { box-shadow: 0 20px 40px -22px var(--album-shadow); }
  .main-content [data-motion-surface][data-motion-hover='true'] { z-index: 4; }
- [data-motion-hover='true'] > .motion-spotlight { opacity: 1; }
  .environment-toggle:hover { translate: 0 -2px; border-color: var(--accent); }
 }
 @media (max-width: 760px) {

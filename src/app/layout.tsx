@@ -27,6 +27,7 @@ import './journal-editorial.css';
 import './editorial-gallery.css';
 import './auth-editorial.css';
 import './world-motion.css';
+import './uniform-memory-cards.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

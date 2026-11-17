@@ -1,33 +1,92 @@
 'use client';
-import { useId, useState, type CSSProperties } from 'react';
+import { useId, useState, type PointerEvent } from 'react';
 import { Icon } from './icons';
 
+/** Hard-edged optical studies. Every visible surface is original vector geometry. */
 export function MemoryPortal() {
-  const [turn, setTurn] = useState(0);
-  const seaClip = useId();
-  return <button type='button' className='memory-portal' aria-label='拨动光影' data-shifted={turn % 2 === 1} onClick={() => setTurn(value => value + 1)} style={{ '--portal-turn': turn * 90 + 'deg' } as CSSProperties}>
-    <span className='portal-orbit portal-orbit-one' /><span className='portal-orbit portal-orbit-two' />
-    <svg className='auth-portal-art' viewBox='0 0 560 370' fill='none' aria-hidden='true'>
-      <defs><clipPath id={seaClip}><circle cx='280' cy='185' r='160' /></clipPath></defs>
-      <g className='portal-theme portal-garden'>
-        <path d='M120 335c20-102 90-139 157-153' stroke='#cce4aa' strokeWidth='3' />
-        <path d='M167 267c-78 2-113-38-110-79 62-8 112 19 110 79Z' fill='#8fbb83' /><path d='M192 235c8-78 54-100 94-88 0 57-36 91-94 88Z' fill='#d6e8b7' />
-        <g className='portal-bloom' style={{ transformOrigin: '317px 172px' }}>{Array.from({ length: 8 }, (_, i) => <ellipse key={i} cx='317' cy='101' rx='35' ry='71' fill={i % 2 ? '#c5df84' : '#e9efa8'} transform={'rotate(' + i * 45 + ' 317 172)'} />)}<circle cx='317' cy='172' r='46' fill='#e9a96c' /><circle cx='307' cy='160' r='5' fill='#314e3d' /><circle cx='328' cy='160' r='5' fill='#314e3d' /><path d='M305 181q12 11 25 0' stroke='#314e3d' strokeWidth='3' strokeLinecap='round' /></g>
-        <path d='m442 265 7 18 18 7-18 7-7 18-7-18-18-7 18-7Z' fill='#e9a96c' />
+  const [opened, setOpened] = useState(false);
+  const id = useId();
+  const metal = id + '-metal', glass = id + '-glass', core = id + '-core', plate = id + '-plate';
+  function move(event: PointerEvent<HTMLButtonElement>) {
+    if (event.pointerType !== 'mouse') return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - .5;
+    const y = (event.clientY - bounds.top) / bounds.height - .5;
+    event.currentTarget.style.setProperty('--optical-yaw', x * 12 + 'deg');
+    event.currentTarget.style.setProperty('--optical-pitch', -y * 10 + 'deg');
+  }
+  function leave(event: PointerEvent<HTMLButtonElement>) {
+    event.currentTarget.style.removeProperty('--optical-yaw');
+    event.currentTarget.style.removeProperty('--optical-pitch');
+  }
+  return <button type='button' className='memory-portal auth-optics' aria-label='切换光学构成' aria-pressed={opened} data-open={opened}
+    onClick={() => setOpened(value => !value)} onPointerMove={move} onPointerLeave={leave}>
+    <span className='auth-optics-edition' aria-hidden='true'><span>NO SEE BYE</span><span>OPTICAL STUDIES — 01</span></span>
+    <svg className='auth-optics-scene' viewBox='0 0 640 390' fill='none' aria-hidden='true'>
+      <defs>
+        <linearGradient id={metal} x1='150' y1='50' x2='485' y2='340' gradientUnits='userSpaceOnUse'>
+          <stop stopColor='var(--optic-metal)' /><stop offset='.16' stopColor='var(--optic-light)' /><stop offset='.31' stopColor='var(--optic-mid)' /><stop offset='.47' stopColor='var(--optic-dark)' /><stop offset='.54' stopColor='var(--optic-light)' /><stop offset='.69' stopColor='var(--optic-mid)' /><stop offset='.83' stopColor='var(--optic-dark)' /><stop offset='1' stopColor='var(--optic-metal)' />
+        </linearGradient>
+        <linearGradient id={glass} x1='190' y1='80' x2='460' y2='325' gradientUnits='userSpaceOnUse'>
+          <stop stopColor='var(--optic-light)' stopOpacity='.94' /><stop offset='.23' stopColor='var(--optic-metal)' stopOpacity='.3' /><stop offset='.51' stopColor='var(--optic-dark)' stopOpacity='.8' /><stop offset='.73' stopColor='var(--optic-mid)' stopOpacity='.5' /><stop offset='1' stopColor='var(--optic-light)' stopOpacity='.88' />
+        </linearGradient>
+        <radialGradient id={core} cx='.32' cy='.24' r='.85'><stop stopColor='var(--optic-light)' /><stop offset='.18' stopColor='var(--optic-metal)' /><stop offset='.4' stopColor='var(--optic-mid)' /><stop offset='.68' stopColor='var(--optic-dark)' /><stop offset='.91' stopColor='var(--optic-mid)' /><stop offset='1' stopColor='var(--optic-light)' /></radialGradient>
+        <linearGradient id={plate} x1='175' y1='80' x2='430' y2='300' gradientUnits='userSpaceOnUse'><stop stopColor='var(--optic-light)' /><stop offset='.36' stopColor='var(--optic-mid)' /><stop offset='.58' stopColor='var(--optic-dark)' /><stop offset='1' stopColor='var(--optic-metal)' /></linearGradient>
+      </defs>
+
+      <g className='auth-optics-theme auth-optics-iris'>
+        <g className='auth-optics-instrument'>
+          <circle cx='320' cy='207' r='147' fill='var(--optic-dark)' />
+          {[0,1,2,3].map(i => <circle key={i} cx='320' cy={202-i*4} r='147' stroke='var(--optic-metal)' strokeOpacity={.12+i*.04} />)}
+          <circle cx='320' cy='186' r='147' fill={'url(#' + metal + ')'} />
+          <circle cx='320' cy='186' r='139' fill='var(--optic-dark)' />
+          <circle cx='320' cy='186' r='128' stroke={'url(#' + metal + ')'} strokeWidth='11' />
+          <circle cx='320' cy='186' r='118' fill='#101b18' stroke='var(--optic-light)' strokeOpacity='.25' />
+          {Array.from({ length: 72 }, (_, i) => <path key={i} d={i % 6 ? 'M320 47v5' : 'M320 45v10'} stroke='var(--optic-light)' strokeWidth={i%6 ? .7 : 1.4} strokeOpacity={i%6 ? .4 : .8} transform={'rotate(' + i*5 + ' 320 186)'} />)}
+          <g className='auth-optics-blades'>{Array.from({ length: 9 }, (_, i) => <g key={i} transform={'rotate(' + i*40 + ' 320 186)'}><path className='auth-optics-blade' d='M319 73c56 0 100 39 112 83l-82 77-81-57Z' fill={'url(#' + glass + ')'} stroke='var(--optic-metal)' strokeWidth='.8' /></g>)}</g>
+          <path className='auth-optics-aperture' d='m320 137 42 24v50l-42 25-42-25v-50Z' fill='#0b1513' stroke='var(--optic-light)' strokeOpacity='.55' />
+          <circle cx='320' cy='186' r='23' stroke='var(--optic-metal)' strokeWidth='.6' strokeOpacity='.35' />
+          <text x='320' y='77' textAnchor='middle' fill='var(--optic-light)' fontSize='7' letterSpacing='3'>THE ART OF REMEMBERING</text>
+          <text x='320' y='309' textAnchor='middle' fill='var(--optic-light)' fontSize='7' letterSpacing='4'>LIGHT / TIME / FORM</text>
+        </g>
       </g>
-      <g className='portal-theme portal-sea'>
-        <g clipPath={'url(#' + seaClip + ')'}><circle cx='280' cy='185' r='160' fill='#173e52' />
-        <circle cx='366' cy='135' r='87' fill='#ffbe81' className='portal-sun' /><path d='M44 220q65-60 130 0t130 0 130 0 130 0v140H44Z' fill='#70bbc7' /><path d='M30 268q75-60 150 0t150 0 150 0 150 0v110H30Z' fill='#388eac' />
-        <g className='portal-vessel'><path d='m174 250 153-8-34 36h-87Z' fill='#f4eed6' /><path d='m251 106-3 129-78 4Z' fill='#fff5db' /><path d='m263 156 61 80-62 2Z' fill='#e8a271' /><path d='M251 106v138' stroke='#243c50' strokeWidth='3' /></g><path d='M68 315h85m213-23h89' stroke='#dff3df' strokeWidth='3' strokeLinecap='round' /></g>
-        <circle cx='280' cy='185' r='160' stroke='#edf1d3' strokeOpacity='.24' />
+
+      <g className='auth-optics-theme auth-optics-prism'>
+        <path d='m166 310 282-15 53 29-282 15Z' fill='#071922' opacity='.75' />
+        <g className='auth-optics-prism-back'><path d='m321 51 143 239-279 17Z' fill={'url(#' + glass + ')'} stroke='var(--optic-light)' strokeWidth='1' /><path d='m321 51 11 21 142 231-10-13Z' fill='var(--optic-dark)' stroke='var(--optic-metal)' strokeWidth='.5' /></g>
+        <g className='auth-optics-prism-front'><path d='m291 63 143 239-279 17Z' fill={'url(#' + glass + ')'} stroke='var(--optic-light)' strokeWidth='1.5' /><path d='m291 63 15 5 143 239-15-5Z' fill={'url(#' + metal + ')'} /><path d='m155 319 279-17 15 5-278 18Z' fill='var(--optic-metal)' />
+          {Array.from({ length: 12 }, (_, i) => <path key={i} d={`M${167+i*7} ${299-i*13} ${418-i*7} ${284-i*11}`} stroke='var(--optic-light)' strokeWidth='.65' strokeOpacity={.15+i*.025} />)}
+          <path d='m291 79 128 215-250 15Z' stroke='var(--optic-light)' strokeWidth='.5' strokeOpacity='.7' />
+        </g>
+        <path d='m340 227 144 62-6 10-145-66Z' fill='#e8c49e' opacity='.8' /><path d='m334 233 144 66-7 11-143-71Z' fill='#7cb2bd' opacity='.65' /><path d='m328 239 143 71-8 10-141-75Z' fill='#c2d9cd' opacity='.7' />
+        <path d='M119 332h67m279-228h55' stroke='var(--optic-metal)' strokeWidth='.7' /><circle cx='119' cy='332' r='2' fill='var(--optic-light)' />
       </g>
-      <g className='portal-theme portal-film'>
-        <path d='M74 140C180 7 349 17 456 105' stroke='#dfaa70' strokeWidth='2' strokeDasharray='5 7' /><g className='portal-film-frame'><rect x='130' y='56' width='280' height='265' rx='8' fill='#f4e2b5' /><rect x='151' y='81' width='238' height='180' fill='#c7724f' /><circle cx='307' cy='131' r='32' fill='#ffe7a6' /><path d='m151 240 77-103 62 87 46-59 53 75v21H151Z' fill='#634f43' /><path d='M155 288h88' stroke='#7d5a41' strokeWidth='3' /></g><g fill='#f2bc72'>{[0,1,2].map(i => <g key={i}><rect x='90' y={90+i*77} width='18' height='34' rx='3' /><rect x='432' y={90+i*77} width='18' height='34' rx='3' /></g>)}</g>
+
+      <g className='auth-optics-theme auth-optics-film'>
+        <g className='auth-optics-film-sheet auth-optics-film-rear'><rect x='179' y='69' width='243' height='246' rx='2' fill='var(--optic-dark)' stroke='var(--optic-metal)' strokeWidth='2' /><rect x='202' y='93' width='197' height='190' fill={'url(#' + glass + ')'} stroke='var(--optic-light)' strokeOpacity='.3' /></g>
+        <g className='auth-optics-film-sheet auth-optics-film-middle'><path fillRule='evenodd' d='M178 68h244v248H178Zm24 25v190h196V93Z' fill={'url(#' + plate + ')'} stroke='var(--optic-light)' strokeWidth='.8' /><path d='M215 292h66m46 0h59' stroke='var(--optic-dark)' strokeWidth='1.3' /></g>
+        <g className='auth-optics-film-sheet auth-optics-film-front'><path fillRule='evenodd' d='M178 68h244v248H178Zm24 25v190h196V93Z' fill={'url(#' + metal + ')'} stroke='var(--optic-light)' strokeWidth='.8' />
+          {[0,1,2,3,4,5,6].map(i => <g key={i}><rect x='184' y={92+i*28} width='9' height='15' rx='1' fill='var(--optic-dark)' /><rect x='407' y={92+i*28} width='9' height='15' rx='1' fill='var(--optic-dark)' /></g>)}
+          <rect x='207' y='98' width='186' height='180' stroke='var(--optic-light)' strokeWidth='.6' strokeOpacity='.65' />
+          <text x='300' y='303' textAnchor='middle' fill='var(--optic-dark)' fontSize='6' letterSpacing='3'>EVERY FRAME, A LITTLE FOREVER</text>
+        </g>
       </g>
-      <g className='portal-theme portal-night'>
-        <g className='portal-lunar'><circle cx='280' cy='172' r='116' fill='#b9bcf3' /><circle cx='317' cy='135' r='111' fill='#243443' /><circle cx='199' cy='209' r='10' fill='#9398d7' /><circle cx='217' cy='241' r='17' fill='#a0a6e6' /></g><path d='m67 198 79-98 137-43 163 77 49 128-111 56' stroke='#b9b8d5' strokeWidth='1.5' />{[[67,198],[146,100],[283,57],[446,134],[495,262],[384,318]].map(([x,y]) => <path key={x} d={`m${x} ${y-9} 3 6 6 3-6 3-3 6-3-6-6-3 6-3Z`} fill='#f5dba1' />)}
+
+      <g className='auth-optics-theme auth-optics-gyroscope'>
+        <g className='auth-optics-gyro-body'>
+          <ellipse cx='320' cy='192' rx='159' ry='73' transform='rotate(-31 320 192)' stroke='var(--optic-dark)' strokeWidth='14' />
+          <ellipse cx='320' cy='185' rx='159' ry='73' transform='rotate(-31 320 185)' stroke={'url(#' + metal + ')'} strokeWidth='10' />
+          <ellipse cx='320' cy='185' rx='159' ry='73' transform='rotate(-31 320 185)' stroke='var(--optic-light)' strokeWidth='.6' />
+          <circle cx='320' cy='185' r='77' fill={'url(#' + core + ')'} />
+          <path d='M277 139c19-17 49-18 69-8' stroke='var(--optic-light)' strokeWidth='2' strokeOpacity='.7' />
+          <ellipse cx='320' cy='185' rx='159' ry='73' transform='rotate(43 320 185)' stroke={'url(#' + metal + ')'} strokeWidth='10' />
+          <ellipse cx='320' cy='185' rx='159' ry='73' transform='rotate(43 320 185)' stroke='var(--optic-light)' strokeWidth='.6' />
+          <path d='M320 25v31m0 258v31m-178-160h32m294 0h32' stroke='var(--optic-metal)' strokeWidth='.8' />
+          <circle cx='320' cy='25' r='3' fill='var(--optic-light)' /><circle cx='320' cy='345' r='3' fill='var(--optic-light)' />
+        </g>
       </g>
+      <path d='M77 66v19m-9-10h19m476 228v19m-9-10h19' stroke='var(--optic-metal)' strokeWidth='.7' strokeOpacity='.65' />
     </svg>
-    <span className='portal-touch'><Icon name='restore' size={15} />拨动光影<span>↗</span></span>
+    <span className='auth-optics-caption'><span>{opened ? '展开 · OPEN' : '凝聚 · FOLD'}</span><span className='auth-optics-action'>轻触变换<Icon name='arrow' size={16} /></span></span>
   </button>;
 }

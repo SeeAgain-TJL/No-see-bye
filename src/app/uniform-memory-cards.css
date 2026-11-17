@@ -1,0 +1,261 @@
+/* One reading rhythm: every record has the same envelope, its own full image. */
+:root[data-theme] .journal-experience .memory-feed.grid {
+  align-items: stretch;
+  grid-auto-rows: 400px;
+  gap: 24px;
+}
+:root[data-theme] .journal-experience .memory-feed.grid > .memory-wrapper {
+  align-self: stretch;
+  min-height: 0;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 58px minmax(0, 1fr) 48px;
+  align-self: stretch;
+  height: 400px;
+  min-height: 0;
+  flex: 1;
+  isolation: isolate;
+}
+.journal-experience .memory-feed.grid .memory-card-top {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  padding: 12px 16px;
+}
+.journal-experience .memory-feed.grid .memory-card-preview {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: 206px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .media-grid.archive-cover {
+  grid-column: 1;
+  grid-row: 1;
+  width: calc(100% - 24px);
+  height: 206px;
+  margin: 0 12px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+  box-shadow: none;
+}
+.journal-experience .memory-feed.grid .media-print {
+  --preview-height: 206px;
+  height: 206px;
+  place-items: center;
+  pointer-events: none;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .media-grid .framed-preview {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 3px;
+  box-shadow: none;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy,
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy:empty {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  padding: 9px 16px;
+  overflow: hidden;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+  -webkit-line-clamp: 1;
+  overflow-wrap: anywhere;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy .memory-excerpt {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  -webkit-line-clamp: 2;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy:has(.memory-title) .memory-excerpt {
+  -webkit-line-clamp: 1;
+}
+.journal-experience .memory-feed.grid .tags {
+  flex-wrap: nowrap;
+  gap: 5px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.journal-experience .memory-feed.grid .tags button {
+  flex: 0 0 auto;
+  max-width: 130px;
+  padding: 2px 6px;
+  font-size: 9px;
+  line-height: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.journal-experience .memory-feed.grid .text-memory .memory-card-preview {
+  display: block;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 19px 20px;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy h2 {
+  font-size: 21px;
+  line-height: 26px;
+  -webkit-line-clamp: 2;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy .memory-excerpt {
+  flex-shrink: 1;
+  margin-top: 12px;
+  font: 17px/25px 'STKaiti', 'KaiTi', serif;
+  -webkit-line-clamp: 6;
+}
+.journal-experience .memory-feed.grid .text-memory .tags {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 10px;
+}
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card-bottom {
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
+  min-height: 0;
+  margin: 0 16px;
+  padding: 7px 38px 7px 0;
+  gap: 8px;
+}
+.journal-experience .memory-feed.grid .memory-meta {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  display: block;
+  font-size: 10px;
+}
+.journal-experience .memory-feed.grid .memory-meta svg {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+.journal-experience .memory-feed.grid .card-actions { flex-shrink: 0; }
+.journal-experience .memory-feed.grid .memory-card-detail {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+.journal-experience .memory-feed.grid .memory-card-open {
+  position: absolute;
+  bottom: 9px;
+  right: 15px;
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--surface);
+  transition: background .25s ease, color .25s ease, transform .35s cubic-bezier(.16, 1, .3, 1);
+}
+.journal-experience .memory-feed.grid :is(.memory-card-top a, .memory-title, .tags button, .card-actions) {
+  position: relative;
+  z-index: 2;
+}
+.journal-experience .memory-feed.grid .memory-card-detail:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+.journal-experience .memory-feed.grid .memory-card:focus-within .memory-card-open {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .journal-experience .memory-feed.grid .memory-card:hover .memory-card-open {
+    background: var(--accent);
+    color: var(--on-accent);
+    transform: rotate(-35deg);
+  }
+}
+@media (max-width: 760px) {
+  :root[data-theme] .journal-experience .memory-feed.grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: 246px;
+    gap: 16px;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .memory-card {
+    height: 246px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 48px minmax(0, 1fr) 46px;
+  }
+  .journal-experience .memory-feed.grid .memory-card-top { padding: 9px 13px; }
+  .journal-experience .memory-feed.grid .has-media .memory-card-preview {
+    grid-template-columns: minmax(0, 116px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .has-media .media-grid.archive-cover {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0 0 0 12px;
+    width: calc(100% - 12px);
+    height: 132px;
+  }
+  .journal-experience .memory-feed.grid .media-print { --preview-height: 132px; height: 132px; }
+  .journal-experience .memory-feed.grid .has-media:not(.has-copy) .memory-card-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .has-media:not(.has-copy) .media-grid.archive-cover {
+    width: calc(100% - 24px);
+    margin-inline: 12px;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .has-media:not(.has-copy) .memory-card-copy:empty {
+    display: none;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .has-media .memory-card-copy,
+  :root[data-theme] .journal-experience .memory-feed.grid .has-media .memory-card-copy:empty {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    max-height: 100%;
+    padding: 10px 14px;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy h2 {
+    font-size: 16px;
+    line-height: 22px;
+    -webkit-line-clamp: 2;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy .memory-excerpt,
+  :root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy:has(.memory-title) .memory-excerpt {
+    font-size: 12px;
+    line-height: 19px;
+    -webkit-line-clamp: 3;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy {
+    padding: 12px 17px;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy h2 {
+    font-size: 19px;
+    line-height: 25px;
+    -webkit-line-clamp: 1;
+  }
+  :root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy .memory-excerpt {
+    margin-top: 5px;
+    font: 15px/23px 'STKaiti', 'KaiTi', serif;
+    -webkit-line-clamp: 3;
+  }
+  .journal-experience .memory-feed.grid .text-memory .tags { padding-top: 4px; }
+  :root[data-theme] .journal-experience .memory-feed.grid .memory-card-bottom { margin: 0 13px; padding-right: 38px; }
+  .journal-experience .memory-feed.grid .memory-card-open { bottom: 8px; right: 13px; }
+}
