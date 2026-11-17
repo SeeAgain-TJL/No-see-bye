@@ -12,7 +12,7 @@ const PHOTO_DURATION_MS = 2500;
 const scopes: [StoryScope, string][] = [["recent", "最近"], ["month", "本月"], ["anniversary", "往年今日"], ["random", "随机"]];
 const emptyCopy = { recent: "待第一笔落下，旧光便有了归处。", month: "本月尚无留影，可借最近的日常，重温一程。", anniversary: "往年此日尚未落笔。等岁月成册，再与今日重逢。", random: "片刻尚未收录，留住今日，便有来日可回望。" };
 
-export function MemoryStories({ onClose }: { onClose: () => void }) {
+export function MemoryStories({ onClose, photosOnly = false }: { onClose: () => void; photosOnly?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [scope, setScope] = useState<StoryScope>("recent");
   const close = useRef(onClose);
@@ -28,10 +28,10 @@ export function MemoryStories({ onClose }: { onClose: () => void }) {
   return <dialog ref={dialog} className="memory-stories" aria-labelledby="stories-title" onCancel={event => { event.preventDefault(); close.current(); }}>
     <header className="stories-header"><div><span className="stories-eyebrow">A FEW MOMENTS, TOGETHER</span><h2 id="stories-title">播放回忆</h2></div><button type="button" className="stories-close" aria-label="关闭回忆播放" onClick={onClose} autoFocus><Icon name="close" size={24} /></button></header>
     <div className="stories-scopes" role="group" aria-label="播放范围">{scopes.map(([value, label]) => <button type="button" key={value} aria-pressed={scope === value} onClick={() => setScope(value)}>{label}</button>)}</div>
-    <StoryLoad key={scope} scope={scope} />
+    <StoryLoad key={scope} scope={scope} photosOnly={photosOnly} />
   </dialog>;
 }
-function StoryLoad({ scope }: { scope: StoryScope }) {
+function StoryLoad({ scope, photosOnly }: { scope: StoryScope; photosOnly: boolean }) {
   const [result, setResult] = useState<{ items?: Memory[]; error?: string }>();
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -41,8 +41,9 @@ function StoryLoad({ scope }: { scope: StoryScope }) {
   }, [scope, retry]);
   if (result?.error) return <div className="stories-message" role="alert"><h3>回忆暂时没能展开</h3><p>{result.error}</p><button type="button" onClick={() => { setResult(undefined); setRetry(v => v + 1); }}>重新加载</button></div>;
   if (!result?.items) return <div className="stories-message" role="status">正在翻找这一段日常…</div>;
-  if (!result.items.length) return <div className="stories-message" role="status"><Icon name="spark" size={40} /><h3>这一页，等日子慢慢写满。</h3><p>{emptyCopy[scope]}</p></div>;
-  return <StoryPlayback items={result.items} />;
+  const items = photosOnly ? result.items.map(memory => ({ ...memory, assets: memory.assets.filter(asset => asset.mime.startsWith('image/')) })).filter(memory => memory.assets.length) : result.items;
+  if (!items.length) return <div className="stories-message" role="status"><Icon name="spark" size={40} /><h3>{photosOnly ? '这段时光还没有照片。' : '这一页，等日子慢慢写满。'}</h3><p>{emptyCopy[scope]}</p></div>;
+  return <StoryPlayback items={items} />;
 }
 function StoryPlayback({ items }: { items: Memory[] }) {
   const slides = useMemo(() => items.flatMap<{ memory: Memory; asset: MediaAsset | null }>(memory => memory.assets.length ? memory.assets.map(asset => ({ memory, asset })) : [{ memory, asset: null }]), [items]);

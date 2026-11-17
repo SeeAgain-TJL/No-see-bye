@@ -52,6 +52,8 @@
 .app-shell .nav-link::after { content: ''; position: absolute; left: 0; width: 3px; height: 0; border-radius: 2px; background: var(--accent); transition: height .3s cubic-bezier(.16,1,.3,1); }
 .app-shell .nav-link:is(:hover, :focus-visible, .active)::after { height: 18px; }
 :is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button { transition: background .25s ease, color .25s ease, box-shadow .25s ease, border-color .25s ease; }
+:root[data-theme] .app-shell :is(.studio-filters,.filter-tabs) button[aria-pressed='true'] { background: var(--motion-pop); color: var(--motion-on-pop); border-color: transparent; }
+:root[data-theme] .app-shell .nav-link.active { background: color-mix(in srgb,var(--motion-pop) 24%,var(--surface-dim)); }
 .app-shell [data-motion-surface]:focus-within > .motion-spotlight { opacity: .7; }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   :root[data-theme] .main-content [data-motion-surface] { transform: perspective(1600px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .5s cubic-bezier(.16,1,.3,1), box-shadow .4s ease, translate .4s ease; }

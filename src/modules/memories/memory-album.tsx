@@ -1,79 +1,155 @@
 'use client';
-import { useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/icons';
 import { ThemeMotif } from '@/components/theme-motif';
 import { DecodedImage } from '@/components/decoded-image';
 import { dateText } from '@/lib/client';
+import { galleryPhotos, type GalleryPhoto } from '@/lib/photo-gallery';
 import { MediaViewer, previewUrl } from './media';
-import type { Memory, MemoryList } from './types';
+import type { MemoryList } from './types';
 
-function Album({ items }: { items: Memory[] }) {
-  const [index, setIndex] = useState(() => Math.max(0, items.findIndex(memory => memory.assets.some(asset => asset.mime.startsWith('image/') || asset.thumbnailUrl))));
+function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
+  const [index, setIndex] = useState(0);
   const [ratios, setRatios] = useState<Record<string, number>>({});
-  const [viewing, setViewing] = useState<Memory | null>(null);
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
+  const [playing, setPlaying] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [viewing, setViewing] = useState<number | null>(null);
+  const reel = useRef<HTMLDivElement>(null);
   const thumbs = useRef<HTMLDivElement>(null);
-  const gesture = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const active = useRef(0);
+  const physical = useRef(photos.length > 1 ? photos.length : 0);
+  const destination = useRef<number | null>(null);
+  const dragging = useRef<{ x: number; scroll: number } | null>(null);
   const dragged = useRef(false);
+  const scrollFrame = useRef(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleId = useId();
-  const selected = items[index];
-  const asset = selected.assets.find(a => a.mime.startsWith('image/') || a.thumbnailUrl);
-  const ratio = asset ? ratios[asset.id] || (asset.width && asset.height ? asset.width / asset.height : 1.5) : 1.5;
-  const isVideo = asset?.mime.startsWith('video/') || (!asset && selected.assets.some(a => a.mime.startsWith('video/')));
-  function choose(next: number) {
-    const value = (next + items.length) % items.length;
-    setIndex(value);
-    requestAnimationFrame(() => {
-      const strip = thumbs.current, thumb = strip?.children[value];
-      if (!strip || !thumb) return;
-      const left = thumb.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
-      const right = left + thumb.getBoundingClientRect().width;
-      const nextLeft = left < strip.scrollLeft ? left : right > strip.scrollLeft + strip.clientWidth ? right - strip.clientWidth : strip.scrollLeft;
-      strip.scrollTo({ left: nextLeft, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  const selected = photos[index];
+  const reelPhotos = photos.length > 1 ? [...photos, ...photos, ...photos] : photos;
+  const ratio = (photo: GalleryPhoto) => {
+    const value = ratios[photo.asset.id] || (photo.asset.width && photo.asset.height ? photo.asset.width / photo.asset.height : 1.5);
+    return Number.isFinite(value) && value > 0 ? value : 1.5;
+  };
+
+  const choose = useCallback((next: number, smooth = true) => {
+    const value = (next + photos.length) % photos.length;
+    const candidates = photos.length > 1 ? [value, value + photos.length, value + photos.length * 2] : [value];
+    const position = candidates.reduce((best, candidate) => Math.abs(candidate - physical.current) < Math.abs(best - physical.current) ? candidate : best);
+    physical.current = position;
+    destination.current = position;
+    const strip = reel.current, frame = strip?.querySelectorAll<HTMLElement>('.gallery-photo')[position];
+    if (!strip || !frame) return;
+    strip.scrollTo({ left: frame.offsetLeft - (strip.clientWidth - frame.offsetWidth) / 2, behavior: smooth && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'instant' });
+    active.current = value; setIndex(value);
+    const contacts = thumbs.current, contact = contacts?.children[value] as HTMLElement | undefined;
+    if (contacts && contact) {
+      const left = contact.offsetLeft - contacts.offsetLeft;
+      if (left < contacts.scrollLeft || left + contact.offsetWidth > contacts.scrollLeft + contacts.clientWidth)
+        contacts.scrollTo({ left: left - (contacts.clientWidth - contact.offsetWidth) / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    }
+  }, [photos.length]);
+  useLayoutEffect(() => {
+    const strip = reel.current;
+    if (!strip) return;
+    const observer = new ResizeObserver(() => { if (!dragging.current) choose(active.current, false); });
+    observer.observe(strip);
+    strip.querySelectorAll('.gallery-photo').forEach(frame => observer.observe(frame));
+    return () => { observer.disconnect(); cancelAnimationFrame(scrollFrame.current); if (settleTimer.current) clearTimeout(settleTimer.current); };
+  }, [choose]);
+  useEffect(() => {
+    const changed = () => setHidden(document.hidden);
+    document.addEventListener('visibilitychange', changed);
+    return () => document.removeEventListener('visibilitychange', changed);
+  }, []);
+  useEffect(() => {
+    if (!playing || hidden || hovered || viewing !== null || !loaded[selected.asset.id] || photos.length < 2) return;
+    const timer = window.setTimeout(() => choose(index + 1, index < photos.length - 1), 2500);
+    return () => clearTimeout(timer);
+  }, [playing, hidden, hovered, viewing, loaded, selected.asset.id, photos.length, index, choose]);
+  function observeScroll() {
+    if (scrollFrame.current) return;
+    scrollFrame.current = requestAnimationFrame(() => {
+      scrollFrame.current = 0;
+      const strip = reel.current;
+      if (!strip) return;
+      const center = strip.scrollLeft + strip.clientWidth / 2;
+      const frames = Array.from(strip.querySelectorAll<HTMLElement>('.gallery-photo'));
+      if (destination.current !== null) {
+        const target = frames[destination.current];
+        if (Math.abs(target.offsetLeft + target.offsetWidth / 2 - center) > 2) return;
+        destination.current = null;
+      }
+      const closest = frames.reduce((best, frame, i) => Math.abs(frame.offsetLeft + frame.offsetWidth / 2 - center) < Math.abs(frames[best].offsetLeft + frames[best].offsetWidth / 2 - center) ? i : best, 0);
+      physical.current = closest;
+      active.current = closest % photos.length; setIndex(active.current);
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(() => {
+        if (dragging.current || photos.length < 2 || (physical.current >= photos.length && physical.current < photos.length * 2)) return;
+        const position = active.current + photos.length;
+        const frame = frames[position];
+        physical.current = position;
+        strip.scrollTo({ left: frame.offsetLeft - (strip.clientWidth - frame.offsetWidth) / 2, behavior: 'instant' });
+      }, 160);
     });
   }
+  function finishDrag() {
+    if (!dragging.current) return;
+    dragging.current = null;
+    if (reel.current) delete reel.current.dataset.dragging;
+    if (dragged.current) choose(active.current);
+  }
   return <>
-    <section className='memory-album editorial-album' aria-labelledby={titleId} aria-roledescription='轮播相册' onKeyDown={e => {
-      if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) { e.preventDefault(); choose(e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : index + (e.key === 'ArrowLeft' ? -1 : 1)); }
+    <section className='memory-album living-gallery' aria-labelledby={titleId} aria-roledescription='照片轮播' onKeyDown={e => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+        e.preventDefault(); setPlaying(false);
+        choose(e.key === 'Home' ? 0 : e.key === 'End' ? photos.length - 1 : index + (e.key === 'ArrowLeft' ? -1 : 1));
+      }
     }}>
-      <header className='editorial-album-heading'><span>THE ART OF REMEMBERING</span><span><ThemeMotif />私人放映室</span></header>
-      <div className='album-spread' data-orientation={ratio < .9 ? 'portrait' : 'landscape'}>
-        <div className='album-exhibit' style={{ '--exhibit-ratio': ratio } as CSSProperties}>
-          <span className='exhibit-corner exhibit-corner-one' aria-hidden='true' /><span className='exhibit-corner exhibit-corner-two' aria-hidden='true' />
-          {selected.assets.length ? <button type='button' className='album-exhibit-image' aria-label={'放大' + dateText(selected.happenedAt) + '的影像'} onClick={e => { if (e.detail === 0 || !dragged.current) setViewing(selected); }}
-            onPointerDown={e => { if (e.button !== 0 || !e.isPrimary) return; dragged.current = false; gesture.current = { x: e.clientX, y: e.clientY, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); }}
-            onPointerMove={e => { const g = gesture.current; if (g && Math.abs(e.clientX - g.x) > 8) g.moved = true; }}
-            onPointerUp={e => { const g = gesture.current; gesture.current = null; if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; dragged.current = g.moved; if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) choose(index + (dx < 0 ? 1 : -1)); }}
-            onPointerCancel={() => { gesture.current = null; dragged.current = false; }} onDragStart={e => e.preventDefault()}>
-            {asset ? <DecodedImage key={asset.id} src={previewUrl(asset)} alt={selected.title || '珍藏的影像'} fetchPriority='high' draggable={false} width={asset.width || undefined} height={asset.height || undefined} onDimensions={({ width, height }) => { if (width > 0 && height > 0) setRatios(previous => previous[asset.id] === width / height ? previous : { ...previous, [asset.id]: width / height }); }} /> : <span className='exhibit-video-placeholder'><Icon name='video' size={36} /></span>}
-            {isVideo && <span className='album-video'><Icon name='play' size={25} /></span>}
-            <span className='exhibit-zoom'><Icon name='image' size={14} />轻触放大</span>
-          </button> : <Link href={'/memories/' + selected.id} className='album-letter-preview'><Icon name='edit' size={26} /><p>{selected.content || selected.title || '留一页，给往后的自己。'}</p><span>READ THE LETTER <Icon name='arrow' size={16} /></span></Link>}
-        </div>
-        <div className='album-exhibit-copy'>
-          <span className='exhibit-edition'>CHAPTER {String(index + 1).padStart(2, '0')} <span>/ {String(items.length).padStart(2, '0')}</span></span>
-          <h2 id={titleId}>{selected.title || (isVideo ? '流动的旧时光' : asset ? '那一日，光曾来过。' : '纸上有余温。')}</h2>
-          <time dateTime={selected.happenedAt}>{dateText(selected.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-          <p className='exhibit-excerpt'>{selected.assets.length ? selected.content || '我们终将成为故事，而这一刻，有了形状。' : '言语留在纸上，时间便有了回声。'}</p>
-          <div className='exhibit-context'>{selected.location && <span>{selected.location}</span>}<span>{selected.assets.length ? selected.assets.length + ' 帧影像' : '一纸心事'}</span><span>{selected.visibility === 'public' ? '与人间共读' : '留给自己'}</span></div>
-          <Link className='exhibit-read' href={'/memories/' + selected.id}>重读此刻<Icon name='arrow' size={18} /></Link>
-          <div className='exhibit-navigation'><button type='button' aria-label='上一段日常' disabled={items.length < 2} onClick={() => choose(index - 1)}><Icon name='back' size={19} /></button><span>向旧日，借一束光。</span><button type='button' aria-label='下一段日常' disabled={items.length < 2} onClick={() => choose(index + 1)}><Icon name='arrow' size={19} /></button></div>
+      <header className='gallery-heading'><div><span className='gallery-eyebrow'>THE STILL, ALIVE</span><h2 id={titleId}>时光相册<ThemeMotif /></h2></div><span className='gallery-page'><strong>{String(index + 1).padStart(2, '0')}</strong><span>/ {String(photos.length).padStart(2, '0')}</span></span></header>
+      <div className='photo-gallery-viewport' style={{ '--first-ratio': ratio(photos[0]), '--last-ratio': ratio(photos[photos.length - 1]) } as CSSProperties}>
+        <span className='gallery-orbit' aria-hidden='true' />
+        <div ref={reel} className='photo-reel' onScroll={observeScroll} onWheel={() => { destination.current = null; setPlaying(false); }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setPlaying(false)}
+          onPointerDown={e => {
+            setPlaying(false); dragged.current = false; destination.current = null;
+            if (e.pointerType !== 'mouse' || e.button !== 0) return;
+            dragging.current = { x: e.clientX, scroll: e.currentTarget.scrollLeft };
+            (e.target as Element).closest('button')?.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={e => {
+            const start = dragging.current; if (!start) return;
+            const distance = e.clientX - start.x;
+            if (Math.abs(distance) > 5) { dragged.current = true; e.currentTarget.dataset.dragging = 'true'; }
+            if (dragged.current) e.currentTarget.scrollLeft = start.scroll - distance;
+          }} onPointerUp={finishDrag} onPointerCancel={finishDrag}>
+          {reelPhotos.map((photo, position) => { const i = position % photos.length; const mirror = photos.length > 1 && (position < photos.length || position >= photos.length * 2); return <button key={photo.asset.id + ':' + position} type='button' className='gallery-photo' data-current={i === index} aria-hidden={mirror || undefined} tabIndex={mirror ? -1 : 0} style={{ '--photo-ratio': ratio(photo), '--photo-lean': (i % 2 ? 2.5 : -2.5) + 'deg' } as CSSProperties}
+            aria-label={(i === index ? '放大' : '翻到') + dateText(photo.memory.happenedAt) + '的照片，第' + (i + 1) + '张'} aria-pressed={i === index}
+            onDragStart={e => e.preventDefault()} onClick={e => { if (e.detail !== 0 && dragged.current) return; if (i === index) { setPlaying(false); setViewing(i); } else choose(i); }}>
+            <DecodedImage src={previewUrl(photo.asset)} alt={photo.memory.title || '日常照片'} loading={(!mirror && i < 3) || position === photos.length - 1 ? 'eager' : 'lazy'} fetchPriority={!mirror && i === 0 ? 'high' : 'auto'} draggable={false} width={photo.asset.width || undefined} height={photo.asset.height || undefined}
+              onReady={() => setLoaded(previous => previous[photo.asset.id] ? previous : { ...previous, [photo.asset.id]: true })}
+              onDimensions={({ width, height }) => { if (width > 0 && height > 0) setRatios(previous => previous[photo.asset.id] === width / height ? previous : { ...previous, [photo.asset.id]: width / height }); }} />
+            <span className='gallery-zoom'><Icon name='expand' size={19} /><span>展开</span></span>
+          </button>; })}
         </div>
       </div>
-      <div ref={thumbs} className='album-contact-strip' role='group' aria-label='选择珍藏篇章'>{items.map((memory, i) => {
-        const image = memory.assets.find(a => a.mime.startsWith('image/') || a.thumbnailUrl);
-        return <button key={memory.id} type='button' aria-label={'翻到' + dateText(memory.happenedAt) + '的日常'} aria-pressed={i === index} onClick={() => choose(i)}><span className='contact-number'>{String(i + 1).padStart(2, '0')}</span>{image ? <DecodedImage src={previewUrl(image)} alt='' loading='lazy' /> : <Icon name={memory.assets.length ? 'video' : 'edit'} size={18} />}<span className='contact-date'>{dateText(memory.happenedAt, { month: '2-digit', day: '2-digit' })}</span></button>;
-      })}</div>
-      <span className='sr-only' aria-live='polite' aria-atomic='true'>{dateText(selected.happenedAt)}，第 {index + 1} 段，共 {items.length} 段日常</span>
+      <div className='gallery-caption'>
+        <div className='gallery-authored' key={selected.asset.id}><time dateTime={selected.memory.happenedAt}>{dateText(selected.memory.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time>{selected.memory.title && <h3>{selected.memory.title}</h3>}{selected.memory.content && <p>{selected.memory.content}</p>}</div>
+        <div className='gallery-controls'><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张2.5秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
+      </div>
+      <div className='gallery-bottom'><div ref={thumbs} className='gallery-contacts' role='group' aria-label='选择照片'>{photos.map((photo, i) => <button key={photo.asset.id} type='button' aria-label={'第' + (i + 1) + '张照片'} aria-pressed={i === index} onClick={() => { setPlaying(false); choose(i); }}><DecodedImage src={previewUrl(photo.asset)} alt='' loading='lazy' /><span>{String(i + 1).padStart(2, '0')}</span></button>)}</div><Link href={'/memories/' + selected.memory.id} className='gallery-detail' aria-label='打开这张照片的日常详情'><Icon name='arrow' size={21} /></Link></div>
+      <span className='sr-only' aria-live='polite' aria-atomic='true'>第 {index + 1} 张，共 {photos.length} 张照片</span>
     </section>
-    {viewing && <MediaViewer assets={viewing.assets} initial={Math.max(0, viewing.assets.findIndex(a => a.mime.startsWith('image/') || a.thumbnailUrl))} close={() => setViewing(null)} />}
+    {viewing !== null && <MediaViewer assets={photos.map(photo => photo.asset)} initial={viewing} close={() => setViewing(null)} />}
   </>;
 }
 export function MemoryAlbum({ data, error, onRetry }: { data?: MemoryList; error?: string; onRetry: () => void }) {
-  const items = useMemo(() => (data?.items || []).slice(0, 12), [data]);
-  if (data && !error && items.length) return <Album key={items.map(item => item.id).join(':')} items={items} />;
-  return <section className='memory-album editorial-album editorial-album-empty' aria-label='私人放映室' aria-busy={!data && !error}>
-    <ThemeMotif /><h2>万物有时，记忆有归处。</h2>
-    {error ? <><p role='alert'>{error}</p><button type='button' className='studio-button' onClick={onRetry}>重新加载<Icon name='restore' size={15} /></button></> : !data ? <p role='status'>旧光正缓缓显影…</p> : <Link href='/memories/new' className='studio-button'>写下第一段日常<Icon name='plus' size={16} /></Link>}
+  const photos = useMemo(() => galleryPhotos(data?.items || []), [data]);
+  if (data && !error && photos.length) return <PhotoGallery key={photos.map(photo => photo.asset.id).join(':')} photos={photos} />;
+  return <section className='memory-album living-gallery gallery-empty' aria-label='时光相册' aria-busy={!data && !error}>
+    <ThemeMotif /><h2>时光相册</h2>
+    {error ? <><p role='alert'>{error}</p><button type='button' className='studio-button' onClick={onRetry}>重新加载<Icon name='restore' size={15} /></button></> : !data ? <p role='status'>正在加载照片…</p> : <Link href='/memories/new' className='studio-button'>添加照片<Icon name='plus' size={16} /></Link>}
   </section>;
 }
