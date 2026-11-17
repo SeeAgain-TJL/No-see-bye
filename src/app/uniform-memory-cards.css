@@ -59,8 +59,8 @@
 }
 .journal-experience .memory-feed.grid .memory-card-echo :is(.image-placeholder, .image-unavailable) { display: none; }
 .journal-experience .memory-feed.grid .has-authored-copy .memory-card-echo {
-  opacity: .055;
-  mask-image: linear-gradient(180deg, #000 0%, #000 56%, transparent 88%);
+  opacity: .09;
+  mask-image: linear-gradient(180deg, #0008 0%, #0005 60%, #0003 72%, #0009 100%);
 }
 .journal-experience .memory-feed.grid .memory-card-imprint {
   position: absolute;
@@ -87,7 +87,7 @@
   opacity: .65;
 }
 .journal-experience .memory-feed.grid .memory-card-imprint > svg { width: 31px; height: 34px; }
-.journal-experience .memory-feed.grid .has-authored-copy .memory-card-imprint { opacity: .045; }
+.journal-experience .memory-feed.grid .has-authored-copy .memory-card-imprint { opacity: .085; }
 :root[data-theme='dusk'] .journal-experience .memory-feed.grid .memory-card-imprint { border-style: dashed; border-radius: 45% 55% 48% 52%; }
 :root[data-theme='sea'] .journal-experience .memory-feed.grid .memory-card-imprint { width: 84px; height: 46px; border-radius: 50%; rotate: -8deg; }
 :root[data-theme='film'] .journal-experience .memory-feed.grid .memory-card-imprint { width: 61px; height: 61px; border-radius: 2px; border-style: double; border-width: 3px; rotate: -9deg; }

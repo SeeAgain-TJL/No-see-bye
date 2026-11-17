@@ -392,7 +392,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                         </div>
                       </div>
                       <div className="memory-card-preview">
-                        {view === 'grid' && m.assets[0]?.mime.startsWith('image/') && <span className="memory-card-echo" aria-hidden="true"><DecodedImage src={previewUrl(m.assets[0])} alt="" loading="lazy" /></span>}
+                        {view === 'grid' && m.assets[0] && (m.assets[0].mime.startsWith('image/') || m.assets[0].thumbnailUrl) && <span className="memory-card-echo" aria-hidden="true"><DecodedImage src={previewUrl(m.assets[0])} alt="" loading="lazy" /></span>}
                         {view === 'grid' && m.assets.length > 0 && <span className="memory-card-imprint" aria-hidden="true"><ThemeMotif /></span>}
                         <MediaGrid assets={m.assets} compact />
                         <div className="memory-card-copy">
