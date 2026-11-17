@@ -1,33 +1,33 @@
-/* Quiet gallery palettes. Media keeps its original colours; the surrounding materials adapt. */
+/* Four distinct palettes, with clear foregrounds and neutral photographic surfaces. */
 :root, :root[data-theme="dusk"] {
   color-scheme: light;
-  --page: #f6f5f1; --surface: #fffefa; --surface-dim: #eeeee7; --hero: #eceee7;
-  --ink: #303b35; --ink-muted: #71796f; --line: #dedfd6;
-  --accent: #526959; --accent-soft: #e5eadf; --on-accent: #fffefa;
+  --page: #f5f4ee; --surface: #fffef8; --surface-dim: #eeeee4; --hero: #e9ede0;
+  --ink: #2d3d32; --ink-muted: #6b7568; --line: #d9dece;
+  --accent: #49674f; --accent-soft: #e4eadb; --on-accent: #fffef8;
   --warm: #a78760; --warm-soft: #e9ddc5; --cool-soft: #e3ebe6; --shadow-color: #273c2810;
   --album-paper: #fffefb; --album-shadow: #30372b24; --album-glow: #dfe6d5;
 }
 :root[data-theme="sea"] {
   color-scheme: light;
-  --page: #f0f5f5; --surface: #fbfdfc; --surface-dim: #e4edeb; --hero: #e3edec;
-  --ink: #30454b; --ink-muted: #61767c; --line: #d4e0df;
-  --accent: #4b7079; --accent-soft: #dfecee; --on-accent: #fcfefd;
+  --page: #eef5f6; --surface: #fbfdfd; --surface-dim: #e1edf0; --hero: #dcecf0;
+  --ink: #294851; --ink-muted: #59737c; --line: #cbdfe3;
+  --accent: #356e7d; --accent-soft: #dbecef; --on-accent: #fcfefd;
   --warm: #9b8065; --warm-soft: #e7ddcc; --cool-soft: #dfecef; --shadow-color: #2b4e4a10;
   --album-paper: #fbfdfc; --album-shadow: #29454b22; --album-glow: #d8e6e6;
 }
 :root[data-theme="film"] {
   color-scheme: light;
-  --page: #f6f1e8; --surface: #fffaf1; --surface-dim: #eee5d6; --hero: #eee4d4;
-  --ink: #4a4035; --ink-muted: #80705b; --line: #e0d6c5;
-  --accent: #8a6849; --accent-soft: #eae0d1; --on-accent: #fffaf1;
+  --page: #f5efe4; --surface: #fff9ed; --surface-dim: #eee2d0; --hero: #ecddc5;
+  --ink: #493b30; --ink-muted: #7b6856; --line: #ded0ba;
+  --accent: #89613f; --accent-soft: #eadac4; --on-accent: #fff9ed;
   --warm: #9a7851; --warm-soft: #e9d9b7; --cool-soft: #e3e7d9; --shadow-color: #65442a12;
   --album-paper: #fffaf1; --album-shadow: #58452c23; --album-glow: #eadbc1;
 }
 :root[data-theme="night"] {
   color-scheme: dark;
-  --page: #1d2622; --surface: #26322b; --surface-dim: #222d27; --hero: #2b382f;
-  --ink: #e6eae2; --ink-muted: #a8b2a7; --line: #3e4b40;
-  --accent: #bccbb0; --accent-soft: #354538; --on-accent: #202c23;
+  --page: #172620; --surface: #22342c; --surface-dim: #1d2d26; --hero: #2a3e35;
+  --ink: #e7ece2; --ink-muted: #acbaad; --line: #3e5548;
+  --accent: #c0d2b3; --accent-soft: #344b3c; --on-accent: #1c2e23;
   --warm: #c7af89; --warm-soft: #494737; --cool-soft: #34483e; --shadow-color: #08110d30;
   --album-paper: #344137; --album-shadow: #060e0959; --album-glow: #3e5140;
 }

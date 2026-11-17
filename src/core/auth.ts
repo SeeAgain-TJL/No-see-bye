@@ -45,8 +45,13 @@ export async function optionalUser(req: NextRequest): Promise<TokenPayload | nul
   if (!token) return null;
   let session: TokenPayload;
   try { session = verifyToken(token); } catch { return null; }
-  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { sessionVersion: true } });
-  return user && user.sessionVersion === session.sessionVersion ? session : null;
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { sessionVersion: true, lastSeenAt: true } });
+  if (!user || user.sessionVersion !== session.sessionVersion) return null;
+  const threshold = new Date(Date.now() - 5 * 60_000);
+  if (!user.lastSeenAt || user.lastSeenAt < threshold) {
+    await prisma.user.updateMany({ where: { id: session.userId, OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: threshold } }] }, data: { lastSeenAt: new Date() } });
+  }
+  return session;
 }
 export async function getUserFromRequest(req: NextRequest): Promise<TokenPayload> {
   const user = await optionalUser(req);

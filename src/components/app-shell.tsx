@@ -17,7 +17,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
   const path = usePathname(), params = useSearchParams(), router = useRouter();
   const publicScope = params.get('scope') === 'public';
   const { user, loading, refresh, notify } = useApp();
-  const active = path === '/' ? 'home' : path === '/settings' ? 'settings' : path.includes('trash') ? 'trash' : path === '/memories/new' ? 'new' : path.startsWith('/memories') ? (publicScope ? 'discover' : 'memories') : '';
+  const active = path === '/' ? 'home' : path.startsWith('/admin') ? 'admin' : path === '/settings' ? 'settings' : path.includes('trash') ? 'trash' : path === '/memories/new' ? 'new' : path.startsWith('/memories') ? (publicScope ? 'discover' : 'memories') : '';
   const linkClass = (key: string) => 'nav-link' + (active === key ? ' active' : '');
   async function logout() {
     try { await api('/api/auth/logout', { method: 'POST' }); await refresh(); router.push('/'); notify('已安全退出'); } catch (error) { notify((error as Error).message); }
@@ -32,6 +32,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         <Link href='/memories?scope=public' className={linkClass('discover')} aria-current={active === 'discover' ? 'page' : undefined}><Icon name='globe' />发现日常</Link>
       </nav>
       <div className='sidebar-bottom'>
+        {user?.role === 'admin' && <Link href='/admin' className={linkClass('admin')} aria-current={active === 'admin' ? 'page' : undefined}><Icon name='grid' />管理台</Link>}
         <Link href='/memories/new' className='sidebar-compose'><Icon name='plus' size={18} /><span>记录日常</span><Icon name='arrow' size={16} /></Link>
         <Link href='/memories/trash' className={linkClass('trash')} aria-current={active === 'trash' ? 'page' : undefined}><Icon name='trash' />回收站</Link>
         <Link href='/settings' className={linkClass('settings')} aria-current={active === 'settings' ? 'page' : undefined}><Icon name='settings' />设置</Link>
@@ -39,7 +40,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     </aside>
     <div className='app-body'>
       <header className='topbar'>
-        <span className='breadcrumb'>我的空间<span>/</span>{({ settings: '设置', trash: '回收站', memories: '我的日常', discover: '发现日常', new: '记录日常' } as Record<string, string>)[active] || '首页'}</span>
+        <span className='breadcrumb'>我的空间<span>/</span>{({ admin: '管理台', settings: '设置', trash: '回收站', memories: '我的日常', discover: '发现日常', new: '记录日常' } as Record<string, string>)[active] || '首页'}</span>
         <Link href='/' className='mobile-brand'><BrandMark /><span>不说再见</span></Link>
         <div className='account'>
           <QuickSearch /><span className='account-divider' aria-hidden='true' /><ThemeSwitcher />

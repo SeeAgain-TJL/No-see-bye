@@ -2,7 +2,7 @@
 :root, :root[data-theme='dusk'] { --motion-pop: #cee79b; --motion-on-pop: #263d2f; --motion-deep: #284c3d; --motion-on-deep: #f2f4df; }
 :root[data-theme='sea'] { --motion-pop: #ffc58b; --motion-on-pop: #234859; --motion-deep: #1e5268; --motion-on-deep: #f5f3dc; }
 :root[data-theme='film'] { --motion-pop: #efa574; --motion-on-pop: #492f24; --motion-deep: #51392d; --motion-on-deep: #fff1d2; }
-:root[data-theme='night'] { --motion-pop: #c9baf1; --motion-on-pop: #253142; --motion-deep: #243443; --motion-on-deep: #ede8ff; }
+:root[data-theme='night'] { --motion-pop: #cbd9ac; --motion-on-pop: #233c2c; --motion-deep: #294d3d; --motion-on-deep: #edf3dc; }
 .motion-pulse { position: fixed; z-index: 112; width: 68px; height: 68px; border: 1px solid var(--accent); border-radius: 50%; background: none; opacity: 0; pointer-events: none; }
 .app-shell { position: relative; isolation: isolate; }
 .immersive-motion-root { position: static; }

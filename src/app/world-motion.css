@@ -1,10 +1,14 @@
-/* Living margins: natural curves, restrained texture, and no illuminated overlays. */
+/* Four small living worlds. Scenery is sparse and transparent to every input. */
+:root, :root[data-theme='dusk'] { --world-petal: #91a967; --world-soft: #c9d6a8; --world-ink: #3b5744; }
+:root[data-theme='sea'] { --world-petal: #6cabae; --world-soft: #c3dcd9; --world-ink: #275f70; }
+:root[data-theme='film'] { --world-petal: #ac7956; --world-soft: #d7ad7b; --world-ink: #603f31; }
+:root[data-theme='night'] { --world-petal: #dbd9ba; --world-soft: #8fa5ad; --world-ink: #4a6065; }
 .studio-auth { position: relative; isolation: isolate; }
 .world-atmosphere, .world-choreography { position: fixed; pointer-events: none; inset: var(--environment-top, 0px) 0 0 var(--environment-left, 0px); overflow: hidden; }
 .world-atmosphere { z-index: -1; color: var(--accent); }
 .world-ground, .world-scene { display: none; position: absolute; inset: 0; }
 :root[data-theme='dusk'] [data-world-theme='dusk'], :root[data-theme='sea'] [data-world-theme='sea'], :root[data-theme='film'] [data-world-theme='film'], :root[data-theme='night'] [data-world-theme='night'] { display: block; }
-.world-ground { opacity: .25; transition: opacity 1.2s ease; transform: translateY(var(--world-scroll, 0px)); }
+.world-ground { opacity: .24; transition: opacity 1s ease; transform: translateY(var(--world-scroll, 0px)); }
 .world-ground > span { position: absolute; display: block; }
 .world-ground-dusk > span { width: 90px; height: 290px; border-left: 1px solid currentColor; border-radius: 50%; opacity: .16; rotate: 12deg; }
 .world-ground-dusk > span:nth-child(1) { left: -70px; bottom: -35px; }
@@ -21,75 +25,57 @@
 .world-ground-night > span:nth-child(1) { top: 23%; right: 18px; }
 .world-ground-night > span:nth-child(2) { bottom: 19%; left: 22px; }
 .world-ground-night > span:nth-child(3) { top: 11%; left: 13px; }
-[data-world-awake='true'] .world-ground { opacity: .4; }
-/* The center stays clear even when a path bends inward. The mask only removes marks. */
-.world-choreography { z-index: 22; --world-margin: clamp(24px, 3.6vw, 54px); mask-image: linear-gradient(90deg,#000,transparent var(--world-margin),transparent calc(100% - var(--world-margin)),#000),linear-gradient(0deg,#000,transparent 60px); mask-composite: add; }
-.world-scene { color: var(--accent); animation: world-scene-arrive 1.8s ease both; }
-/* Paper: two fine botanical layers sway from their roots, not across the page. */
-.world-botanical { position: absolute; height: auto; color: var(--accent); opacity: .43; overflow: visible; }
-.world-botanical-left { width: 165px; left: -24px; bottom: -55px; }
-.world-botanical-right { width: 190px; right: -72px; top: -100px; rotate: 180deg; opacity: .28; }
-.world-botanical-stem { transform-origin: 62px 560px; animation: world-branch-breathe 17s -4s ease-in-out infinite; }
-.world-botanical-right .world-botanical-stem { animation-duration: 23s; animation-delay: -11s; }
-.world-branch-line, .world-botanical-rear { stroke: currentColor; stroke-width: .85; }
-.world-leaf-silhouette { fill: currentColor; fill-opacity: .11; stroke: currentColor; stroke-width: .65; stroke-opacity: .55; }
-.world-botanical-rear { opacity: .4; transform-origin: 24px 560px; animation: world-branch-breathe 21s -9s ease-in-out infinite reverse; }
-.world-air-line, .world-water-current, .world-night-trail { position: absolute; height: 104%; top: -2%; width: 180px; stroke: currentColor; stroke-width: .8; }
-.world-air-line { opacity: .17; }
-.world-air-line-0 { left: -80px; }
-.world-air-line-1 { right: -85px; scale: -1 1; top: -8%; opacity: .11; }
-.world-stream-trace { stroke: currentColor; stroke-width: 1.2; stroke-dasharray: .075 .925; stroke-dashoffset: 0; animation: world-flow-along-curve 26s linear infinite; }
-.world-air-line .world-stream-trace { stroke-width: 1.45; opacity: .85; }
-.world-air-line-1 .world-stream-trace { animation-duration: 33s; animation-delay: -13s; }
-/* Sea: overlapping currents travel along curves; the quiet waterline has a tidal breath. */
-.world-water-current { width: 170px; opacity: .11; }
-.world-water-current-0 { left: -80px; }
-.world-water-current-1 { right: -75px; scale: -1 1; top: -15%; opacity: .14; }
-.world-water-current g:nth-child(even) { opacity: .55; }
-.world-water-current .world-stream-trace { opacity: .9; animation-duration: 31s; }
-.world-water-current g:nth-child(2) .world-stream-trace { animation-delay: -7s; animation-duration: 38s; }
-.world-water-current g:nth-child(3) .world-stream-trace { animation-delay: -19s; animation-duration: 35s; }
-.world-water-current g:nth-child(4) .world-stream-trace { animation-delay: -11s; animation-duration: 43s; }
-.world-water-current-1 .world-stream-trace { animation-direction: reverse; }
-.world-waterline { position: absolute; width: 126%; height: 112px; left: -13%; bottom: -39px; stroke: currentColor; stroke-width: .8; opacity: .19; transform-origin: center bottom; animation: world-water-breathe 19s -6s ease-in-out infinite; }
-.world-waterline path:nth-child(even) { opacity: .45; }
-/* Malt: a slow, uninterrupted film transport and a few grains held in the margins. */
-.world-film-edge { position: absolute; width: 10px; top: -36px; bottom: -36px; border-inline: 1px solid currentColor; color: var(--warm); opacity: .19; overflow: hidden; }
-.world-film-edge-0 { left: 8px; }
-.world-film-edge-1 { right: 8px; opacity: .15; }
-.world-film-transport { display: flex; flex-direction: column; align-items: center; gap: 22px; animation: world-film-transport 18s linear infinite; }
-.world-film-transport > span { display: block; flex: 0 0 14px; width: 5px; border: 1px solid currentColor; border-radius: 1px; }
-.world-film-edge-1 .world-film-transport { animation-duration: 23s; animation-direction: reverse; }
-.world-film-grain, .world-night-field { position: absolute; width: 80px; height: 100%; top: 0; }
-.world-film-grain-0, .world-night-field-0 { left: 0; }
-.world-film-grain-1, .world-night-field-1 { right: 0; scale: -1 1; }
-.world-film-grain > i, .world-night-field > i { position: absolute; display: block; left: var(--grain-x); top: var(--grain-y); width: var(--grain-size); height: var(--grain-size); border-radius: 50%; background: currentColor; opacity: .22; animation: world-grain-breathe 17s var(--grain-delay) ease-in-out infinite; }
-.world-film-grain-1 > i { animation-duration: 23s; }
-/* Ink: organic night paths and low-luminance points, without astronomical instruments. */
-.world-night-trail { width: 170px; stroke: var(--warm); opacity: .13; }
-.world-night-trail-0 { left: -90px; top: -12%; }
-.world-night-trail-1 { right: -55px; scale: -1 1; top: 6%; }
-.world-night-trail .world-stream-trace { opacity: .75; stroke-dasharray: .035 .965; animation-duration: 48s; }
-.world-night-trail-1 .world-stream-trace { animation-duration: 57s; animation-delay: -22s; }
-.world-night-field { color: var(--warm); }
-.world-night-field > i { opacity: .35; animation-name: world-night-breathe; animation-duration: 19s; }
-.world-night-field-1 > i { animation-duration: 27s; }
-/* A quiet airflow mark keeps the global switch identifiable at mobile-nav size. */
-.world-toggle { z-index: 35; min-height: 44px; padding-inline: 10px 14px; border-radius: 24px; box-shadow: 0 3px 12px -9px var(--album-shadow); }
-.world-switch-mark { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; transition: rotate .6s ease, scale .6s ease; }
-.world-switch-mark > svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; }
-.world-switch-mark circle { fill: currentColor; stroke: none; opacity: .6; }
-.world-toggle [data-world-invitation] { display: none; }
-:root[data-theme='dusk'] [data-world-invitation='dusk'], :root[data-theme='sea'] [data-world-invitation='sea'], :root[data-theme='film'] [data-world-invitation='film'], :root[data-theme='night'] [data-world-invitation='night'] { display: inline; }
+[data-world-awake='true'] .world-ground { opacity: .65; }
+/* The former narrow mask hid almost the entire animation. Visitors now have their own open space. */
+.world-choreography { z-index: 22; }
+.studio-auth .world-choreography { z-index: 24; }
+.world-scene { color: var(--accent); animation: world-scene-arrive .7s ease both; }
+.world-border-art { position: absolute; width: clamp(260px,28vw,430px); height: auto; bottom: -8px; right: -38px; opacity: .44; }
+.world-border-dusk { right: auto; left: -67px; }
+.world-border-film { opacity: .32; }
+.world-border-night { opacity: .62; bottom: 4px; right: -24px; }
+.world-visitor { width: 100%; height: 100%; overflow: visible; }
+.world-wing { transform-box: view-box; transform-origin: 50% 49%; animation: world-wingbeat 1.85s ease-in-out infinite; }
+.world-wing-right { animation-delay: -.08s; }
+.world-visitor-night .world-wing { animation-duration: 2.6s; }
+.world-fish-tail { transform-origin: 62px 34px; animation: world-tail .9s ease-in-out infinite; }
+.world-bird-wing { transform-origin: 40px 39px; animation: world-bird-wing 2.8s ease-in-out infinite; }
+.world-first-flight { position: absolute; width: 79px; height: 70px; right: 28px; bottom: 76px; opacity: 0; animation: world-first-flight 5.7s .08s cubic-bezier(.28,.45,.36,1) both; }
+.world-first-trail { position: absolute; right: -23px; top: 35px; width: 68px; height: 16px; border-top: .8px dashed var(--world-petal); border-radius: 50%; opacity: .65; rotate: -18deg; }
+.world-scene-sea .world-first-flight { animation-name: world-first-swim; }
+.world-traveler { position: absolute; display: block; width: var(--visitor-size); height: calc(var(--visitor-size) * .875); left: var(--visitor-x); top: var(--visitor-y); opacity: .65; animation: world-wander var(--visitor-duration) var(--visitor-delay) ease-in-out infinite; }
+.world-traveler > .world-visitor { scale: var(--visitor-turn) 1; rotate: -13deg; }
+.world-traveler-4 { opacity: .4; }
+.world-perched-visitor { position: absolute; width: 66px; height: 58px; right: 22px; bottom: 83px; opacity: .87; animation: world-perched-arrive 1.2s .25s both, world-perched-float 6.5s 1.45s ease-in-out infinite; }
+.world-perched-visitor > i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--world-petal); top: 14px; left: -8px; opacity: .5; animation: world-point-breathe 4s ease-in-out infinite; }
+.world-perched-visitor > i:nth-child(3) { top: 43px; left: -24px; animation-delay: -1.4s; width: 2px; height: 2px; }
+.world-perched-visitor > i:nth-child(4) { top: -3px; left: 18px; animation-delay: -2.6s; width: 2px; height: 2px; }
+.world-grass { transform-origin: 80px 280px; animation: world-grass-sway 12s ease-in-out infinite; }
+.world-grass-back { animation-delay: -6s; animation-duration: 17s; opacity: .7; }
+.world-drift-line { stroke-dashoffset: 0; animation: world-line-drift 28s linear infinite; opacity: .45; }
+.world-tide-lines { transform-origin: center bottom; animation: world-tide 9s ease-in-out infinite; }
+.world-water-bead { animation: world-bubble 8s calc(var(--world-item) * -1.6s) ease-in-out infinite; }
+.world-film-sweep { transform-origin: 220px 240px; animation: world-film-sweep 17s ease-in-out infinite; }
+.world-star-point { transform-box: fill-box; transform-origin: center; animation: world-point-breathe 6s calc(var(--world-item) * -.7s) ease-in-out infinite; }
+.world-constellation { animation: world-line-drift 45s linear infinite; opacity: .65; }
+/* A small, theme-specific visitor makes the global control identifiable and its state clear. */
+.world-toggle { z-index: 55; min-height: 44px; padding-inline: 9px 14px; border-radius: 24px; box-shadow: 0 4px 18px -12px var(--album-shadow); }
+.world-switch-mark { display: grid; place-items: center; width: 32px; height: 28px; flex: 0 0 32px; transition: rotate .6s ease, scale .6s ease; }
+.world-switch-mark > span { width: 32px; height: 28px; }
+.world-switch-mark .world-visitor { animation: none; }
+.world-switch-mark .world-visitor * { animation-play-state: paused; }
+.world-environment [data-world-invitation] { display: none; }
+:root[data-theme='dusk'] [data-world-invitation='dusk'], :root[data-theme='sea'] [data-world-invitation='sea'], :root[data-theme='film'] [data-world-invitation='film'], :root[data-theme='night'] [data-world-invitation='night'] { display: inline-block; }
 .world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); border-color: var(--motion-deep); }
-.world-toggle[aria-pressed='true'] .world-switch-mark { color: var(--motion-pop); animation: world-mark-breathe 7s ease-in-out infinite; }
-.world-toggle[aria-pressed='true'] > svg:last-child { opacity: .7; }
+.world-toggle[aria-pressed='true'] .world-switch-mark { --world-petal: var(--motion-pop); --world-soft: var(--motion-on-deep); }
+.world-toggle[aria-pressed='true'] .world-switch-mark .world-visitor * { animation-play-state: running; }
+.world-toggle[aria-pressed='true'] > svg:last-child { opacity: .65; }
 [data-world-hidden='true'] :is(.world-ground, .world-choreography, .world-toggle) * { animation-play-state: paused !important; }
 :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 :is(.app-shell, .studio-auth) :is(input, textarea, select) { transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
 :is(.app-shell, .studio-auth) :is(input, textarea, select):focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent); }
 :is(.app-shell, .studio-auth) :is(button, a) > svg { transition: translate .3s cubic-bezier(.16,1,.3,1), rotate .3s ease; }
-.app-shell :is(.nav-link, .sidebar-compose, .mobile-nav a) { position: relative; transition: background .25s ease, color .25s ease, padding .25s ease; }
+.app-shell .nav-link, .app-shell .sidebar-compose, .app-shell .mobile-nav a { position: relative; transition: background .25s ease, color .25s ease, padding .25s ease; }
 .app-shell .nav-link::after { content: ''; position: absolute; left: 0; width: 3px; height: 0; border-radius: 2px; background: var(--accent); transition: height .3s cubic-bezier(.16,1,.3,1); }
 .app-shell .nav-link:is(:hover, :focus-visible, .active)::after { height: 18px; }
 :is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button { transition: background .25s ease, color .25s ease, box-shadow .25s ease, border-color .25s ease; }
@@ -99,43 +85,47 @@
   :root[data-theme] .main-content [data-motion-surface] { transform: perspective(1600px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .5s cubic-bezier(.16,1,.3,1), box-shadow .4s ease, translate .4s ease; }
   :root[data-theme] .main-content [data-motion-surface][data-motion-hover='true'] { translate: 0 -4px; box-shadow: 0 18px 40px -28px var(--album-shadow); }
   :is(.app-shell, .studio-auth) :is(.studio-text-link, .sidebar-compose, .journal-cover-write, .world-toggle):hover > svg:last-child { translate: 3px 0; }
-  .world-toggle:hover .world-switch-mark { rotate: -5deg; scale: 1.04; }
+  .world-toggle:hover .world-switch-mark { rotate: -9deg; scale: 1.08; }
   .app-shell .nav-link:hover > svg { translate: 2px 0; rotate: -7deg; }
   .app-shell :is(.entry-open, .wall-caption):hover > svg { translate: 3px 0; }
   :is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button:hover { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 35%, transparent); }
 }
 @keyframes world-scene-arrive { from { opacity: 0; } to { opacity: 1; } }
-@keyframes world-branch-breathe { 0%,100% { transform: rotate(-1.2deg) skewX(.3deg); } 34% { transform: rotate(1.4deg) skewX(-.6deg); } 68% { transform: rotate(-.35deg) skewX(.15deg); } }
-@keyframes world-flow-along-curve { to { stroke-dashoffset: -1; } }
-@keyframes world-water-breathe { 0%,100% { transform: translateY(3px) scaleY(.97); } 42% { transform: translateY(-5px) scaleY(1.04); } 73% { transform: translateY(-1px) scaleY(1.01); } }
-@keyframes world-film-transport { to { transform: translateY(-36px); } }
-@keyframes world-grain-breathe { 0%,100% { opacity: .12; transform: translate(0,0); } 37% { opacity: .32; transform: translate(2px,-4px); } 71% { opacity: .2; transform: translate(-1px,-1px); } }
-@keyframes world-night-breathe { 0%,100% { opacity: .2; transform: translate(0,0); } 45% { opacity: .58; transform: translate(1px,-3px); } 72% { opacity: .3; transform: translate(-1px,-1px); } }
-@keyframes world-mark-breathe { 0%,100% { opacity: .8; transform: translateY(0); } 46% { opacity: 1; transform: translateY(-1px); } }
+@keyframes world-wingbeat { 0%,100% { scale: 1 1; } 45% { scale: .58 1.02; } 72% { scale: .91 1; } }
+@keyframes world-tail { 0%,100% { transform: scaleX(.78); } 50% { transform: scaleX(1); } }
+@keyframes world-bird-wing { 0%,100% { transform: scaleY(.93); } 42% { transform: scaleY(.57) rotate(-4deg); } 68% { transform: scaleY(1); } }
+@keyframes world-first-flight { 0% { opacity: 0; transform: translate(15px,25px) rotate(-18deg) scale(.7); } 8% { opacity: .95; } 35% { transform: translate(-24vw,-18vh) rotate(7deg) scale(1); opacity: .87; } 70% { transform: translate(-52vw,-34vh) rotate(-16deg) scale(.72); opacity: .74; } 100% { transform: translate(-85vw,-72vh) rotate(-24deg) scale(.35); opacity: 0; } }
+@keyframes world-first-swim { 0% { opacity: 0; transform: translate(15px,25px) rotate(10deg) scale(.7); } 8% { opacity: .95; } 35% { transform: translate(-24vw,-8vh) rotate(-12deg) scale(1); opacity: .87; } 70% { transform: translate(-52vw,-22vh) rotate(8deg) scale(.82); opacity: .74; } 100% { transform: translate(-85vw,-48vh) rotate(-8deg) scale(.55); opacity: 0; } }
+@keyframes world-wander { 0%,100% { transform: translate(0,0) rotate(-3deg); } 22% { transform: translate(-18px,-22px) rotate(9deg); } 56% { transform: translate(23px,-42px) rotate(-8deg); } 79% { transform: translate(9px,-12px) rotate(4deg); } }
+@keyframes world-perched-arrive { from { opacity: 0; transform: translate(20px,20px) rotate(-18deg); } to { opacity: .87; transform: translate(0,0) rotate(0); } }
+@keyframes world-perched-float { 0%,100% { transform: translate(0,0) rotate(-3deg); } 42% { transform: translate(-7px,-9px) rotate(5deg); } 70% { transform: translate(2px,-4px) rotate(-1deg); } }
+@keyframes world-point-breathe { 0%,100% { opacity: .25; transform: scale(.8); } 48% { opacity: 1; transform: scale(1.05); } }
+@keyframes world-grass-sway { 0%,100% { transform: rotate(-1.5deg); } 48% { transform: rotate(2.8deg); } 75% { transform: rotate(-.3deg); } }
+@keyframes world-line-drift { to { stroke-dashoffset: -80; } }
+@keyframes world-tide { 0%,100% { transform: translate(-5px,3px) scaleY(.96); } 50% { transform: translate(8px,-8px) scaleY(1.04); } }
+@keyframes world-bubble { 0%,100% { opacity: .18; transform: translate(0,0); } 45% { opacity: .65; transform: translate(4px,-16px); } }
+@keyframes world-film-sweep { 0%,100% { transform: translateY(2px) rotate(-.5deg); } 50% { transform: translateY(-9px) rotate(1deg); } }
 @media (max-width: 760px) {
   .app-shell .mobile-nav { padding-left: 6px; padding-right: 66px; }
   :root[data-theme] .app-shell .mobile-nav a { min-width: 0; }
   :root[data-theme] .app-shell .mobile-nav .mobile-add { margin-inline: 4px; }
   .app-shell .world-toggle, .studio-auth .world-toggle { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; }
   :root[data-theme] .world-toggle > .world-switch-label, .world-toggle > svg:last-child { display: none; }
-  .app-shell .world-toggle { z-index: 45; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); background: transparent; border-color: transparent; box-shadow: none; }
+  .app-shell .world-toggle { z-index: 55; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); background: var(--surface); border-color: var(--line); box-shadow: none; }
   .app-shell .world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); }
-  .world-choreography { --world-margin: 24px; mask-image: linear-gradient(90deg,#000,transparent var(--world-margin),transparent calc(100% - var(--world-margin)),#000),linear-gradient(0deg,#000,transparent 30px); }
-  .world-botanical-left { width: 125px; left: -30px; bottom: -50px; opacity: .3; }
-  .world-botanical-right { width: 140px; right: -73px; top: -60px; opacity: .2; }
-  .world-air-line, .world-water-current, .world-night-trail { opacity: .12; }
-  .world-waterline { height: 78px; bottom: -36px; opacity: .14; }
-  .world-film-edge { width: 7px; opacity: .14; }
-  .world-film-edge-0 { left: 3px; }
-  .world-film-edge-1 { right: 3px; }
-  .world-film-transport > span { width: 3px; }
-  .world-film-grain, .world-night-field { width: 35px; }
-  .world-film-grain > i, .world-night-field > i { left: calc(var(--grain-x) * .45); }
-  .world-toggle { min-height: 42px; }
-  .studio-auth .world-toggle { position: absolute; top: 78px; bottom: auto; right: 24px; }
+  .world-border-art { width: 225px; opacity: .3; right: -91px; bottom: 64px; }
+  .world-border-dusk { left: -83px; right: auto; }
+  .world-border-night { opacity: .46; }
+  .world-perched-visitor { width: 44px; height: 39px; right: 11px; bottom: 88px; }
+  .world-first-flight { width: 60px; height: 53px; right: 9px; bottom: 82px; }
+  .world-traveler { width: calc(var(--visitor-size) * .75); height: calc(var(--visitor-size) * .66); opacity: .5; }
+  .world-traveler-2, .world-traveler-4 { display: none; }
+  .studio-auth .world-toggle { position: fixed; top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); right: 18px; }
+  .studio-auth .world-border-art { bottom: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .world-ground, .world-choreography *, .world-toggle, .world-toggle *, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
-  .world-stream-trace { display: none; }
+  .world-first-flight { display: none; }
   .world-ground { transform: none; }
+  .world-perched-visitor { opacity: .87; }
 }

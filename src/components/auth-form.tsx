@@ -47,10 +47,10 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       } catch { /* Keep the original error if configuration is unavailable. */ }
     }
   }
-  async function finish() {
+  async function finish(target = "/") {
     setRegistration(null);
     await refresh().catch(() => {});
-    router.replace("/");
+    router.replace(target);
     router.refresh();
   }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -77,8 +77,8 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     }
     setBusy(true);
     try {
-      await api("/api/auth/login", { method: "POST", body: JSON.stringify(fields) });
-      await finish();
+      const result = await api<{ user: { role: string } }>("/api/auth/login", { method: "POST", body: JSON.stringify(fields) });
+      await finish(result.user.role === "admin" ? "/admin" : "/");
     } catch (err) { handleError(err); }
     finally { setBusy(false); }
   }

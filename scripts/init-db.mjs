@@ -49,6 +49,13 @@ try {
   add("User", "phone", "TEXT");
   add("User", "displayName", "TEXT NOT NULL DEFAULT ''");
   add("User", "sessionVersion", "INTEGER NOT NULL DEFAULT 0");
+  add("User", "role", "TEXT NOT NULL DEFAULT 'user'");
+  add("User", "emailVerifiedAt", "DATETIME");
+  add("User", "backupEmail", "TEXT");
+  add("User", "backupEmailVerifiedAt", "DATETIME");
+  add("User", "lastLoginAt", "DATETIME");
+  add("User", "lastSeenAt", "DATETIME");
+  add("User", "loginCount", "INTEGER NOT NULL DEFAULT 0");
   add("Entry", "title", "TEXT NOT NULL DEFAULT ''");
   add("Entry", "tags", "TEXT NOT NULL DEFAULT '[]'");
   add("Entry", "location", "TEXT NOT NULL DEFAULT ''");
@@ -81,10 +88,18 @@ try {
       expiresAt DATETIME NOT NULL, createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       attempts INTEGER NOT NULL DEFAULT 0);
     CREATE INDEX IF NOT EXISTS RegistrationChallenge_expiresAt_idx ON RegistrationChallenge(expiresAt);
+    CREATE TABLE IF NOT EXISTS PasswordChallenge (
+      id TEXT PRIMARY KEY NOT NULL, userId TEXT NOT NULL, email TEXT NOT NULL,
+      sessionVersion INTEGER NOT NULL, bindingHash TEXT NOT NULL, codeHash TEXT NOT NULL,
+      expiresAt DATETIME NOT NULL, createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      attempts INTEGER NOT NULL DEFAULT 0, usedAt DATETIME,
+      FOREIGN KEY(userId) REFERENCES User(id) ON DELETE CASCADE);
+    CREATE UNIQUE INDEX IF NOT EXISTS PasswordChallenge_userId_key ON PasswordChallenge(userId);
+    CREATE INDEX IF NOT EXISTS PasswordChallenge_expiresAt_idx ON PasswordChallenge(expiresAt);
     `);
   if (addedAuthMode) db.exec(`UPDATE User SET hasLocalPassword=false
     WHERE email LIKE '%@oauth.local' AND EXISTS (SELECT 1 FROM OAuthAccount WHERE userId=User.id)`);
-  db.exec("PRAGMA user_version=3; COMMIT;");
+  db.exec("PRAGMA user_version=4; COMMIT;");
   console.log("SQLite initialized (additive; existing records preserved).");
 } catch (error) {
   db.exec("ROLLBACK");

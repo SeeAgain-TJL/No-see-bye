@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       if (await tx.user.findUnique({ where: { username: body.username }, select: { id: true } })) return { error: "该用户名已注册，请直接登录或换一个用户名", status: 409 };
       const passwordHash = await bcrypt.hash(body.password, 12);
       const user = await tx.user.create({ data: { username: body.username, displayName: body.username,
-        email: `${body.username}@accounts.local`, passwordHash, hasLocalPassword: true } });
+        email: `${body.username}@accounts.local`, passwordHash, hasLocalPassword: true, lastLoginAt: new Date(), lastSeenAt: new Date(), loginCount: 1 } });
       await tx.registrationChallenge.delete({ where: { id: proof.challengeId } });
       return { user };
     });
