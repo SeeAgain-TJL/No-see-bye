@@ -23,14 +23,14 @@ await cp(standalone, release, { recursive: true, dereference: true, filter: excl
 await cp(path.join(root, "public"), path.join(release, "public"), { recursive: true });
 await cp(path.join(root, ".next", "static"), path.join(release, ".next", "static"), { recursive: true });
 // Maintenance scripts are not Next routes and therefore need explicit dependencies.
-for (const moduleName of ["@next/env", "@prisma/client", ".prisma/client"])
+for (const moduleName of ["@next/env", "@prisma/client", ".prisma/client", "bcryptjs"])
   await cp(path.join(root, "node_modules", moduleName), path.join(release, "node_modules", moduleName), { recursive: true, dereference: true });
 // A Linux x64 artifact must support both Ubuntu build hosts and Alibaba Linux ECS.
 if (process.platform === "linux" && process.arch === "x64") {
   for (const target of ["rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"])
     await access(path.join(release, "node_modules", ".prisma", "client", "libquery_engine-" + target + ".so.node"));
 }
-for (const script of ["init-db.mjs", "cleanup-assets.mjs", "check-runtime.mjs"])
+for (const script of ["init-db.mjs", "cleanup-assets.mjs", "check-runtime.mjs", "bootstrap-admin.mjs"])
   await cp(path.join(root, "scripts", script), path.join(release, "scripts", script), { recursive: true });
 await cp(path.join(root, "prisma", "schema.prisma"), path.join(release, "prisma", "schema.prisma"), { recursive: true });
 await cp(path.join(root, "deploy"), path.join(release, "deploy"), { recursive: true });

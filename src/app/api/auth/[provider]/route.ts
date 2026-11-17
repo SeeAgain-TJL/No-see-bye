@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { HttpError } from "@/core/http";
 import { authorizationUrl, callbackUrl, fetchOAuthProfile, findOrCreateOAuthUser, isOAuthConfigured, newState, stateCookieName, stateCookieOptions, type OAuthProvider } from "@/core/oauth";
 import { signToken, withSession } from "@/core/auth";
+import { prisma } from "@/core/prisma";
 const providers = new Set<OAuthProvider>(["qq", "github"]);
 function validProvider(value: string): OAuthProvider {
   if (!providers.has(value as OAuthProvider)) throw new HttpError(404, "未知的登录方式");
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ provider: s
       throw new HttpError(400, "登录状态已过期，请重新尝试");
     const profile = await fetchOAuthProfile(provider, code);
     const user = await findOrCreateOAuthUser(provider, profile);
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date(), lastSeenAt: new Date(), loginCount: { increment: 1 } } });
     const response = withSession(noStore(NextResponse.redirect(new URL("/", callbackUrl(provider)))), signToken({ userId: user.id, email: user.email, sessionVersion: user.sessionVersion }));
     response.cookies.set(stateName, "", { ...stateCookieOptions(), maxAge: 0 });
     return response;

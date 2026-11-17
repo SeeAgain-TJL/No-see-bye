@@ -15,12 +15,20 @@ model User {
   passwordHash String
   displayName String @default("")
   sessionVersion Int @default(0)
+  role String @default("user")
+  emailVerifiedAt DateTime?
+  backupEmail String?
+  backupEmailVerifiedAt DateTime?
+  lastLoginAt DateTime?
+  lastSeenAt DateTime?
+  loginCount Int @default(0)
   avatarKey String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   entries Entry[]
   assets Asset[]
   oauthAccounts OAuthAccount[]
+  passwordChallenge PasswordChallenge?
 }
 // Preserve the original table and records.
 model Entry {
@@ -92,5 +100,20 @@ model RegistrationChallenge {
   expiresAt DateTime
   createdAt DateTime @default(now())
   attempts Int @default(0)
+  @@index([expiresAt])
+}
+
+model PasswordChallenge {
+  id String @id
+  userId String @unique
+  email String
+  sessionVersion Int
+  bindingHash String
+  codeHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  attempts Int @default(0)
+  usedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([expiresAt])
 }

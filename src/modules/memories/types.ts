@@ -4,6 +4,7 @@ export interface UserInfo {
   email: string | null;
   avatarUrl?: string | null;
   displayName?: string;
+  role?: "user" | "admin";
 }
 export interface MediaAsset {
   id: string;

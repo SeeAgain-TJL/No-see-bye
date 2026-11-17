@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import { mkdir, rm, readdir, access, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { smtpInbox } from "./test-support/smtp.mjs";
+const inbox = await smtpInbox();
 const releaseMode = Boolean(process.env.TEST_RELEASE_DIR);
 const workspace = path.resolve(process.env.TEST_RELEASE_DIR || process.cwd());
 const runtime = releaseMode
@@ -29,6 +31,8 @@ const env = {
   ALLOW_REGISTRATION: "true",
   HOSTNAME: "127.0.0.1",
   PORT: String(port),
+  SMTP_HOST: "127.0.0.1", SMTP_PORT: String(inbox.port), SMTP_SECURE: "false", SMTP_USER: "", SMTP_PASSWORD: "", SMTP_FROM: "test@example.test",
+  PASSWORD_EMAIL_VERIFICATION: "true",
 };
 if (releaseMode) {
   const preflight = spawnSync(runtime, ["scripts/check-runtime.mjs"], { cwd: workspace, env, encoding: "utf8" });
@@ -890,7 +894,11 @@ try {
   assert.equal((await call("/api/auth/me",{cookie:a.cookie})).data.user.displayName,"新的昵称");
   const account=(await call("/api/account",{cookie:a.cookie})).data;assert.equal(account.user.email,null);assert.equal(account.user.hasLocalPassword,true);assert.deepEqual(account.user.loginMethods,["password"]);assert(account.usedBytes>0);assert.equal(account.quotaBytes,process.env.TEST_UNLIMITED ? null : 1024**2);
   await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"incorrect",newPassword:"UpdatedPassword123"},status:400});
-  const rotated=await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123"}});
+  await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123"},status:400});
+  const passwordFields={currentPassword:"IndependentPass123",newPassword:"UpdatedPassword123",email:"person_a@example.test"};
+  const passwordChallenge=await call("/api/account/password-challenge",{cookie:a.cookie,method:"POST",body:passwordFields});
+  assert.equal(passwordChallenge.data.code,undefined);assert.equal(passwordChallenge.data.codeHash,undefined);
+  const rotated=await call("/api/account",{cookie:a.cookie,method:"PATCH",body:{action:"password",...passwordFields,challengeId:passwordChallenge.data.challengeId,code:inbox.code()}});
   assert(rotated.cookie);await call("/api/account",{cookie:a.cookie,status:401});await call("/api/memories",{cookie:a.cookie,status:401});
   assert.equal((await call("/api/auth/me",{cookie:a.cookie})).data.user,null);
   await call("/api/account",{cookie:rotated.cookie});
@@ -921,4 +929,5 @@ try {
     await exited;
   }
   await rm(testRoot, { recursive: true, force: true });
+  await inbox.close();
 }
