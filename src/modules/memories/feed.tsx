@@ -348,9 +348,14 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                     )}
                     <article
-                      className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}`}
+                      className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}`}
                       data-motion-surface=""
                     >
+                      {view === 'grid' && <Link
+                        className="memory-card-detail"
+                        href={`/memories/${m.id}`}
+                        aria-label={`展开${dateText(m.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}的日常${m.title ? `：${m.title}` : ''}`}
+                      ><span className="memory-card-open" aria-hidden="true"><Icon name="arrow" size={17} /></span></Link>}
                       <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
                       <span className="motion-spotlight" aria-hidden="true" />
                       <div className="memory-card-top">
@@ -385,25 +390,27 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                           </span>
                         </div>
                       </div>
-                      <MediaGrid assets={m.assets} compact />
-                      <div className="memory-card-copy">
-                        {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
-                        {m.content && (
-                          <p className="memory-excerpt">{m.content}</p>
-                        )}
-                        {m.tags.length > 0 && (
-                          <div className="tags">
-                            {m.tags.map((t) => (
-                              <button
-                                type="button"
-                                key={t}
-                                onClick={() => filter("q", t)}
-                              >
-                                # {t}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                      <div className="memory-card-preview">
+                        <MediaGrid assets={m.assets} compact />
+                        <div className="memory-card-copy">
+                          {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
+                          {m.content && (
+                            <p className="memory-excerpt">{m.content}</p>
+                          )}
+                          {m.tags.length > 0 && (
+                            <div className="tags">
+                              {m.tags.map((t) => (
+                                <button
+                                  type="button"
+                                  key={t}
+                                  onClick={() => filter("q", t)}
+                                >
+                                  # {t}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="memory-card-bottom">
                         <span className="memory-meta">
@@ -459,14 +466,14 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                               </>
                             )}
                           </div>
-                        ) : (
+                        ) : view !== 'grid' ? (
                           <Link
                             href={`/memories/${m.id}`}
                             className="text-link small"
                           >
                             入卷 <Icon name="arrow" size={14} />
                           </Link>
-                        )}
+                        ) : null}
                       </div>
                     </article>
                   </div>
