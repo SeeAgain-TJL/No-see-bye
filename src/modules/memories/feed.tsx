@@ -308,8 +308,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       params.get("month") ||
                       params.get("pinned") ||
                       type !== "all"
-                    ? "还没找到这样的记忆"
-                    : "还没有记录"}
+                    ? "这一页，尚未寻得回声。"
+                    : "岁月待写，此间留白。"}
               </h2>
 
               {!trash && (

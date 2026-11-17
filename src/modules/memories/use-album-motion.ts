@@ -1,11 +1,9 @@
 'use client';
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import { albumOffset, albumPositions, wrap } from '@/lib/album-layout';
+export { albumOffset, wrap } from '@/lib/album-layout';
 
 const clamp = (n: number, low: number, high: number) => Math.max(low, Math.min(high, n));
-export const wrap = (n: number, count: number) => ((n % count) + count) % count;
-export function albumOffset(index: number, position: number, count: number) {
-  return count > 2 ? wrap(index - position + count / 2, count) - count / 2 : index - position;
-}
 
 type Controls = {
   select: (index: number) => void;
@@ -30,20 +28,18 @@ export function useAlbumMotion(index: number, count: number, onSelect: (index: n
     const cards = Array.from(element.querySelectorAll<HTMLElement>('[data-album-card]'));
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     let current = selection.current, target = current, speed = 0, frame = 0, lastTime = 0;
-    let step = 270, cardWidth = 440, mobile = false, moved = false;
+    let step = 220, cardWidth = 340, mobile = false, moved = false;
+    let widths: number[] = [];
     let gesture: { id: number; x: number; y: number; position: number; lastX: number; time: number; velocity: number; index: number } | null = null;
     const paint = () => {
+      const positions = albumPositions(widths, current, mobile);
       cards.forEach((card, i) => {
-        const offset = albumOffset(i, current, count), distance = Math.abs(offset);
-        const scale = 1 - Math.min(distance, 2) * (mobile ? .09 : .115);
-        // Phones shuffle a small stack; wide screens spread into a photo desk.
-        const x = mobile ? Math.sign(offset) * (Math.sin(Math.min(distance, 1) * Math.PI) * cardWidth * .5 + Math.min(distance, 1) * 14) : offset * step;
-        const y = Math.min(distance, 2) * (mobile ? -12 : 16);
-        const angle = clamp(offset, -2, 2) * (mobile ? 4 : 5);
-        card.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) rotate(${angle}deg) scale(${scale})`;
-        card.style.opacity = String(clamp((1.8 - distance) * 1.5, 0, 1));
-        card.style.zIndex = String(30 - Math.round(distance * 10));
-        card.style.pointerEvents = distance < 1.6 ? 'auto' : 'none';
+        const p = positions[i];
+        if (!p) return;
+        card.style.transform = `translate3d(calc(-50% + ${p.x}px), calc(-100% + ${p.y}px), 0) rotate(${p.angle}deg) scale(${p.scale})`;
+        card.style.opacity = String(p.opacity);
+        card.style.zIndex = String(p.z);
+        card.style.pointerEvents = p.interactive ? 'auto' : 'none';
       });
       element.dataset.position = current.toFixed(3);
     };
@@ -62,15 +58,22 @@ export function useAlbumMotion(index: number, count: number, onSelect: (index: n
       if (reduced.matches) { stop(); current = target; speed = 0; paint(); }
       else if (!frame) frame = requestAnimationFrame(tick);
     };
+    const measureDragStep = () => {
+      const active = selection.current;
+      const a = widths[active], b = widths[wrap(active + 1, count)];
+      step = Math.max(100, mobile ? a * .87 : (a + b) / 2 - Math.min(28, Math.min(a, b) * .2));
+    };
     const resize = () => {
       mobile = window.matchMedia('(max-width: 760px)').matches;
-      cardWidth = mobile ? Math.min(326, element.clientWidth - 76) : Math.min(458, element.clientWidth * .51);
-      step = mobile ? cardWidth * .87 : cardWidth * .73;
+      cardWidth = mobile ? Math.min(286, element.clientWidth - 66) : Math.min(350, element.clientWidth * .43);
       element.style.setProperty('--album-card-width', `${cardWidth}px`);
+      widths = cards.map(card => card.offsetWidth || cardWidth);
+      measureDragStep();
       paint();
     };
     const observer = new ResizeObserver(resize);
     observer.observe(element);
+    cards.forEach(card => observer.observe(card));
     resize();
     const cancel = () => { gesture = null; delete element.dataset.dragging; animate(target); };
     controls.current = {
@@ -80,6 +83,7 @@ export function useAlbumMotion(index: number, count: number, onSelect: (index: n
         if (e.button !== 0 || !e.isPrimary) return;
         moved = false;
         if (count < 2) return;
+        measureDragStep();
         stop(); speed = 0;
         gesture = { id: e.pointerId, x: e.clientX, y: e.clientY, position: current, lastX: e.clientX, time: e.timeStamp, velocity: 0, index: selection.current };
       },

@@ -65,17 +65,17 @@ export function JournalAtmosphere({ title, items, publicScope, view, onView }: {
       <div className="journal-cover-copy">
         <div className="journal-edition"><span className="journal-edition-number">01 —</span>{editions.map(([theme, eyebrow]) => <span key={theme} data-journal-copy={theme}>{eyebrow}</span>)}</div>
         <h1>{title}<span className="journal-cover-period">.</span></h1>
-        <div className="journal-theme-story">{editions.map(([theme, , headline, note]) => <div key={theme} data-journal-copy={theme}><h2>{headline}</h2><p>{publicScope ? '从别人的片刻里，遇见另一种生活。' : note}</p></div>)}</div>
+        <div className="journal-theme-story">{editions.map(([theme, , headline, note]) => <div key={theme} data-journal-copy={theme}><h2>{headline}</h2><p>{publicScope ? '借一页人间，见万般风景。' : note}</p></div>)}</div>
         <div className="journal-cover-actions">
           <button type="button" className="journal-directory-toggle" aria-expanded={expanded} aria-controls={directoryId} onClick={() => setExpanded(v => !v)}><Icon name="book" size={17} />{expanded ? '收起日常目录' : '展开日常目录'}<Icon name="arrow" size={16} /></button>
-          <Link className="journal-cover-write" href="/memories/new">写下一页<Icon name="plus" size={17} /></Link>
+          <Link className="journal-cover-write" href="/memories/new">续写一页<Icon name="plus" size={17} /></Link>
         </div>
       </div>
       <JournalScene />
       <div className="journal-cover-foot"><span>YOUR DAYS, BEAUTIFULLY KEPT.</span><span>{items.length ? `${String(items.length).padStart(2, '0')} 段已加载的日常` : '等待下一段故事'}</span></div>
     </header>
     <section id={directoryId} className="journal-directory" data-expanded={expanded} aria-label="当前日常目录" hidden={!expanded}>
-      <div className="journal-directory-heading"><div><span>READ YOUR DAYS</span><h2>从哪一页开始？</h2></div><p>目录随当前筛选更新</p></div>
+      <div className="journal-directory-heading"><div><span>READ YOUR DAYS</span><h2>循笺寻旧日</h2></div><p>目录随当前筛选更新</p></div>
       <div className="journal-directory-views" role="group" aria-label="目录浏览方式">{[['grid', '卡片', 'grid'], ['timeline', '时间线', 'list'], ['gallery', '照片墙', 'image']].map(([value, label, icon]) => <button type="button" key={value} aria-pressed={view === value} onClick={() => onView(value)}><Icon name={icon} size={16} />{label}</button>)}</div>
       {items.length ? <ol>{items.map((memory, index) => <li key={memory.id}><span className="journal-directory-index">{String(index + 1).padStart(2, '0')}</span><div><time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: 'long', day: 'numeric' })}</time><Link href={'/memories/' + memory.id}>{memory.title || memory.content?.slice(0, 36) || '这一刻的影像'}</Link></div>{view !== 'gallery' && <button type="button" onClick={() => locate(memory)} aria-label={'定位到第 ' + (index + 1) + ' 条日常'}><Icon name="arrow" size={18} /></button>}</li>)}</ol> : <p className="journal-directory-empty">当前还没有已加载的日常，换个筛选或写下新的一页吧。</p>}
     </section>

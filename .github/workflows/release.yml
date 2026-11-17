@@ -32,6 +32,7 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm run check
+      - run: npm run test:layout
       - name: Check deployment backup and rollback
         run: bash scripts/test-deploy.sh
       - run: npm run release:pack

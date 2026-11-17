@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
+import { MemorySprite } from "@/components/memory-sprite";
 import { HomeHero } from "@/modules/memories/home-hero";
 import { CollectionCard } from "@/modules/memories/collection-card";
 import { api } from "@/lib/client";
@@ -45,8 +46,8 @@ export default function Home() {
       <div className="studio-main">
         <section className="studio-collection" aria-labelledby="collection-title">
           <div className="studio-section-heading">
-            <div className="keepsake-heading"><span className="keepsake-eyebrow">LIFE, FRAME BY FRAME</span><h2 id="collection-title">{user ? "最近的日常" : "大家的日常"}<Icon name="spark" size={18} /></h2></div>
-            <Link href={target} className="studio-text-link">查看全部<Icon name="arrow" size={16} /></Link>
+            <div className="keepsake-heading"><span className="keepsake-eyebrow">LIFE, FRAME BY FRAME</span><h2 id="collection-title">{user ? "近来拾光" : "人间片笺"}<Icon name="spark" size={18} /></h2></div>
+            <Link href={target} className="studio-text-link" aria-label="查看全部日常">翻阅全卷<Icon name="arrow" size={16} /></Link>
           </div>
           <div className="studio-filters" role="group" aria-label="最近记录类型">{categories.map(([value, label, icon]) => <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}><Icon name={icon} size={15} />{label}</button>)}</div>
           <div aria-busy={loading || !current}>
@@ -55,15 +56,15 @@ export default function Home() {
               : items.length ? <div className="studio-records" data-count={items.length}>{items.map((memory, index) => <CollectionCard key={memory.id} memory={memory} index={index} />)}</div>
               : kind !== "all" ? <div className="studio-empty studio-filter-empty" role="status">
                 <Icon name={categories.find(([value]) => value === kind)?.[2] || "book"} size={28} />
-                <h3>还没有{categories.find(([value]) => value === kind)?.[1]}记录</h3>
-                <p>换个分类，看看其他日常。</p>
+                <h3>这一页，尚有留白。</h3>
+                <p>暂未收录{categories.find(([value]) => value === kind)?.[1]}，可翻看其他篇章。</p>
                 <button type="button" className="studio-button" onClick={() => setKind("all")}>查看全部日常<Icon name="arrow" size={16} /></button>
               </div>
               : <div className="studio-empty">
-                <div className="empty-envelope" aria-hidden="true"><Icon name="book" size={36} /><span>✳</span></div>
-                <h3>{user ? "你的第一页，留给今天。" : "这里在等待第一份分享。"}</h3>
-                <p>{user ? "一张随手拍，一句突然想到的话，都很好。" : "先给自己留下一刻，想分享时再公开。"}</p>
-                <Link href={user ? "/memories/new" : "/register"} className="studio-button">{user ? "写下第一条" : "建立我的小天地"}<Icon name="plus" size={16} /></Link>
+                <div className="empty-envelope" aria-hidden="true"><MemorySprite pose="peek" /></div>
+                <h3>此间留白，候一日风来。</h3>
+                <p>{user ? "片刻尚未落笔，今日正好启卷。" : "收一程山水，留一页自己的光阴。"}</p>
+                <Link href={user ? "/memories/new" : "/register"} className="studio-button" aria-label={user ? "创建第一条日常" : "注册账户，开启自己的空间"}>{user ? "落笔成笺" : "为光阴落款"}<Icon name="plus" size={16} /></Link>
               </div>}
           </div>
         </section>
