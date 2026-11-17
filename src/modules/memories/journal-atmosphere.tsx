@@ -73,7 +73,7 @@ export function JournalAtmosphere({ title, items, publicScope, view, onView, own
     }
   }
   return <>
-    <header className={'journal-cover journal-editorial-cover motion-surface ' + (publicScope ? 'journal-open-horizon' : 'journal-personal-book')} aria-label={title}>
+    <header className={'journal-cover journal-editorial-cover motion-surface ' + (publicScope ? 'journal-open-horizon' : 'journal-personal-book')} data-motion-surface="" aria-label={title}>
       <span className="motion-spotlight" aria-hidden="true" />
       <div className="journal-cover-copy">
         <div className="journal-edition"><span className="journal-edition-number">{publicScope ? 'COMMON GROUND' : 'PRIVATE JOURNAL'}</span><span className="journal-edition-rule" />{publicScope ? <span>发现日常</span> : <span>{ownerName || '我的日常'} · 私人卷册</span>}</div>

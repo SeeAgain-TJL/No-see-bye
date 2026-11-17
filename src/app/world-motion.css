@@ -76,12 +76,19 @@
 @keyframes world-moon-arrive { from { opacity: 0; translate: 0 20px; } to { opacity: .32; translate: 0 0; } }
 @keyframes world-meteor { 0%,70%,100% { opacity: 0; transform: translate(-90px,-40px); } 76% { opacity: .65; } 88% { opacity: 0; transform: translate(60vw,25vh); } }
 @media (max-width: 760px) {
+  .app-shell .mobile-nav { padding-left: 6px; padding-right: 66px; }
+  :root[data-theme] .app-shell .mobile-nav a { min-width: 0; }
+  :root[data-theme] .app-shell .mobile-nav .mobile-add { margin-inline: 4px; }
+  .app-shell .world-toggle, .studio-auth .world-toggle { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; }
+  :root[data-theme] .world-toggle > span, .world-toggle > svg:last-child { display: none; }
+  .app-shell .world-toggle { z-index: 45; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); background: transparent; border-color: transparent; box-shadow: none; }
+  .app-shell .world-toggle[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent); }
   .world-leaf { width: 25px; height: 36px; }
   .world-boat { width: 80px; height: 65px; top: 72%; }
   .world-film-edge { width: 12px; opacity: .15; }.world-film-edge-left { left: 3px; }.world-film-edge-right { right: 3px; }
   .world-moon { width: 40px; height: 40px; right: 7%; }
   .world-toggle { min-height: 42px; }
-  .studio-auth .world-toggle { bottom: calc(18px + env(safe-area-inset-bottom)); right: 16px; }
+  .studio-auth .world-toggle { position: absolute; top: 78px; bottom: auto; right: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .world-ground, .world-choreography *, .world-toggle, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }

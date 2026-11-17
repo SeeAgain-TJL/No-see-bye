@@ -166,7 +166,10 @@ export function PostcardStudio({ user, data, close, onSaved }: { user: UserInfo;
     finally { if (source) URL.revokeObjectURL(source); exportPending.current = false; setExporting(false); }
   }
 
-  return <dialog ref={dialog} className='postcard-studio' aria-labelledby='ps-title' onClose={close} onClick={event => { if (event.target === event.currentTarget) dialog.current?.close(); }}>
+  return <dialog ref={dialog} className='postcard-studio' aria-labelledby='ps-title' onClose={event => {
+    // Effect replay may reopen the dialog before its queued close event arrives.
+    if (!event.currentTarget.open) close();
+  }} onClick={event => { if (event.target === event.currentTarget) dialog.current?.close(); }}>
     <header className='ps-header'><div><span>明信片 · THE LETTER ATELIER</span><h2 id='ps-title'>尺素寄相思。</h2></div><button type='button' className='icon-button' aria-label='关闭明信片工作台' onClick={() => dialog.current?.close()}><Icon name='close' size={23} /></button></header>
     <div className='ps-workspace'>
       <section className='ps-preview' aria-label='明信片预览'>
