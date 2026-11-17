@@ -8,7 +8,7 @@ import { registrationCredentials, type RegistrationCredentials, type Registratio
 import { Icon } from "./icons";
 import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
-import { Daydream } from "./daydream";
+import { MemoryPortal } from "./memory-portal";
 import { ThemeSwitcher } from "./theme-provider";
 import { ThemeMotif } from "./theme-motif";
 import { ImmersiveMotion } from "./immersive-motion";
@@ -99,9 +99,11 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           <div className="auth-story-copy">{archiveEditions.map(edition => <div className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>
             <span className="section-eyebrow">{edition.eyebrow}</span><h2>{edition.title}</h2><p>{edition.note}</p>
           </div>)}</div>
-          <Daydream compact />
+          <MemoryPortal />
           <div className="auth-story-colophon"><ThemeMotif /><div><span lang="en">A moment kept.<br />A world within.</span><small>此心所系，皆可成册。</small></div><Link href="/memories?scope=public" aria-label="浏览公开日常">借阅人间<Icon name="arrow" size={18} /></Link></div>
         </section>
+        <div className="auth-form-room">
+        <div className="auth-room-edition"><span>YOUR OWN LITTLE UNIVERSE</span><Icon name="spark" size={19} /></div>
         <form className="auth-form" onSubmit={submit}>
           <nav className="auth-mode-tabs" aria-label="账号入口"><Link href="/login" aria-current={!register ? "page" : undefined}>登录</Link><Link href="/register" aria-current={register ? "page" : undefined}>注册</Link></nav>
           <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "BEGIN A PRIVATE CHAPTER" : "ENTER YOUR MEMORY ARCHIVE"}</span>
@@ -171,7 +173,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
             </div>
           )}
-          <button className="button wide" disabled={busy || registration !== null}>
+          <button className="button wide auth-submit" disabled={busy || registration !== null}>
             {busy ? register ? "正在准备验证…" : "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
           </button>
@@ -192,6 +194,8 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           )}
           <div className="auth-form-colophon"><Icon name="lock" size={13} /><span>私密珍藏 · 随心公开</span><span lang="en">YOUR DAYS, YOURS.</span></div>
         </form>
+        <div className="auth-room-footer"><span>不说再见</span><span>EST. 2026</span></div>
+        </div>
       </div>
       {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}
         onCancel={() => setRegistration(null)} onComplete={finish}

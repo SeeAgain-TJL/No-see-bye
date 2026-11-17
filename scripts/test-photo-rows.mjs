@@ -33,3 +33,4 @@ const narrow = photoRows(Array(14).fill(.3), 1150, 230, 18);
 assert.equal(narrow.length, 1, 'A run of narrow portraits shares a full row instead of leaving repeated half-empty rows');
 assert(Math.abs(narrow[0].widths.reduce((a,b) => a+b,0) + 13*18 - 1150) < .001);
 console.log('PASS: ' + cases + ' justified photo rows (mixed orientations, full content, bounded height, mobile widths, invalid metadata, ordered coverage).');
+await import('./test-photo-gallery.mjs');

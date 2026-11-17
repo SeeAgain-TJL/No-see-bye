@@ -11,7 +11,7 @@ import type { MemoryList, UserInfo } from './types';
 
 export function HomeHero({ user, data, error, onRetry }: { user: UserInfo | null; data?: MemoryList; error?: string; onRetry: () => void }) {
   const [experience, setExperience] = useState<'postcard' | 'stories' | null>(null);
-  if (!user) return <section className='studio-hero keepsake-hero' aria-labelledby='hero-title'>
+  if (!user) return <section className='studio-hero keepsake-hero motion-surface' data-motion-surface='' aria-labelledby='hero-title'>
     <span className='hero-corner hero-corner-start' aria-hidden='true'>✧</span><span className='hero-corner hero-corner-end' aria-hidden='true'>✧</span>
     <div className='studio-hero-copy'><span className='studio-greeting'><span className='hero-edition'>NO SEE BYE</span><span className='hero-greeting-line' />记忆有回声</span>
       <h1 id='hero-title'>死亡不是终点，<br /><span>遗忘才是。</span></h1>
@@ -23,7 +23,7 @@ export function HomeHero({ user, data, error, onRetry }: { user: UserInfo | null
   return <section className='home-observatory' aria-labelledby='hero-title'>
     <header className='home-welcome'><div className='home-welcome-copy'><MemorySprite pose='peek' /><div><span className='welcome-eyebrow'>{user.displayName || user.username} · 岁月小集</span><h1 id='hero-title'>旧日如笺。</h1></div></div><div className='home-small-actions'><button type='button' aria-label='打开心情明信片' title='心情明信片' onClick={() => setExperience('postcard')}><Icon name='postcard' size={19} /><span>明信片</span></button><button type='button' aria-label='播放回忆' title='播放回忆' onClick={() => setExperience('stories')}><Icon name='play' size={18} /><span>回放</span></button></div></header>
     <MemoryAlbum data={data} error={error} onRetry={onRetry} />
-    {experience === 'stories' && <MemoryStories onClose={() => setExperience(null)} />}
+    {experience === 'stories' && <MemoryStories photosOnly onClose={() => setExperience(null)} />}
     {experience === 'postcard' && <PostcardStudio user={user} data={data} close={() => setExperience(null)} onSaved={onRetry} />}
   </section>;
 }

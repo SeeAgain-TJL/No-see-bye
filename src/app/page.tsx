@@ -18,6 +18,7 @@ export default function Home() {
   const ownerKey = (user?.id || "guest") + ":" + revision;
   const [response, setResponse] = useState<{ key: string; data?: MemoryList; error?: string } | null>(null);
   const [filtered, setFiltered] = useState<{ key: string; data?: MemoryList; error?: string } | null>(null);
+  const [albumResponse, setAlbumResponse] = useState<{ key: string; data?: MemoryList; error?: string } | null>(null);
   const filterKey = ownerKey + ":" + kind;
   useEffect(() => {
     if (loading) return;
@@ -25,6 +26,14 @@ export default function Home() {
     api<MemoryList>("/api/memories?scope=" + (user ? "mine" : "public"), { signal: abort.signal })
       .then(data => setResponse({ key: ownerKey, data }))
       .catch(error => { if (!abort.signal.aborted) setResponse({ key: ownerKey, error: error.message }); });
+    return () => abort.abort();
+  }, [loading, user, ownerKey]);
+  useEffect(() => {
+    if (loading || !user) return;
+    const abort = new AbortController();
+    api<MemoryList>("/api/memories?scope=mine&type=photo", { signal: abort.signal })
+      .then(data => setAlbumResponse({ key: ownerKey, data }))
+      .catch(error => { if (!abort.signal.aborted) setAlbumResponse({ key: ownerKey, error: error.message }); });
     return () => abort.abort();
   }, [loading, user, ownerKey]);
   useEffect(() => {
@@ -36,12 +45,13 @@ export default function Home() {
     return () => abort.abort();
   }, [loading, user, kind, filterKey]);
   const recent = response?.key === ownerKey ? response : null;
+  const album = albumResponse?.key === ownerKey ? albumResponse : null;
   const current = kind === "all" ? recent : filtered?.key === filterKey ? filtered : null;
   const data = current?.data;
   const target = user ? "/memories" : "/memories?scope=public";
   const items = data?.items.slice(0, 6) || [];
   return <AppShell><div className="studio-home">
-    <HomeHero key={user?.id || "guest"} user={user} data={recent?.data} error={recent?.error} onRetry={() => setRevision(v => v + 1)} />
+    <HomeHero key={user?.id || "guest"} user={user} data={album?.data} error={album?.error} onRetry={() => setRevision(v => v + 1)} />
     <div className="studio-content studio-guest">
       <div className="studio-main">
         <section className="studio-collection" aria-labelledby="collection-title">

@@ -387,7 +387,6 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                       <MediaGrid assets={m.assets} compact />
                       <div className="memory-card-copy">
-                        {!m.title && !m.content && m.assets.length > 0 && <><Link className='memory-title' href={'/memories/' + m.id}><h2>{m.assets.every(asset => asset.mime.startsWith('video/')) ? '流动的光阴' : '未题名的片刻'}</h2></Link><p className='memory-excerpt'>{m.assets.length} 帧影像 · {m.visibility === 'public' ? '与人间共读' : '私藏时光'}</p></>}
                         {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
                         {m.content && (
                           <p className="memory-excerpt">{m.content}</p>
