@@ -9,7 +9,7 @@ export function photoRows(input: number[], width: number, target = 220, gap = 16
   costs[ratios.length] = 0;
   for (let start = ratios.length - 1; start >= 0; start--) {
     let sum = 0;
-    for (let count = 1; count <= Math.min(6, ratios.length - start); count++) {
+    for (let count = 1; count <= ratios.length - start; count++) {
       sum += ratios[start + count - 1];
       const available = width - gap * (count - 1);
       if (available <= 0) break;

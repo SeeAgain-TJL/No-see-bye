@@ -1,0 +1,189 @@
+/* Private chapters and public horizons have different structures and rhythms. */
+:root[data-theme] .journal-experience .journal-editorial-cover { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr); gap: 24px 44px; min-height: 0; margin-bottom: 22px; padding: 30px 32px 54px; border-radius: 10px; background: var(--surface); border-color: var(--line); box-shadow: 0 12px 28px -25px var(--album-shadow); }
+:root[data-theme] .journal-editorial-cover::before { inset: 6px; border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 5px; }
+:root[data-theme] .journal-editorial-cover::after { display: none; }
+.journal-editorial-cover .journal-cover-copy { width: auto; min-width: 0; }
+.journal-editorial-cover .journal-edition { font-size: 9px; letter-spacing: .12em; gap: 11px; }
+.journal-editorial-cover .journal-edition-number { opacity: 1; white-space: nowrap; }
+.journal-editorial-cover .journal-edition-rule { width: 22px; height: 1px; background: currentColor; opacity: .4; flex-shrink: 0; }
+.journal-editorial-cover .journal-edition > span:last-child { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+:root[data-theme] .journal-editorial-cover h1 { font-family: 'STSong', 'SimSun', serif; font-size: clamp(36px, 3.7vw, 53px); font-weight: 400; line-height: 1.3; letter-spacing: .025em; margin: 22px 0 15px; }
+.journal-editorial-cover .journal-theme-story h2 { font: 400 14px/1.8 'STSong', 'SimSun', serif; letter-spacing: .03em; }
+.journal-editorial-cover .journal-theme-story p { font-size: 11px; max-width: 38em; }
+.journal-editorial-cover .journal-cover-actions { margin-top: 23px; gap: 18px; }
+.journal-editorial-cover .journal-directory-toggle { min-height: 42px; border-radius: 6px; font-size: 11px; padding-inline: 14px; }
+.journal-editorial-cover .journal-directory-toggle:disabled { cursor: default; opacity: .45; }
+.journal-editorial-cover .journal-cover-write { background: transparent; padding: 0; font-size: 11px; border: 0; cursor: pointer; }
+.journal-editorial-cover .journal-cover-foot { left: 32px; right: 32px; bottom: 14px; font-size: 8px; letter-spacing: .09em; padding-top: 10px; }
+.journal-cover-foot > a { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--accent); letter-spacing: .025em; }
+.journal-cover-foot > a svg { transition: translate .25s; }
+.journal-cover-foot > a:hover svg { translate: 4px 0; }
+.journal-editorial-cover :is(a, button):focus-visible, .journal-private-gate a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* Personal: a bound volume and a navigable index of actual chapters. */
+.journal-personal-book .journal-cover-copy { padding-left: 10px; border-left: 2px solid color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.journal-month-index { position: relative; min-width: 0; align-self: stretch; border-left: 1px solid var(--line); padding: 0 0 0 26px; isolation: isolate; }
+.journal-month-index .journal-cover-scene { z-index: -1; opacity: .075; width: 95%; inset: -18px -34px auto auto; height: 230px; overflow: hidden; }
+.journal-month-index .journal-scene-caption { display: none; }
+.journal-index-heading { display: flex; align-items: center; justify-content: space-between; color: var(--ink-muted); font-size: 8px; letter-spacing: .14em; }
+.journal-index-heading .theme-motif { width: 22px; height: 22px; color: var(--accent); }
+.journal-index-title { margin: 5px 0 14px; font: 21px/1.6 'STKaiti', 'KaiTi', serif; color: var(--ink); }
+.journal-months { display: grid; gap: 2px; }
+.journal-months > button { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 45px; padding: 7px 3px; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; transition: padding .25s, background .25s, color .25s; }
+.journal-months .chapter-number { color: var(--warm); align-self: flex-start; font: 10px/1.6 var(--font-display), sans-serif; }
+.journal-months > button > span:nth-child(2) { flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.journal-months strong { font: 400 17px/1.4 'STSong', 'SimSun', serif; white-space: nowrap; }
+.journal-months small { color: var(--ink-muted); font-size: 9px; white-space: nowrap; }
+.journal-months > button > svg { color: var(--accent); flex-shrink: 0; transition: translate .25s; }
+.journal-months > button[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent); padding-inline: 8px; }
+.journal-index-bookmark { display: flex; align-items: center; gap: 9px; min-height: 39px; padding: 10px 0 0; color: var(--accent); background: transparent; font-size: 10px; }
+.journal-index-bookmark > svg:last-child { margin-left: auto; }
+.journal-index-bookmark[aria-pressed='true'] > svg:first-child { fill: var(--accent-soft); }
+.journal-index-empty { color: var(--ink-muted); font: 18px/2 'STKaiti', 'KaiTi', serif; padding-block: 32px; margin: 0; }
+:root[data-theme='film'] .journal-personal-book { border-left: 4px double var(--accent); border-radius: 2px; }
+:root[data-theme='night'] .journal-personal-book { background: linear-gradient(130deg, var(--surface), var(--hero)); box-shadow: inset 0 1px 0 #ffffff0b; }
+:root[data-theme='dusk'] .journal-personal-book { background: repeating-linear-gradient(0deg, transparent 0 27px, color-mix(in srgb, var(--line) 22%, transparent) 27px 28px), var(--surface); }
+
+/* Discovery: an unbound atlas, a compass, and paths found in public records. */
+:root[data-theme] .journal-experience .journal-open-horizon { grid-template-columns: minmax(0, 1.1fr) minmax(230px, .8fr); gap: 25px 58px; padding: 10px 0 43px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; }
+:root[data-theme] .journal-open-horizon::before { display: none; }
+:root[data-theme] .journal-open-horizon h1 { font-size: clamp(39px, 4vw, 59px); margin-top: 20px; }
+.journal-open-horizon .journal-cover-foot { left: 0; right: 0; border-top: 0; bottom: 12px; }
+.journal-open-horizon .journal-theme-story p { font: italic 12px/1.9 Georgia, serif; color: var(--ink-muted); max-width: 29em; }
+.discovery-compass { position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-inline: 4px; }
+.discovery-compass-art { position: relative; width: 190px; height: 180px; margin: 0 auto 15px; display: grid; place-items: center; color: var(--accent); }
+.discovery-compass-art > svg { width: 70px; height: 70px; stroke-width: .8; opacity: .65; }
+.compass-orbit { position: absolute; width: 154px; height: 154px; border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 50%; }
+.compass-orbit-two { width: 180px; height: 180px; border-style: dashed; border-color: color-mix(in srgb, var(--accent) 18%, transparent); }
+.compass-orbit-three { width: 110px; height: 110px; background: radial-gradient(circle, var(--accent-soft), transparent 70%); z-index: -1; }
+.compass-north, .compass-south { position: absolute; font: 9px/1 Georgia, serif; background: var(--page); padding: 4px; color: var(--ink-muted); }
+.compass-north { top: -4px; }
+.compass-south { bottom: -4px; }
+.compass-star { position: absolute; right: 20px; top: 24px; color: var(--warm); font-size: 23px; }
+.discovery-topic-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink-muted); font-size: 9px; letter-spacing: .06em; border-top: 1px solid var(--line); padding-top: 11px; }
+.discovery-topic-heading > span:first-child { font-size: 8px; letter-spacing: .14em; }
+.discovery-topics { display: flex; flex-wrap: wrap; gap: 5px 8px; margin-top: 9px; }
+.discovery-topics button { max-width: 100%; display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--accent); font-size: 10px; transition: background .25s, gap .25s, border-color .25s; }
+.discovery-topics button > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 19em; }
+.discovery-topics button > svg { flex-shrink: 0; }
+.discovery-topics button[aria-pressed='true'] { background: var(--accent-soft); border-color: var(--accent); }
+.discovery-no-topics { color: var(--ink-muted); font: 15px/1.8 'STKaiti', 'KaiTi', serif; margin: 13px 0 0; }
+.discovery-card-byline { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: calc(100% - 50px); color: var(--ink); }
+.discovery-author-initial { display: grid; place-items: center; width: 31px; height: 31px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--accent-soft); color: var(--accent); font: 16px/1 'STSong', 'SimSun', serif; }
+.discovery-card-byline > span:last-child { min-width: 0; }
+.discovery-card-byline strong { display: block; font-size: 11px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.discovery-card-byline time { display: block; font-size: 9px; margin-top: 4px; color: var(--ink-muted); }
+.journal-discovery .journal-card-mark { display: none; }
+
+/* Records follow their content, rather than stretching an empty text block. */
+:root[data-theme] .journal-experience .memory-feed.grid { align-items: start; }
+:root[data-theme] .journal-experience .memory-feed.grid > .memory-wrapper { align-self: start; }
+:root[data-theme] .journal-experience .memory-feed.grid .memory-card { flex: none; min-height: 0; }
+:root[data-theme] .journal-experience .memory-card-copy { flex: 0 0 auto; min-height: 0; padding: 13px 17px; }
+:root[data-theme] .journal-experience .memory-card-copy:empty { display: none; }
+:root[data-theme] .journal-experience .memory-card-copy h2 { font-size: 16px; -webkit-line-clamp: 1; line-height: 1.7; }
+:root[data-theme] .journal-experience .memory-card-copy .memory-excerpt { font-size: 12px; line-height: 1.85; -webkit-line-clamp: 2; margin: 5px 0 0; }
+:root[data-theme] .journal-experience .text-memory .memory-card-copy { min-height: 0; padding-block: 20px; }
+:root[data-theme] .journal-experience .text-memory .memory-card-copy h2 { font-size: 20px; }
+:root[data-theme] .journal-experience .text-memory .memory-excerpt { -webkit-line-clamp: 5; font: 17px/1.9 'STKaiti', 'KaiTi', serif; }
+:root[data-theme] .journal-experience .memory-card-bottom { margin-top: 0; margin-inline: 17px; min-height: 45px; padding-block: 7px; }
+.journal-experience .memory-card-top { padding: 14px 17px; }
+.journal-experience .tags { margin-top: 10px; }
+.journal-experience .stats-strip { gap: 22px; }
+.journal-experience .feed-end { gap: 12px; flex-wrap: wrap; color: var(--ink-muted); font: 12px/1.8 'STSong', 'SimSun', serif; }
+.journal-experience .feed-end > span[lang] { font: 8px/1.8 var(--font-display), sans-serif; letter-spacing: .15em; }
+
+/* The unauthenticated personal route is a private-volume threshold, not a copy of discovery. */
+.journal-private-gate { position: relative; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(220px, .8fr); align-items: center; gap: 50px; min-height: min(660px, calc(100svh - 175px)); padding: 44px 48px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; }
+.private-gate-copy { position: relative; z-index: 2; }
+.private-gate-edition { color: var(--accent); font: 10px/1.8 var(--font-display), sans-serif; letter-spacing: .13em; }
+.private-gate-copy h1 { margin: 30px 0 20px; font: 400 clamp(34px, 3.7vw, 54px)/1.4 'STSong', 'SimSun', serif; letter-spacing: .025em; }
+.private-gate-copy p { color: var(--ink-muted); font: 15px/2 'STKaiti', 'KaiTi', serif; margin: 0; }
+.private-gate-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; margin-top: 30px; }
+.private-gate-actions .studio-button { font-size: 12px; }
+.private-gate-actions .studio-text-link { font-size: 11px; }
+.private-gate-footnote { display: block; margin-top: 50px; color: var(--ink-muted); font-size: 8px; letter-spacing: .18em; }
+.private-gate-book { position: relative; justify-self: center; width: 240px; height: 330px; transform: perspective(900px) rotateY(-12deg) rotate(6deg); transition: transform .7s cubic-bezier(.16,1,.3,1); filter: drop-shadow(15px 22px 15px color-mix(in srgb, var(--album-shadow) 18%, transparent)); }
+.private-book-cover { position: absolute; inset: 0; border: 1px solid var(--line); border-left: 10px solid color-mix(in srgb, var(--accent) 60%, var(--surface)); border-radius: 2px 10px 10px 2px; background: linear-gradient(100deg, var(--surface-dim), var(--surface)); padding: 26px; color: var(--accent); }
+.private-book-cover::before { content: ''; position: absolute; inset: 9px; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); pointer-events: none; }
+.private-book-cover > span:first-child { font: 8px/1.9 var(--font-display), sans-serif; letter-spacing: .16em; }
+.private-book-cover > .theme-motif { position: absolute; right: 24px; top: 30px; width: 27px; height: 27px; }
+.private-book-cover > strong { display: block; padding: 37px 0 34px; font: 400 42px/1.4 'STSong', 'SimSun', serif; letter-spacing: .18em; }
+.private-book-lock { display: flex; align-items: center; gap: 7px; padding-top: 15px; border-top: 1px solid var(--line); font-size: 6px; letter-spacing: .1em; }
+.private-book-spine { position: absolute; inset: 9px -7px -7px 13px; border-radius: 0 8px 8px 0; background: repeating-linear-gradient(0deg, var(--surface) 0 2px, var(--line) 2px 3px); border: 1px solid var(--line); }
+.private-book-bookmark { position: absolute; width: 24px; height: 62px; background: var(--warm); right: 27px; bottom: -32px; z-index: -1; clip-path: polygon(0 0,100% 0,100% 100%,50% 80%,0 100%); }
+
+@media (hover: hover) {
+  .journal-months > button:hover { background: var(--accent-soft); padding-inline: 8px; }
+  .journal-months > button:hover > svg { translate: 3px 0; }
+  .discovery-topics button:hover { gap: 11px; border-color: var(--accent); }
+  .journal-private-gate:has(a:hover) .private-gate-book { transform: perspective(900px) rotateY(-3deg) rotate(1deg) translateY(-5px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .discovery-compass-art .compass-orbit-two { animation: compass-wander 45s linear infinite; }
+  .compass-star { animation: compass-breathe 4s ease-in-out infinite; }
+}
+@keyframes compass-wander { to { rotate: 360deg; } }
+@keyframes compass-breathe { 0%,100% { opacity: .4; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+@media (max-width: 1050px) {
+  :root[data-theme] .journal-experience .journal-editorial-cover { gap: 24px; padding-inline: 25px; grid-template-columns: minmax(0, 1.1fr) minmax(220px, .8fr); }
+  :root[data-theme] .journal-experience .journal-open-horizon { padding-inline: 0; }
+  .journal-editorial-cover .journal-cover-foot { left: 25px; right: 25px; }
+  .journal-open-horizon .journal-cover-foot { left: 0; right: 0; }
+  .journal-month-index { padding-left: 20px; }
+  .journal-months small { font-size: 8px; }
+  .journal-private-gate { padding-inline: 20px; gap: 25px; }
+}
+@media (max-width: 760px) {
+  :root[data-theme] .journal-experience .journal-editorial-cover { display: flex; flex-direction: column; gap: 21px; padding: 24px 21px 48px; border-radius: 8px; }
+  .journal-editorial-cover .journal-cover-copy { width: 100%; }
+  :root[data-theme] .journal-editorial-cover h1 { font-size: clamp(34px, 9vw, 42px); margin: 17px 0 12px; }
+  .journal-editorial-cover .journal-edition { font-size: 8px; gap: 8px; letter-spacing: .07em; }
+  .journal-editorial-cover .journal-theme-story h2 { font-size: 13px; max-width: none; }
+  .journal-editorial-cover .journal-theme-story p { font-size: 10px; max-width: none; }
+  .journal-personal-book .journal-theme-story p { display: none; }
+  .journal-editorial-cover .journal-cover-actions { margin-top: 18px; gap: 17px; }
+  .journal-editorial-cover .journal-cover-foot { left: 21px; right: 21px; bottom: 13px; gap: 7px; }
+  .journal-editorial-cover .journal-cover-foot > span { font-size: 6px; letter-spacing: .03em; }
+  .journal-cover-foot > a { font-size: 9px; gap: 4px; }
+  .journal-month-index { width: 100%; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .journal-month-index .journal-cover-scene, .journal-index-heading, .journal-index-title { display: none; }
+  .journal-months { display: flex; flex: 1; min-width: 0; gap: 12px; overflow: auto; scrollbar-width: thin; }
+  .journal-months > button { min-width: 114px; padding: 6px 0; border: 0; }
+  .journal-months > button > span:nth-child(2) { display: block; }
+  .journal-months strong { font-size: 19px; }
+  .journal-months small { display: block; margin-top: 3px; }
+  .journal-months > button > svg { display: none; }
+  .journal-months .chapter-number { font-size: 8px; padding-top: 2px; }
+  .journal-index-bookmark { min-width: 42px; min-height: 44px; padding: 0 10px; font-size: 0; justify-content: center; border: 1px solid var(--line); border-radius: 5px; }
+  .journal-index-bookmark > svg:last-child { display: none; }
+  .journal-index-empty { padding: 2px 0; font-size: 14px; flex: 1; }
+  :root[data-theme] .journal-experience .journal-open-horizon { padding: 3px 0 42px; border-radius: 0; gap: 19px; }
+  .journal-open-horizon .journal-cover-foot { left: 0; right: 0; }
+  .discovery-compass { width: 100%; padding: 0; }
+  .discovery-compass-art { display: none; }
+  .discovery-topic-heading { font-size: 9px; padding-top: 13px; }
+  .discovery-topics { gap: 7px; }
+  .discovery-topics button { min-height: 36px; padding: 7px 11px; }
+  .journal-experience .memory-card-top { padding: 12px 13px; }
+  :root[data-theme] .journal-experience .memory-card-copy { padding: 10px 13px; }
+  :root[data-theme] .journal-experience .memory-card-copy h2 { font-size: 14px; }
+  :root[data-theme] .journal-experience .memory-card-copy .memory-excerpt { font-size: 11px; }
+  :root[data-theme] .journal-experience .memory-card-bottom { margin-inline: 13px; min-height: 42px; }
+  .discovery-card-byline { max-width: calc(100% - 24px); gap: 7px; }
+  .discovery-author-initial { width: 25px; height: 25px; font-size: 14px; }
+  .discovery-card-byline strong { font-size: 10px; }
+  .discovery-card-byline time { font-size: 8px; }
+  .journal-discovery .privacy-badge { font-size: 0; padding-inline: 5px; }
+  .journal-private-gate { display: block; padding: 35px 7px; min-height: calc(100svh - 190px); }
+  .private-gate-copy h1 { font-size: clamp(30px, 8vw, 42px); }
+  .private-gate-copy p { font-size: 14px; }
+  .private-gate-book { position: absolute; right: -40px; bottom: 20px; width: 190px; height: 260px; opacity: .16; pointer-events: none; }
+  .private-book-cover { padding: 22px; }
+  .private-book-cover > strong { padding-block: 24px; font-size: 30px; }
+  .private-gate-footnote { margin-top: 45px; font-size: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journal-experience :is(.journal-months > button, .discovery-topics button, .private-gate-book, .journal-cover-foot > a svg, .journal-months > button > svg) { transition: none; }
+  .journal-private-gate:has(a:hover) .private-gate-book { transform: perspective(900px) rotateY(-12deg) rotate(6deg); }
+}

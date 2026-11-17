@@ -23,7 +23,10 @@ import './immersive-motion.css';
 import './postcard-studio.css';
 import './intrinsic-photos.css';
 import './memory-sprite.css';
+import './journal-editorial.css';
 import './editorial-gallery.css';
+import './auth-editorial.css';
+import './world-motion.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

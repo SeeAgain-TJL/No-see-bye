@@ -8,8 +8,8 @@
 .album-exhibit-image { position: relative; display: block; width: min(100%, calc(var(--exhibit-height) * var(--exhibit-ratio))); height: auto; aspect-ratio: var(--exhibit-ratio); padding: 0; border: 0; background: var(--surface-dim); border-radius: 3px; box-shadow: 0 7px 18px -10px var(--album-shadow); touch-action: pan-y; overflow: hidden; }
 .album-exhibit-image > .decoded-image { display: block; width: 100%; height: 100%; }
 .album-exhibit-image .decoded-image > img { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: none; }
-.album-spread[data-orientation='portrait'] { grid-template-columns: minmax(150px, .8fr) minmax(0, 1fr); }
-.album-spread[data-orientation='portrait'] .album-exhibit { justify-items: end; background: none; }
+.album-spread[data-orientation='portrait'] { grid-template-columns: minmax(150px, .7fr) minmax(0, 1.3fr); }
+.album-spread[data-orientation='portrait'] .album-exhibit { justify-items: center; }
 .exhibit-corner { position: absolute; z-index: 0; width: 22px; height: 22px; border-color: var(--warm); opacity: .5; pointer-events: none; }
 .exhibit-corner-one { left: 0; top: 0; border-left: 1px solid; border-top: 1px solid; }
 .exhibit-corner-two { right: 0; bottom: 0; border-right: 1px solid; border-bottom: 1px solid; }
@@ -71,7 +71,7 @@
 .journal-experience .memory-feed.grid { align-items: start; }
 .journal-experience .memory-feed.grid .memory-card-copy:empty { display: none; }
 .justified-wall { display: flex; flex-direction: column; gap: 22px; width: 100%; min-width: 0; overflow: hidden; }
-.justified-row { display: grid; align-items: start; max-width: 100%; }
+.justified-row { display: grid; align-items: start; justify-content: center; max-width: 100%; }
 :root[data-theme] .journal-experience .justified-wall .wall-item { padding: 0; margin: 0; min-width: 0; border: 0; border-radius: 4px; background: var(--surface); }
 .justified-wall .wall-preview-well { --preview-height: var(--row-height); height: var(--row-height); }
 :root[data-theme] .justified-wall .wall-preview-well .framed-preview { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 2px; box-shadow: none; }

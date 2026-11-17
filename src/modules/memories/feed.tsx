@@ -19,7 +19,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const { user, loading, notify } = useApp();
   const scope = trash
     ? "trash"
-    : params.get("scope") === "public" || (!loading && !user)
+    : params.get("scope") === "public"
       ? "public"
       : "mine";
   const type = params.get("type") || "all";
@@ -40,7 +40,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const url = `/api/memories?${query.toString()}`;
   const key = `${url}:${user?.id || "guest"}:${refreshKey}`;
   useEffect(() => {
-    if (loading || (trash && !user)) return;
+    if (loading || (scope !== 'public' && !user)) return;
     const abort = new AbortController();
     api<MemoryList>(url, { signal: abort.signal })
       .then((data) => setResult({ key, data }))
@@ -48,7 +48,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
         if (!abort.signal.aborted) setResult({ key, error: e.message });
       });
     return () => abort.abort();
-  }, [key, url, loading, user, trash]);
+  }, [key, url, loading, user, scope]);
   const current = result?.key === key ? result : null;
   const data = current?.data;
   function filter(name: string, value: string) {
@@ -117,9 +117,13 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       setPending(null);
     }
   }
+  if (!loading && !user && scope === 'mine') return <section className='journal-private-gate journal-experience' aria-labelledby='private-journal-title'>
+    <div className='private-gate-copy'><span className='private-gate-edition'>PRIVATE JOURNAL · 我的日常</span><h1 id='private-journal-title'>每个人，<br />都有未公开的章节。</h1><p>有些风景，留给自己。<br />有些回声，待你归来。</p><div className='private-gate-actions'><Link href='/login' className='studio-button' aria-label='登录后查看我的日常'>执钥归来<Icon name='arrow' size={17} /></Link><Link href='/memories?scope=public' className='studio-text-link' aria-label='浏览发现日常'>先阅人间<Icon name='globe' size={16} /></Link></div><span className='private-gate-footnote'>A LIFE IS MORE THAN WHAT IS SEEN.</span></div>
+    <div className='private-gate-book' aria-hidden='true'><div className='private-book-spine' /><div className='private-book-cover'><span>NO SEE BYE<br />THE UNWRITTEN SELF</span><ThemeMotif /><strong>此心<br />独白</strong><span className='private-book-lock'><Icon name='lock' size={19} />ONLY YOU HOLD THE KEY.</span></div><span className='private-book-bookmark' /></div>
+  </section>;
   return (
-    <div className={'journal-experience' + (trash ? ' journal-trash' : '')} data-journal-view={view}>
-      {!trash && <JournalAtmosphere title={scope === 'public' ? '发现日常' : '我的日常'} items={data?.items || []} publicScope={scope === 'public'} view={view} onView={value => filter('view', value === 'grid' ? '' : value)} />}
+    <div className={'journal-experience' + (trash ? ' journal-trash' : scope === 'public' ? ' journal-discovery' : ' journal-personal')} data-journal-view={view}>
+      {!trash && <JournalAtmosphere key={scope} title={scope === 'public' ? '发现日常' : '我的日常'} items={data?.items || []} publicScope={scope === 'public'} view={view} ownerName={user?.displayName || user?.username} month={params.get('month') || ''} search={params.get('q') || ''} pinned={!!params.get('pinned')} onFilter={filter} onView={value => filter('view', value === 'grid' ? '' : value)} />}
       <section className="page-heading journal-page-heading">
         <div>
           <h1>
@@ -136,7 +140,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
         {!trash && (
           <Link className="button" href="/memories/new">
             <Icon name="plus" size={18} />
-            记录一下
+            续写此刻
           </Link>
         )}
       </section>
@@ -152,17 +156,17 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
         <>
           {!trash && scope === "mine" && (
             <div className="stats-strip">
-              <div>
+              <div aria-label="日常总数">
                 <strong>{data?.stats?.total ?? "—"}</strong>
-                <span>条记录</span>
+                <span>篇拾遗</span>
               </div>
-              <div>
+              <div aria-label="照片总数">
                 <strong>{data?.stats?.photos ?? "—"}</strong>
-                <span>张照片</span>
+                <span>帧留影</span>
               </div>
-              <div>
+              <div aria-label="视频总数">
                 <strong>{data?.stats?.videos ?? "—"}</strong>
-                <span>个视频</span>
+                <span>段流光</span>
               </div>
               <div className="storage-stat">
                 <Icon name="lock" size={16} />
@@ -185,16 +189,17 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           <div className="feed-toolbar">
             <div className="filter-tabs" role="group" aria-label="记录类型">
               {[
-                ["all", "全部"],
-                ["photo", "照片"],
-                ["video", "影像"],
-                ["text", "文字"],
-              ].map(([value, title]) => (
+                ["all", "全卷", "全部记录"],
+                ["photo", "留影", "照片"],
+                ["video", "流光", "视频"],
+                ["text", "尺素", "文字"],
+              ].map(([value, title, description]) => (
                 <button
                   key={value}
                   type="button"
                   className={type === value ? "selected" : ""}
                   aria-pressed={type === value}
+                  aria-label={'筛选' + description}
                   onClick={() => filter("type", value === "all" ? "" : value)}
                 >
                   {title}
@@ -205,7 +210,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               <button
                 type="button"
                 className={`icon-button ${params.get("pinned") ? "selected" : ""}`}
-                aria-label="只看收藏"
+                aria-label={scope === 'public' ? '只看作者标记的珍藏' : '只看收藏'}
+                title={scope === 'public' ? '作者标记的珍藏' : '只看收藏'}
                 aria-pressed={!!params.get("pinned")}
                 onClick={() =>
                   filter("pinned", params.get("pinned") ? "" : "1")
@@ -255,9 +261,9 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 maxLength={100}
                 defaultValue={params.get("q") || ""}
                 aria-label="搜索记忆"
-                placeholder="搜索文字、地点或标签…"
+                placeholder="循一字、一处地名，寻回某页…"
               />
-              <button type="submit">搜索</button>
+              <button type="submit" aria-label="搜索日常">寻页</button>
             </form>
             <DateFilter month={params.get('month') || ''} day={params.get('day') || ''} onChange={(month, day) => {
               const next = new URLSearchParams(params.toString()); next.delete('cursor'); next.delete('month'); next.delete('day');
@@ -269,15 +275,16 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               params.get("pinned")) && (
               <Link
                 className="text-link small"
+                aria-label="清除筛选"
                 href={trash ? "/memories/trash" : `/memories?scope=${scope}${view === "grid" ? "" : "&view=" + view}`}
               >
-                清除筛选
+                重启全卷
               </Link>
             )}
           </div>
           {current?.error ? (
             <div className="empty-state">
-              <h2>暂时没能打开相册</h2>
+              <h2>风声稍歇，书页未启。</h2>
               <p role="alert">{current.error}</p>
               <button
                 className="button secondary"
@@ -294,7 +301,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           ) : !data ? (
             <div className="loading-panel" role="status">
               <span className="loading-ring" />
-              加载中…
+              正在拾起散落的时光…
             </div>
           ) : !data.items.length ? (
             <div className="empty-state">
@@ -313,9 +320,9 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               </h2>
 
               {!trash && (
-                <Link className="button" href="/memories/new">
-                  <Icon name="plus" size={17} />
-                  创建记录
+                <Link className="button" href={scope === 'public' ? '/memories?scope=public' : '/memories/new'} aria-label={scope === 'public' ? '清除筛选，查看全部公开日常' : '创建日常'}>
+                  <Icon name={scope === 'public' ? 'globe' : 'plus'} size={17} />
+                  {scope === 'public' ? '重阅人间' : '落笔成笺'}
                 </Link>
               )}
             </div>
@@ -345,7 +352,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
                       <span className="motion-spotlight" aria-hidden="true" />
                       <div className="memory-card-top">
-                        <Link
+                        {scope === 'public' ? <Link className='discovery-card-byline' href={'/memories/' + m.id}><span className='discovery-author-initial' aria-hidden='true'>{Array.from(m.user.displayName || m.user.username)[0]}</span><span><strong>{m.user.displayName || m.user.username}</strong><time dateTime={m.happenedAt}>{dateText(m.happenedAt, { month: 'short', day: 'numeric' })} · 人间来笺</time></span></Link> : <Link
                           className="memory-date"
                           href={`/memories/${m.id}`}
                         >
@@ -358,7 +365,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                               {dateText(m.happenedAt, { weekday: "short" })}
                             </small>
                           </span>
-                        </Link>
+                        </Link>}
                         <div className="badges">
                           {m.pinned && (
                             <span title="已收藏">
@@ -455,7 +462,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                             href={`/memories/${m.id}`}
                             className="text-link small"
                           >
-                            读一读 <Icon name="arrow" size={14} />
+                            入卷 <Icon name="arrow" size={14} />
                           </Link>
                         )}
                       </div>
@@ -472,13 +479,13 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 disabled={moreBusy}
                 onClick={loadMore}
               >
-                {moreBusy ? "加载中…" : "再看一点"}
+                {moreBusy ? "拾页中…" : "续阅未尽"}
                 <Icon name="arrow" size={16} />
               </button>
             </div>
           )}
           {data && data.items.length > 0 && !data.nextCursor && (
-            <div className="feed-end">已经到底啦，等你更新下一条 ✦</div>
+            <div className="feed-end"><span aria-hidden='true'>✦</span>{scope === 'public' ? '目光所及，皆为人间。' : trash ? '旧页已收，余白犹在。' : '此卷暂歇，来日续章。'}<span lang='en'>TO BE CONTINUED</span></div>
           )}
         </>
       )}

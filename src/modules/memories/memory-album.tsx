@@ -9,7 +9,7 @@ import { MediaViewer, previewUrl } from './media';
 import type { Memory, MemoryList } from './types';
 
 function Album({ items }: { items: Memory[] }) {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(() => Math.max(0, items.findIndex(memory => memory.assets.some(asset => asset.mime.startsWith('image/') || asset.thumbnailUrl))));
   const [ratios, setRatios] = useState<Record<string, number>>({});
   const [viewing, setViewing] = useState<Memory | null>(null);
   const thumbs = useRef<HTMLDivElement>(null);
@@ -23,7 +23,14 @@ function Album({ items }: { items: Memory[] }) {
   function choose(next: number) {
     const value = (next + items.length) % items.length;
     setIndex(value);
-    requestAnimationFrame(() => thumbs.current?.children[value]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+    requestAnimationFrame(() => {
+      const strip = thumbs.current, thumb = strip?.children[value];
+      if (!strip || !thumb) return;
+      const left = thumb.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
+      const right = left + thumb.getBoundingClientRect().width;
+      const nextLeft = left < strip.scrollLeft ? left : right > strip.scrollLeft + strip.clientWidth ? right - strip.clientWidth : strip.scrollLeft;
+      strip.scrollTo({ left: nextLeft, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    });
   }
   return <>
     <section className='memory-album editorial-album' aria-labelledby={titleId} aria-roledescription='轮播相册' onKeyDown={e => {
@@ -43,7 +50,7 @@ function Album({ items }: { items: Memory[] }) {
             <span className='exhibit-zoom'><Icon name='image' size={14} />轻触放大</span>
           </button> : <Link href={'/memories/' + selected.id} className='album-letter-preview'><Icon name='edit' size={26} /><p>{selected.content || selected.title || '留一页，给往后的自己。'}</p><span>READ THE LETTER <Icon name='arrow' size={16} /></span></Link>}
         </div>
-        <div className='album-exhibit-copy' key={selected.id}>
+        <div className='album-exhibit-copy'>
           <span className='exhibit-edition'>CHAPTER {String(index + 1).padStart(2, '0')} <span>/ {String(items.length).padStart(2, '0')}</span></span>
           <h2 id={titleId}>{selected.title || (isVideo ? '流动的旧时光' : asset ? '那一日，光曾来过。' : '纸上有余温。')}</h2>
           <time dateTime={selected.happenedAt}>{dateText(selected.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time>
