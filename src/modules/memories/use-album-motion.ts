@@ -58,14 +58,17 @@ export function useAlbumMotion(index: number, count: number, onSelect: (index: n
       if (reduced.matches) { stop(); current = target; speed = 0; paint(); }
       else if (!frame) frame = requestAnimationFrame(tick);
     };
+    const measureDragStep = () => {
+      const active = selection.current;
+      const a = widths[active], b = widths[wrap(active + 1, count)];
+      step = Math.max(100, mobile ? a * .87 : (a + b) / 2 - Math.min(28, Math.min(a, b) * .2));
+    };
     const resize = () => {
       mobile = window.matchMedia('(max-width: 760px)').matches;
       cardWidth = mobile ? Math.min(286, element.clientWidth - 66) : Math.min(350, element.clientWidth * .43);
       element.style.setProperty('--album-card-width', `${cardWidth}px`);
       widths = cards.map(card => card.offsetWidth || cardWidth);
-      const active = selection.current;
-      const a = widths[active], b = widths[wrap(active + 1, count)];
-      step = Math.max(100, mobile ? a * .87 : (a + b) / 2 - Math.min(28, Math.min(a, b) * .2));
+      measureDragStep();
       paint();
     };
     const observer = new ResizeObserver(resize);
@@ -80,6 +83,7 @@ export function useAlbumMotion(index: number, count: number, onSelect: (index: n
         if (e.button !== 0 || !e.isPrimary) return;
         moved = false;
         if (count < 2) return;
+        measureDragStep();
         stop(); speed = 0;
         gesture = { id: e.pointerId, x: e.clientX, y: e.clientY, position: current, lastX: e.clientX, time: e.timeStamp, velocity: 0, index: selection.current };
       },

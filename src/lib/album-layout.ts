@@ -18,7 +18,7 @@ export function albumPositions(widths: number[], position: number, mobile = fals
     const offset = albumOffset(index, position, count), distance = Math.abs(offset);
     let x = 0;
     if (mobile) {
-      const currentWidth = widthAt(Math.round(position));
+      const currentWidth = widthAt(base) * (1 - fraction) + widthAt(base + 1) * fraction;
       x = Math.sign(offset) * (Math.sin(Math.min(distance, 1) * Math.PI) * currentWidth * .5 + Math.min(distance, 1) * 13);
     } else {
       const steps = Math.round(position + offset) - base;
@@ -30,7 +30,7 @@ export function albumPositions(widths: number[], position: number, mobile = fals
       x, y: Math.min(distance, 2) * (mobile ? -10 : 7),
       angle: Math.max(-2, Math.min(2, offset)) * 3,
       scale: 1 - Math.min(distance, 2) * (mobile ? .085 : .08),
-      opacity: Math.max(0, Math.min(1, (1.8 - distance) * 1.5)),
+      opacity: Math.max(0, Math.min(1, (count === 3 ? (1.5 - distance) * 2 : (1.8 - distance) * 1.5))),
       z: 30 - Math.round(distance * 10), interactive: distance < 1.6,
     };
   });

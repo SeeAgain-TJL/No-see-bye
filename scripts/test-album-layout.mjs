@@ -46,6 +46,21 @@ for (const widths of [[23, 24, 335], [25, 27, 29], [335, 24]]) {
     }
   }
 }
+// A spring and a pointer drag cross half-index positions; mixed widths must
+// not switch their displacement multiplier abruptly at those boundaries.
+for (const widths of [[335, 140, 210, 300, 155], [335, 140, 165]]) {
+  for (const boundary of [-.5, .5, 1.5, widths.length - .5, widths.length]) {
+    for (const mobile of [true, false]) {
+      const before = albumPositions(widths, boundary - .000001, mobile);
+      const after = albumPositions(widths, boundary + .000001, mobile);
+      before.forEach((position, index) => {
+        if (position.opacity > .01 || after[index].opacity > .01) assert(Math.abs(position.x - after[index].x) < .01, 'Visible prints move continuously across width and wrap boundaries');
+        else assert(position.opacity < .01 && after[index].opacity < .01, 'A recycled print is fully faded before moving to the opposite side');
+        checked++;
+      });
+    }
+  }
+}
 assert.deepEqual(albumPositions([], 0), []);
 assert.equal(albumPositions([140], 0)[0].x, 0);
 console.log(`PASS: ${checked} album geometry cases (mixed widths, centering, wrap continuity, touch stack).`);
