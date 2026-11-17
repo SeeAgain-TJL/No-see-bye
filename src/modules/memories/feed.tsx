@@ -23,6 +23,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       ? "public"
       : "mine";
   const type = params.get("type") || "all";
+  const resetPublicFilter = scope === 'public' && !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
   const view = ["gallery", "timeline"].includes(params.get("view") || "") ? params.get("view")! : "grid";
   const [result, setResult] = useState<{
     key: string;
@@ -320,9 +321,9 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               </h2>
 
               {!trash && (
-                <Link className="button" href={scope === 'public' ? '/memories?scope=public' : '/memories/new'} aria-label={scope === 'public' ? '清除筛选，查看全部公开日常' : '创建日常'}>
-                  <Icon name={scope === 'public' ? 'globe' : 'plus'} size={17} />
-                  {scope === 'public' ? '重阅人间' : '落笔成笺'}
+                <Link className="button" href={resetPublicFilter ? '/memories?scope=public' : user ? '/memories/new' : '/register'} aria-label={resetPublicFilter ? '清除筛选，查看全部公开日常' : user ? '创建日常' : '注册账户并记录日常'}>
+                  <Icon name={resetPublicFilter ? 'globe' : 'plus'} size={17} />
+                  {resetPublicFilter ? '重阅人间' : '落笔成笺'}
                 </Link>
               )}
             </div>
@@ -348,6 +349,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                     )}
                     <article
                       className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}`}
+                      data-motion-surface=""
                     >
                       <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
                       <span className="motion-spotlight" aria-hidden="true" />
@@ -385,6 +387,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                       <MediaGrid assets={m.assets} compact />
                       <div className="memory-card-copy">
+                        {!m.title && !m.content && m.assets.length > 0 && <><Link className='memory-title' href={'/memories/' + m.id}><h2>{m.assets.every(asset => asset.mime.startsWith('video/')) ? '流动的光阴' : '未题名的片刻'}</h2></Link><p className='memory-excerpt'>{m.assets.length} 帧影像 · {m.visibility === 'public' ? '与人间共读' : '私藏时光'}</p></>}
                         {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
                         {m.content && (
                           <p className="memory-excerpt">{m.content}</p>

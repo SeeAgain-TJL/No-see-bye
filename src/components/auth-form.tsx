@@ -93,7 +93,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         </Link></div>
       </header>
       <div className="auth-card">
-        <section className="auth-story motion-surface" aria-label="记忆的四季">
+        <section className="auth-story motion-surface" data-motion-surface="" aria-label="记忆的四季">
           <span className="motion-spotlight" aria-hidden="true" />
           <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
           <div className="auth-story-copy">{archiveEditions.map(edition => <div className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>
