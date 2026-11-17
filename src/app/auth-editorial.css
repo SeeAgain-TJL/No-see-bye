@@ -14,7 +14,7 @@
 :root[data-theme] .auth-editorial.studio-auth .auth-story { --optic-metal: #9cae92; --optic-light: #e6e7c6; --optic-mid: #7a977f; --optic-dark: #203b31; --optic-cover: #162b25; position: relative; display: flex; flex-direction: column; align-items: stretch; padding: 32px clamp(28px,3vw,46px) 25px; height: auto; max-height: none; min-height: 0; border: 0; border-radius: 0; isolation: isolate; color: #f1f3dd; background: var(--optic-cover); }
 :root[data-theme='sea'] .auth-editorial.studio-auth .auth-story { --optic-metal: #89b6c3; --optic-light: #e1e9de; --optic-mid: #4f8a9e; --optic-dark: #1c3b49; --optic-cover: #142c38; }
 :root[data-theme='film'] .auth-editorial.studio-auth .auth-story { --optic-metal: #bda386; --optic-light: #eee2c9; --optic-mid: #98806d; --optic-dark: #483a31; --optic-cover: #2e2722; }
-:root[data-theme='night'] .auth-editorial.studio-auth .auth-story { --optic-metal: #9ba6c4; --optic-light: #e6e4e2; --optic-mid: #6a739a; --optic-dark: #30374d; --optic-cover: #1a2130; }
+:root[data-theme='night'] .auth-editorial.studio-auth .auth-story { --optic-metal: #9bbfa2; --optic-light: #e2e6c5; --optic-mid: #6b907a; --optic-dark: #254d40; --optic-cover: #172f29; }
 .auth-editorial .auth-story::before { content: ''; position: absolute; z-index: -1; inset: 0; background: repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),#ffffff03 calc(25% - 1px),#ffffff03 25%); pointer-events: none; }
 .auth-editorial .auth-story::after { content: ''; position: absolute; inset: 10px; z-index: -1; border: 1px solid #f1f3dd18; border-radius: 16px; pointer-events: none; }
 .auth-editorial .motion-spotlight { display: none; }

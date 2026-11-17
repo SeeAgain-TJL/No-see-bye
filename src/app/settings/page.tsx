@@ -66,6 +66,7 @@ export default function Settings() {
           {data.user.hasLocalPassword && <label>登录账号<input value={data.user.username} disabled /></label>}
           {data.user.phoneMasked && <label>已验证手机<input value={data.user.phoneMasked} disabled /></label>}
           {data.user.email && <label>邮箱<input value={data.user.email} disabled /></label>}
+          {data.security.recoveryEmails.filter(email => email !== data.user.email).map(email => <label key={email}>备用联系邮箱<input value={email} disabled /></label>)}
           <button className="button" disabled={!!busy}>{busy === "profile" ? "保存中…" : "保存修改"}</button>
         </form>
       </section>
