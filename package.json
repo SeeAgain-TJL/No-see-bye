@@ -9,7 +9,7 @@
     "lint": "eslint",
     "db:init": "node --experimental-sqlite scripts/init-db.mjs",
     "test:integration": "node scripts/integration.mjs",
-    "test:layout": "node scripts/test-album-layout.mjs",
+    "test:layout": "node scripts/test-photo-rows.mjs",
     "db:generate": "prisma generate",
     "check": "tsc --noEmit",
     "assets:cleanup": "node scripts/cleanup-assets.mjs",

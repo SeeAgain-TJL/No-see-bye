@@ -1,24 +1,42 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { AmbientScene } from "./ambient-scene";
 
 const surfaces = ".keepsake-entry, .memory-card, .wall-item, .motion-surface";
-const arrivals = `${surfaces}, .keepsake-album, .keepsake-hero, .journal-hero, .stats-strip, .motion-reveal`;
+const arrivals = `${surfaces}, .editorial-album, .keepsake-hero, .home-welcome, .journal-cover, .stats-strip, .motion-reveal, .auth-story-copy, .auth-main, .editor-paper, .detail-article, .settings-card`;
+const worldSubscribers = new Set<() => void>();
+let currentAwake: boolean | undefined;
+function readWorld() {
+  if (currentAwake !== undefined) return currentAwake;
+  try { return sessionStorage.getItem('nsb-world-awake') === 'true'; } catch { return false; }
+}
+function subscribeWorld(notify: () => void) {
+  worldSubscribers.add(notify);
+  return () => { worldSubscribers.delete(notify); };
+}
+function toggleScene() {
+  currentAwake = !readWorld();
+  try { sessionStorage.setItem('nsb-world-awake', String(currentAwake)); } catch { /* This tab still works without storage. */ }
+  worldSubscribers.forEach(notify => notify());
+}
 
 /** Progressive motion: no content is hidden while JavaScript or observers load. */
 export function ImmersiveMotion() {
   const anchor = useRef<HTMLDivElement>(null);
-  const [awake, setAwake] = useState(false);
-  const toggleScene = useCallback(() => setAwake(value => !value), []);
+  const awake = useSyncExternalStore(subscribeWorld, readWorld, () => false);
   const path = usePathname();
-  const enabled = path === "/" || path === "/memories";
+  useEffect(() => {
+    const host = anchor.current?.closest<HTMLElement>('.app-shell, .studio-auth');
+    if (!host) return;
+    host.dataset.worldAwake = String(awake);
+    return () => { delete host.dataset.worldAwake; };
+  }, [awake]);
 
   useEffect(() => {
-    if (!enabled) return;
-    const host = anchor.current?.closest<HTMLElement>(".app-shell");
-    const content = host?.querySelector<HTMLElement>(".main-content");
+    const host = anchor.current?.closest<HTMLElement>('.app-shell, .studio-auth');
+    const content = host?.querySelector<HTMLElement>('.main-content') || host;
     if (!host || !content) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -47,9 +65,9 @@ export function ImmersiveMotion() {
       revealed.add(element);
       if (reduced.matches || typeof element.animate !== "function") return;
       const animation = element.animate([
-        { opacity: .2, translate: "0 42px", scale: ".97" },
-        { opacity: 1, translate: "0 0", scale: "1" },
-      ], { duration: 850, delay: Math.min(batch++ % 4, 3) * 70, easing: "cubic-bezier(.16,1,.3,1)" });
+        { opacity: .45, translate: "0 25px" },
+        { opacity: 1, translate: "0 0" },
+      ], { duration: 650, delay: Math.min(batch++ % 4, 3) * 65, easing: "cubic-bezier(.16,1,.3,1)" });
       animations.add(animation);
       void animation.finished.catch(() => {}).finally(() => animations.delete(animation));
     };
@@ -92,8 +110,8 @@ export function ImmersiveMotion() {
       const py = Math.max(0, Math.min(1, (y - bounds.top) / bounds.height));
       element.style.setProperty("--surface-x", `${px * 100}%`);
       element.style.setProperty("--surface-y", `${py * 100}%`);
-      element.style.setProperty("--tilt-x", `${(0.5 - py) * 5}deg`);
-      element.style.setProperty("--tilt-y", `${(px - 0.5) * 7}deg`);
+      element.style.setProperty("--tilt-x", `${(0.5 - py) * 2.2}deg`);
+      element.style.setProperty("--tilt-y", `${(px - 0.5) * 3}deg`);
       element.dataset.motionHover = "true";
     };
     const move = (event: PointerEvent) => {
@@ -110,11 +128,20 @@ export function ImmersiveMotion() {
       pointer = null;
       resetSurface();
     };
+    const press = (event: PointerEvent) => {
+      if (reduced.matches || event.button !== 0 || !event.isPrimary || !(event.target instanceof Element)) return;
+      const control = event.target.closest<HTMLElement>('button:not(:disabled), a[href]');
+      if (!control || control.closest('.album-stage, .album-gallery, dialog') || typeof control.animate !== 'function') return;
+      const animation = control.animate([{ scale: '1' }, { scale: '.96', offset: .35 }, { scale: '1' }], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      animations.add(animation);
+      void animation.finished.catch(() => {}).finally(() => animations.delete(animation));
+    };
+    const visibility = () => { host.dataset.worldHidden = String(document.hidden); };
     const paintScroll = () => {
       scrollFrame = 0;
       const range = document.documentElement.scrollHeight - innerHeight;
       host.style.setProperty("--reading-progress", String(range > 0 ? Math.max(0, Math.min(1, scrollY / range)) : 0));
-      host.style.setProperty("--environment-drift", reduced.matches ? "0px" : `${-Math.min(120, scrollY * .085)}px`);
+      host.style.setProperty("--world-scroll", reduced.matches ? "0px" : `${-Math.min(70, scrollY * .045)}px`);
     };
     const scroll = () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(paintScroll); };
     const measureShell = () => {
@@ -127,27 +154,31 @@ export function ImmersiveMotion() {
     const preferenceChanged = () => { animations.forEach(animation => animation.cancel()); resetSurface(); paintScroll(); };
     host.addEventListener("pointermove", move, { passive: true });
     host.addEventListener("pointerout", leave, { passive: true });
+    host.addEventListener('pointerdown', press, { passive: true });
+    document.addEventListener('visibilitychange', visibility);
     window.addEventListener("scroll", scroll, { passive: true });
     window.addEventListener("resize", measureShell, { passive: true });
     reduced.addEventListener("change", preferenceChanged);
     fine.addEventListener("change", preferenceChanged);
-    measureShell(); paintScroll();
+    measureShell(); paintScroll(); visibility();
     return () => {
       changes.disconnect(); observer?.disconnect();
       animations.forEach(animation => animation.cancel());
       cancelAnimationFrame(pointerFrame); cancelAnimationFrame(scrollFrame); cancelAnimationFrame(mutationFrame);
       host.removeEventListener("pointermove", move); host.removeEventListener("pointerout", leave);
+      host.removeEventListener('pointerdown', press); document.removeEventListener('visibilitychange', visibility);
       window.removeEventListener("scroll", scroll); window.removeEventListener("resize", measureShell);
       reduced.removeEventListener("change", preferenceChanged); fine.removeEventListener("change", preferenceChanged);
       resetSurface();
       for (const element of enhanced) delete element.dataset.motionSurface;
-      host.style.removeProperty("--reading-progress"); host.style.removeProperty("--environment-drift");
+      host.style.removeProperty("--reading-progress"); host.style.removeProperty("--world-scroll");
       host.style.removeProperty("--environment-left"); host.style.removeProperty("--environment-top");
+      delete host.dataset.worldHidden;
     };
-  }, [path, enabled]);
+  }, [path]);
 
-  return enabled ? <div ref={anchor} className="immersive-motion-root">
+  return <div ref={anchor} className="immersive-motion-root">
     <div className="immersive-reading-track" aria-hidden="true"><span /></div>
     <AmbientScene awake={awake} onToggle={toggleScene} />
-  </div> : null;
+  </div>;
 }

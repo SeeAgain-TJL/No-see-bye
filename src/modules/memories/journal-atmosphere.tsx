@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { Icon } from "@/components/icons";
 import { ThemeMotif } from "@/components/theme-motif";
@@ -7,10 +8,10 @@ import { dateText } from "@/lib/client";
 import type { Memory } from "./types";
 
 const editions = [
-  ["dusk", "GARDEN JOURNAL", "把日子，种成一座花园。", "一页一页，让小事慢慢生长。"],
-  ["sea", "LETTERS FROM THE TIDE", "每段日常，都是一封来信。", "潮水退去以后，仍有值得留下的片刻。"],
-  ["film", "THE EVERYDAY ARCHIVE", "让平凡，成为珍贵的底片。", "按下快门的那一刻，时间有了形状。"],
-  ["night", "A PRIVATE OBSERVATORY", "散落的日子，也会连成星座。", "把光收好，等想念的时候再打开。"],
+  ["dusk", "THE INNER GARDEN", "一念生春，万物有迹。", "草木有本心，光阴自成诗。"],
+  ["sea", "LETTERS TO THE SELF", "潮汐往复，此心有岸。", "流水带走岁月，纸笺留下回声。"],
+  ["film", "A STUDY OF PASSING TIME", "浮生如寄，片刻可留。", "光落在底片上，时间便有了形状。"],
+  ["night", "THE PRIVATE CONSTELLATION", "长夜有星，往事有光。", "人是散落的日子，也是亲手连起的星河。"],
 ] as const;
 
 function JournalScene() {
@@ -47,11 +48,23 @@ function JournalScene() {
   </div>;
 }
 
-export function JournalAtmosphere({ title, items, publicScope, view, onView }: {
+export function JournalAtmosphere({ title, items, publicScope, view, onView, ownerName, month, search, pinned, onFilter }: {
   title: string; items: Memory[]; publicScope: boolean; view: string; onView: (view: string) => void;
+  ownerName?: string; month: string; search: string; pinned: boolean;
+  onFilter: (name: 'month' | 'q' | 'pinned', value: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const directoryId = useId();
+  const router = useRouter();
+  const monthFormat = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit' });
+  const months = new Map<string, number>();
+  const topics = new Map<string, number>();
+  for (const memory of items) {
+    const key = monthFormat.format(new Date(memory.happenedAt));
+    months.set(key, (months.get(key) || 0) + 1);
+    for (const topic of new Set([...memory.tags, memory.location].map(value => value.trim().slice(0, 100)).filter(Boolean))) topics.set(topic, (topics.get(topic) || 0) + 1);
+  }
+  const paths = [...topics].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 5);
   function locate(memory: Memory) {
     const target = document.getElementById('journal-entry-' + memory.id);
     if (target) {
@@ -60,24 +73,34 @@ export function JournalAtmosphere({ title, items, publicScope, view, onView }: {
     }
   }
   return <>
-    <header className="journal-cover motion-surface">
+    <header className={'journal-cover journal-editorial-cover motion-surface ' + (publicScope ? 'journal-open-horizon' : 'journal-personal-book')} aria-label={title}>
       <span className="motion-spotlight" aria-hidden="true" />
       <div className="journal-cover-copy">
-        <div className="journal-edition"><span className="journal-edition-number">01 —</span>{editions.map(([theme, eyebrow]) => <span key={theme} data-journal-copy={theme}>{eyebrow}</span>)}</div>
-        <h1>{title}<span className="journal-cover-period">.</span></h1>
-        <div className="journal-theme-story">{editions.map(([theme, , headline, note]) => <div key={theme} data-journal-copy={theme}><h2>{headline}</h2><p>{publicScope ? '借一页人间，见万般风景。' : note}</p></div>)}</div>
+        <div className="journal-edition"><span className="journal-edition-number">{publicScope ? 'COMMON GROUND' : 'PRIVATE JOURNAL'}</span><span className="journal-edition-rule" />{publicScope ? <span>发现日常</span> : <span>{ownerName || '我的日常'} · 私人卷册</span>}</div>
+        <h1>{publicScope ? <>世界广阔，<br />借一页相逢。</> : <>此心有迹，<br />岁月成书。</>}</h1>
+        <div className="journal-theme-story">{publicScope ? <><h2>他人的片刻，亦是人间的注脚。</h2><p>We see the world not once, but through a thousand eyes.</p></> : editions.map(([theme, , headline, note]) => <div key={theme} data-journal-copy={theme}><h2>{headline}</h2><p>{note}</p></div>)}</div>
         <div className="journal-cover-actions">
-          <button type="button" className="journal-directory-toggle" aria-expanded={expanded} aria-controls={directoryId} onClick={() => setExpanded(v => !v)}><Icon name="book" size={17} />{expanded ? '收起日常目录' : '展开日常目录'}<Icon name="arrow" size={16} /></button>
-          <Link className="journal-cover-write" href="/memories/new">续写一页<Icon name="plus" size={17} /></Link>
+          {publicScope ? <button type="button" className="journal-directory-toggle" disabled={!items.length} onClick={() => { const memory = items[Math.floor(Math.random() * items.length)]; if (memory) router.push('/memories/' + memory.id); }} aria-label="随机打开一条公开日常"><Icon name="spark" size={17} />偶遇一页<Icon name="arrow" size={16} /></button> : <Link className="journal-directory-toggle" href="/memories/new" aria-label="创建日常"><Icon name="edit" size={17} />落笔此刻<Icon name="plus" size={16} /></Link>}
+          <button type="button" className="journal-cover-write" aria-expanded={expanded} aria-controls={directoryId} onClick={() => setExpanded(v => !v)}><Icon name="book" size={16} />{expanded ? '合上卷目' : publicScope ? '人间卷目' : '翻开卷目'}<Icon name="arrow" size={15} /></button>
         </div>
       </div>
-      <JournalScene />
-      <div className="journal-cover-foot"><span>YOUR DAYS, BEAUTIFULLY KEPT.</span><span>{items.length ? `${String(items.length).padStart(2, '0')} 段已加载的日常` : '等待下一段故事'}</span></div>
+      {publicScope ? <aside className="discovery-compass">
+        <div className="discovery-compass-art" aria-hidden="true"><span className="compass-orbit compass-orbit-one" /><span className="compass-orbit compass-orbit-two" /><span className="compass-orbit compass-orbit-three" /><Icon name="globe" size={72} /><span className="compass-north">N</span><span className="compass-south">S</span><span className="compass-star">✦</span></div>
+        <div className="discovery-topic-heading"><span>PATHS TO WANDER</span><span>循字漫游</span></div>
+        {paths.length ? <div className="discovery-topics">{paths.map(([topic]) => <button key={topic} type="button" aria-label={'搜索公开日常：' + topic} aria-pressed={search === topic} onClick={() => onFilter('q', search === topic ? '' : topic)}><span>{topic}</span><Icon name="arrow" size={13} /></button>)}</div> : <p className="discovery-no-topics">世间每一页，都是未至之地。</p>}
+      </aside> : <aside className="journal-month-index">
+        <JournalScene />
+        <div className="journal-index-heading">{editions.map(([theme, eyebrow]) => <span key={theme} data-journal-copy={theme}>{eyebrow}</span>)}<ThemeMotif /></div>
+        <p className="journal-index-title">页角有年轮</p>
+        {months.size ? <div className="journal-months" aria-label="当前篇章的月份索引">{[...months].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 4).map(([key, count], index) => <button key={key} type="button" aria-label={'筛选' + key.replace('-', '年') + '月的日常，当前列表中有' + count + '篇'} aria-pressed={month === key} onClick={() => onFilter('month', month === key ? '' : key)}><span className="chapter-number">{String(index + 1).padStart(2, '0')}</span><span><strong>{Number(key.slice(5))} 月</strong><small>{key.slice(0, 4)} · {count} 篇拾遗</small></span><Icon name="arrow" size={15} /></button>)}</div> : <p className="journal-index-empty">此书尚薄，来日方长。</p>}
+        <button type="button" className="journal-index-bookmark" aria-label={pinned ? '查看全部日常' : '只看收藏的日常'} aria-pressed={pinned} onClick={() => onFilter('pinned', pinned ? '' : '1')}><Icon name="pin" size={15} />{pinned ? '重读全卷' : '重读珍藏'}<Icon name="arrow" size={14} /></button>
+      </aside>}
+      <div className="journal-cover-foot"><span>{publicScope ? 'NO TWO LIVES SEE THE SAME SKY.' : 'TO REMEMBER IS TO LIVE TWICE.'}</span><Link href={publicScope ? '/memories' : '/memories?scope=public'}>{publicScope ? '回到自己的卷册' : '去看万般人生'}<Icon name="arrow" size={12} /></Link></div>
     </header>
     <section id={directoryId} className="journal-directory" data-expanded={expanded} aria-label="当前日常目录" hidden={!expanded}>
-      <div className="journal-directory-heading"><div><span>READ YOUR DAYS</span><h2>循笺寻旧日</h2></div><p>目录随当前筛选更新</p></div>
+      <div className="journal-directory-heading"><div><span>{publicScope ? 'AN ATLAS OF MOMENTS' : 'READ YOUR DAYS'}</span><h2>{publicScope ? '有字处，即是远方' : '循笺寻旧日'}</h2></div><p>循眼前篇章，拾散落时光。</p></div>
       <div className="journal-directory-views" role="group" aria-label="目录浏览方式">{[['grid', '卡片', 'grid'], ['timeline', '时间线', 'list'], ['gallery', '照片墙', 'image']].map(([value, label, icon]) => <button type="button" key={value} aria-pressed={view === value} onClick={() => onView(value)}><Icon name={icon} size={16} />{label}</button>)}</div>
-      {items.length ? <ol>{items.map((memory, index) => <li key={memory.id}><span className="journal-directory-index">{String(index + 1).padStart(2, '0')}</span><div><time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: 'long', day: 'numeric' })}</time><Link href={'/memories/' + memory.id}>{memory.title || memory.content?.slice(0, 36) || '这一刻的影像'}</Link></div>{view !== 'gallery' && <button type="button" onClick={() => locate(memory)} aria-label={'定位到第 ' + (index + 1) + ' 条日常'}><Icon name="arrow" size={18} /></button>}</li>)}</ol> : <p className="journal-directory-empty">当前还没有已加载的日常，换个筛选或写下新的一页吧。</p>}
+      {items.length ? <ol>{items.map((memory, index) => <li key={memory.id}><span className="journal-directory-index">{String(index + 1).padStart(2, '0')}</span><div><time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: 'long', day: 'numeric' })}</time><Link href={'/memories/' + memory.id}>{memory.title || memory.content?.slice(0, 36) || '光影无言，往事有声'}</Link></div>{view !== 'gallery' && <button type="button" onClick={() => locate(memory)} aria-label={'定位到第 ' + (index + 1) + ' 条日常'}><Icon name="arrow" size={18} /></button>}</li>)}</ol> : <p className="journal-directory-empty">未至之页，尚待时光落笔。</p>}
     </section>
   </>;
 }

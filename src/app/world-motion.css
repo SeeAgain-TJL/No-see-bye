@@ -1,0 +1,92 @@
+/* The theme inhabits the page; every mark remains transparent to input. */
+.studio-auth { position: relative; isolation: isolate; }
+.world-atmosphere, .world-choreography { position: fixed; pointer-events: none; inset: var(--environment-top, 0px) 0 0 var(--environment-left, 0px); overflow: hidden; }
+.world-atmosphere { z-index: -1; color: var(--accent); }
+.world-ground, .world-scene { display: none; position: absolute; inset: 0; }
+:root[data-theme='dusk'] [data-world-theme='dusk'], :root[data-theme='sea'] [data-world-theme='sea'], :root[data-theme='film'] [data-world-theme='film'], :root[data-theme='night'] [data-world-theme='night'] { display: block; }
+.world-ground { opacity: .32; transition: opacity 1.2s ease; transform: translateY(var(--world-scroll, 0px)); }
+.world-ground > span { position: absolute; display: block; }
+.world-ground-dusk { background: radial-gradient(ellipse at 0 30%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 35%), radial-gradient(ellipse at 100% 85%, color-mix(in srgb, var(--warm) 5%, transparent), transparent 34%); }
+.world-ground-dusk > span { width: 55px; height: 100px; border: 1px solid currentColor; border-radius: 100% 0 100% 0; opacity: .13; rotate: 35deg; }
+.world-ground-dusk > span:nth-child(1) { top: 18%; right: -20px; }.world-ground-dusk > span:nth-child(2) { top: 66%; left: -20px; rotate: -35deg; }.world-ground-dusk > span:nth-child(3) { bottom: -35px; right: 20%; rotate: -10deg; }
+.world-ground-sea { background: radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 45%); }
+.world-ground-sea > span { width: 360px; height: 65px; border-top: 1px solid currentColor; border-radius: 50%; opacity: .13; right: -200px; bottom: 14%; rotate: -12deg; }
+.world-ground-sea > span:nth-child(2) { bottom: 16%; right: -210px; }.world-ground-sea > span:nth-child(3) { bottom: 18%; right: -220px; }
+.world-ground-film { background: linear-gradient(110deg, transparent 55%, color-mix(in srgb, var(--warm) 5%, transparent)); }
+.world-ground-film > span { top: 0; bottom: 0; width: 9px; opacity: .1; background: repeating-linear-gradient(transparent 0 12px, currentColor 12px 18px, transparent 18px 25px); }
+.world-ground-film > span:first-child { left: 8px; }.world-ground-film > span:nth-child(2) { right: 8px; }.world-ground-film > span:nth-child(3) { display: none; }
+.world-ground-night { background: radial-gradient(ellipse at 96% 4%, #c5d3aa09, transparent 45%); }
+.world-ground-night > span { width: 2px; height: 2px; border-radius: 50%; background: var(--warm); opacity: .4; }
+.world-ground-night > span:nth-child(1) { top: 12%; right: 4%; box-shadow: -90px 90px currentColor, -25px 320px currentColor, -70px 590px currentColor; }.world-ground-night > span:nth-child(2) { top: 35%; left: 3%; box-shadow: 10px 260px currentColor, 35px 400px currentColor; }.world-ground-night > span:nth-child(3) { top: 7%; left: 32%; }
+[data-world-awake='true'] .world-ground { opacity: .85; }
+.world-choreography { z-index: 22; }
+.world-scene { color: var(--accent); }
+.world-leaf { position: absolute; width: 38px; height: 56px; left: calc(var(--leaf-start, 100) * 1%); top: -90px; opacity: 0; animation: world-leaf-flight 13s var(--leaf-delay, 0s) cubic-bezier(.2,.4,.5,.8) infinite; }
+.world-leaf-0 { --leaf-start: 14; --leaf-delay: 0s; }.world-leaf-1 { --leaf-start: 44; --leaf-delay: .35s; width: 24px; }.world-leaf-2 { --leaf-start: 79; --leaf-delay: .7s; }.world-leaf-3 { --leaf-start: 104; --leaf-delay: 1.1s; width: 28px; }.world-leaf-4 { --leaf-start: 33; --leaf-delay: 1.6s; width: 20px; }.world-leaf-5 { --leaf-start: 67; --leaf-delay: 2.1s; }.world-leaf-6 { --leaf-start: 94; --leaf-delay: 2.5s; width: 21px; }.world-leaf-7 { --leaf-start: 11; --leaf-delay: 3s; width: 18px; }.world-leaf-8 { --leaf-start: 53; --leaf-delay: 3.5s; width: 25px; }.world-leaf-9 { --leaf-start: 86; --leaf-delay: 4s; width: 32px; }
+.world-wind-stroke { position: absolute; inset: 0; width: 100%; height: 100%; stroke: currentColor; stroke-width: 1; stroke-dasharray: 1900; opacity: 0; animation: world-wind-trace 8s ease-out both; }
+.world-wave { position: absolute; width: 150%; height: 40%; left: -25%; bottom: -8%; stroke: currentColor; stroke-width: 1; opacity: .25; animation: world-tide-arrive 6s cubic-bezier(.16,1,.3,1) both, world-tide-breathe 12s 6s ease-in-out infinite; }
+.world-tide::before { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 65%); opacity: 0; animation: world-tide-wash 4s ease-out both; }
+.world-boat { position: absolute; left: -140px; top: 78%; width: 115px; height: 90px; opacity: 0; animation: world-boat-voyage 24s linear infinite; }
+.world-sea-glint { position: absolute; width: 4px; height: 4px; border: 1px solid currentColor; border-radius: 50%; opacity: 0; animation: world-salt-glint 8s var(--glint-delay, 0s) ease-in-out infinite; }
+.world-sea-glint-0 { left: 13%; top: 72%; }.world-sea-glint-1 { left: 30%; top: 91%; --glint-delay: .7s; }.world-sea-glint-2 { right: 4%; top: 32%; --glint-delay: 1.4s; }.world-sea-glint-3 { left: 4%; top: 46%; --glint-delay: 2.1s; }.world-sea-glint-4 { right: 18%; top: 82%; --glint-delay: 2.8s; }.world-sea-glint-5 { right: 43%; top: 95%; --glint-delay: 3.5s; }
+.world-projector-light { position: absolute; inset: -100%; background: linear-gradient(106deg, transparent 42%, color-mix(in srgb, var(--warm) 12%, transparent) 49%, #fff4d32e 50%, transparent 57%); transform: translateX(-70%); animation: world-light-sweep 14s ease-in-out infinite; }
+.world-film-edge { position: absolute; width: 20px; top: -50px; bottom: -50px; border-inline: 1px solid currentColor; color: var(--warm); opacity: .23; background: repeating-linear-gradient(transparent 0 12px, currentColor 12px 22px, transparent 22px 32px) center / 8px 32px repeat-y; animation: world-film-advance 4s ease-in-out infinite; }
+.world-film-edge-left { left: 8px; }.world-film-edge-right { right: 8px; }
+.world-film-exposure { position: absolute; inset: 0; opacity: 0; background: color-mix(in srgb, var(--warm) 9%, transparent); animation: world-exposure 1.8s ease-out both; }
+.world-constellation { width: 100%; height: 100%; stroke: var(--warm); stroke-width: 1; stroke-dasharray: 800; stroke-dashoffset: 800; opacity: .28; animation: world-connect-stars 4s ease-out forwards; }
+.world-star { position: absolute; width: 4px; height: 4px; background: var(--warm); border-radius: 50%; opacity: 0; box-shadow: 0 0 10px color-mix(in srgb, var(--warm) 50%, transparent); animation: world-star-light 5s var(--star-delay, 0s) ease-in-out infinite; }
+.world-star-0 { left: 2.5%; top: 66%; }.world-star-1 { left: 12.5%; top: 42.5%; --star-delay: .2s; }.world-star-2 { left: 25.4%; top: 50.6%; --star-delay: .4s; }.world-star-3 { left: 34.4%; top: 21.3%; --star-delay: .6s; }.world-star-4 { left: 65%; top: 81.3%; --star-delay: .8s; }.world-star-5 { left: 75.4%; top: 66.8%; --star-delay: 1s; }.world-star-6 { left: 82.9%; top: 70.5%; --star-delay: 1.2s; }.world-star-7 { left: 98.3%; top: 46%; --star-delay: 1.4s; }.world-star-8 { left: 68.8%; top: 19.1%; --star-delay: 1.6s; }.world-star-9 { left: 77.6%; top: 10.6%; --star-delay: 1.8s; }.world-star-10 { left: 86.1%; top: 23.5%; --star-delay: 2s; }.world-star-11 { left: 5%; top: 18%; --star-delay: 2.2s; }.world-star-12 { left: 95%; top: 88%; --star-delay: 2.4s; }.world-star-13 { left: 44%; top: 93%; --star-delay: 2.6s; }.world-star-14 { left: 3%; top: 91%; --star-delay: 2.8s; }.world-star-15 { left: 96%; top: 5%; --star-delay: 3s; }
+.world-moon { position: absolute; right: 4%; top: 7%; width: 60px; height: 60px; border-radius: 50%; box-shadow: -14px 10px 0 -4px var(--warm); opacity: .32; animation: world-moon-arrive 2s ease-out both; }
+.world-shooting-star { position: absolute; width: 120px; height: 1px; background: linear-gradient(90deg, transparent, var(--warm)); top: 10%; right: 5%; opacity: 0; rotate: 24deg; animation: world-meteor 12s 2s ease-in-out infinite; }
+.world-toggle { z-index: 35; min-height: 44px; box-shadow: 0 6px 20px -12px var(--album-shadow); }
+.world-toggle [data-world-invitation] { display: none; }
+:root[data-theme='dusk'] [data-world-invitation='dusk'], :root[data-theme='sea'] [data-world-invitation='sea'], :root[data-theme='film'] [data-world-invitation='film'], :root[data-theme='night'] [data-world-invitation='night'] { display: inline; }
+.world-toggle[aria-pressed='true'] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.world-toggle[aria-pressed='true'] > svg:last-child { opacity: .7; }
+[data-world-hidden='true'] :is(.world-ground, .world-choreography) *, [data-world-hidden='true'] .world-tide::before { animation-play-state: paused !important; }
+:is(.app-shell, .studio-auth) :is(a, button, input, textarea, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+:is(.app-shell, .studio-auth) :is(input, textarea, select) { transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
+:is(.app-shell, .studio-auth) :is(input, textarea, select):focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent); }
+:is(.app-shell, .studio-auth) :is(button, a) > svg { transition: translate .3s cubic-bezier(.16,1,.3,1), rotate .3s ease; }
+.app-shell :is(.nav-link, .sidebar-compose, .mobile-nav a) { position: relative; transition: background .25s ease, color .25s ease, padding .25s ease; }
+.app-shell .nav-link::after { content: ''; position: absolute; left: 0; width: 3px; height: 0; border-radius: 2px; background: var(--accent); transition: height .3s cubic-bezier(.16,1,.3,1); }
+.app-shell .nav-link:is(:hover, :focus-visible, .active)::after { height: 18px; }
+:is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button { transition: background .25s ease, color .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.app-shell [data-motion-surface]:focus-within > .motion-spotlight { opacity: .7; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme] .main-content [data-motion-surface] { transform: perspective(1600px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .5s cubic-bezier(.16,1,.3,1), box-shadow .4s ease, translate .4s ease; }
+  :root[data-theme] .main-content [data-motion-surface][data-motion-hover='true'] { translate: 0 -4px; box-shadow: 0 18px 40px -28px var(--album-shadow); }
+  :is(.app-shell, .studio-auth) :is(.studio-text-link, .sidebar-compose, .journal-cover-write, .world-toggle):hover > svg:last-child { translate: 3px 0; }
+  .app-shell .nav-link:hover > svg { translate: 2px 0; rotate: -7deg; }
+  .app-shell :is(.entry-open, .wall-caption):hover > svg { translate: 3px 0; }
+  :is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button:hover { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 35%, transparent); }
+}
+@keyframes world-leaf-flight { 0% { opacity: 0; transform: translate(5vw,-60px) rotate(-30deg); } 8% { opacity: .65; } 55% { opacity: .45; } 72%,100% { opacity: 0; transform: translate(-34vw,110vh) rotate(280deg); } }
+@keyframes world-wind-trace { 0% { opacity: 0; stroke-dashoffset: 1900; } 15% { opacity: .22; } 80% { opacity: .1; } 100% { opacity: 0; stroke-dashoffset: -300; } }
+@keyframes world-tide-arrive { from { transform: translateY(80%) scaleX(.8); opacity: 0; } 30% { opacity: .4; } to { transform: none; opacity: .2; } }
+@keyframes world-tide-wash { 0%,100% { opacity: 0; translate: 0 20%; } 25% { opacity: .7; translate: 0 -5%; } }
+@keyframes world-tide-breathe { 0%,100% { translate: -2% 0; } 50% { translate: 2% -10px; } }
+@keyframes world-boat-voyage { 0% { opacity: 0; transform: translate(0,25px) rotate(-5deg); } 7% { opacity: .6; } 45% { transform: translate(48vw,-15px) rotate(3deg); } 90% { opacity: .6; } 100% { opacity: 0; transform: translate(115vw,8px) rotate(-4deg); } }
+@keyframes world-salt-glint { 0%,100% { opacity: 0; transform: translateY(10px) scale(.6); } 45% { opacity: .55; transform: translateY(-18px) scale(1.4); } }
+@keyframes world-light-sweep { 0%,100% { transform: translateX(-70%) rotate(-5deg); opacity: 0; } 8% { opacity: .8; } 40% { transform: translateX(70%) rotate(3deg); opacity: .1; } 50%,99% { transform: translateX(70%); opacity: 0; } }
+@keyframes world-film-advance { 0%,70%,100% { transform: translateY(0); } 78%,92% { transform: translateY(-32px); } }
+@keyframes world-exposure { 0%,100% { opacity: 0; } 24% { opacity: .65; } }
+@keyframes world-connect-stars { to { stroke-dashoffset: 0; } }
+@keyframes world-star-light { 0%,100% { opacity: .1; transform: scale(.5); } 35%,65% { opacity: .8; transform: scale(1); } }
+@keyframes world-moon-arrive { from { opacity: 0; translate: 0 20px; } to { opacity: .32; translate: 0 0; } }
+@keyframes world-meteor { 0%,70%,100% { opacity: 0; transform: translate(-90px,-40px); } 76% { opacity: .65; } 88% { opacity: 0; transform: translate(60vw,25vh); } }
+@media (max-width: 760px) {
+  .world-leaf { width: 25px; height: 36px; }
+  .world-boat { width: 80px; height: 65px; top: 72%; }
+  .world-film-edge { width: 12px; opacity: .15; }.world-film-edge-left { left: 3px; }.world-film-edge-right { right: 3px; }
+  .world-moon { width: 40px; height: 40px; right: 7%; }
+  .world-toggle { min-height: 42px; }
+  .studio-auth .world-toggle { bottom: calc(18px + env(safe-area-inset-bottom)); right: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-ground, .world-choreography *, .world-toggle, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
+  .world-choreography :is(.world-leaf, .world-boat, .world-projector-light, .world-film-exposure, .world-shooting-star, .world-wind-stroke) { display: none; }
+  .world-tide::before { display: none; }
+  .world-choreography .world-star { opacity: .5; }.world-choreography .world-constellation { stroke-dashoffset: 0; }
+  .world-ground { transform: none; }
+}

@@ -7,11 +7,11 @@ import { DecodedImage } from '@/components/decoded-image';
 export const previewUrl = (asset: MediaAsset) => asset.thumbnailUrl || asset.url + (asset.url.includes('?') ? '&' : '?') + 'variant=preview';
 const displayUrl = (asset: MediaAsset) => asset.url + (asset.url.includes('?') ? '&' : '?') + 'variant=display';
 
-export function MediaThumbnail({ asset, onOpen, className = 'media-tile', label, count = 1 }: { asset: MediaAsset; onOpen: () => void; className?: string; label: string; count?: number }) {
+export function MediaThumbnail({ asset, onOpen, className = 'media-tile', label, count = 1, onRatio }: { asset: MediaAsset; onOpen: () => void; className?: string; label: string; count?: number; onRatio?: (ratio: number) => void }) {
   const [ratio, setRatio] = useState(asset.width && asset.height ? asset.width / asset.height : 1.5);
   const isVideo = asset.mime.startsWith('video/');
   return <button type='button' className={className + ' framed-preview'} style={{ '--media-ratio': ratio } as CSSProperties} data-orientation={ratio < .9 ? 'portrait' : 'landscape'} onClick={onOpen} aria-label={label}>
-    {!isVideo || asset.thumbnailUrl ? <DecodedImage src={isVideo ? asset.thumbnailUrl! : previewUrl(asset)} alt={isVideo ? '视频封面' : '日常照片'} loading='lazy' width={asset.width || undefined} height={asset.height || undefined} onDimensions={({ width, height }) => { if (width > 0 && height > 0) setRatio(width / height); }} /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
+    {!isVideo || asset.thumbnailUrl ? <DecodedImage src={isVideo ? asset.thumbnailUrl! : previewUrl(asset)} alt={isVideo ? '视频封面' : '日常照片'} loading='lazy' width={asset.width || undefined} height={asset.height || undefined} onDimensions={({ width, height }) => { if (width > 0 && height > 0) { setRatio(width / height); onRatio?.(width / height); } }} /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
     {isVideo && <span className='play-icon'><Icon name='play' size={23} /></span>}
     {count > 1 && <span className='cover-count'><Icon name='image' size={13} />{count}</span>}
   </button>;
