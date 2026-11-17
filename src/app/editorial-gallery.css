@@ -27,7 +27,7 @@
 .gallery-caption { display: flex; align-items: center; justify-content: space-between; gap: 25px; padding: 1px 28px 19px; }
 .gallery-authored { min-width: 0; max-width: 650px; animation: gallery-caption-enter .65s cubic-bezier(.16,1,.3,1) both; }
 .gallery-authored time { font-size: 10px; color: var(--ink-muted); letter-spacing: .04em; }
-.gallery-authored h3 { font: 400 20px/1.5 'Songti SC','STSong',serif; margin: 7px 0 0; overflow-wrap: anywhere; }
+.gallery-authored h3 { font: 400 20px/1.5 'Songti SC','STSong',serif; margin: 7px 0 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gallery-authored p { font-size: 12px; line-height: 1.7; color: var(--ink-muted); margin: 6px 0 0; white-space: pre-line; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gallery-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .gallery-control, .gallery-detail { width: 44px; height: 44px; min-height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--accent); }
@@ -57,7 +57,7 @@
  .gallery-heading h2 { font-size: 19px; }
  .gallery-eyebrow { font-size: 7px; }
  .gallery-page strong { font-size: 25px; }
- .photo-gallery-viewport { --photo-height: 265px; --reel-gap: 15px; }
+ .photo-gallery-viewport { --photo-height: clamp(170px,60cqw,230px); --reel-gap: 15px; }
  .photo-reel { height: calc(var(--photo-height) + 52px); padding-block: 22px; }
  .gallery-photo { outline-width: 4px; }
  .gallery-photo[data-current='true'] .gallery-zoom { transform: none; opacity: 1; width: 32px; height: 32px; right: 7px; bottom: 7px; }

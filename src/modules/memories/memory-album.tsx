@@ -29,7 +29,10 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const titleId = useId();
   const selected = photos[index];
   const reelPhotos = photos.length > 1 ? [...photos, ...photos, ...photos] : photos;
-  const ratio = (photo: GalleryPhoto) => ratios[photo.asset.id] || (photo.asset.width && photo.asset.height ? photo.asset.width / photo.asset.height : 1.5);
+  const ratio = (photo: GalleryPhoto) => {
+    const value = ratios[photo.asset.id] || (photo.asset.width && photo.asset.height ? photo.asset.width / photo.asset.height : 1.5);
+    return Number.isFinite(value) && value > 0 ? value : 1.5;
+  };
 
   const choose = useCallback((next: number, smooth = true) => {
     const value = (next + photos.length) % photos.length;

@@ -1,12 +1,14 @@
 'use client';
-import { useState, type CSSProperties } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import { Icon } from './icons';
 
 export function MemoryPortal() {
   const [turn, setTurn] = useState(0);
+  const seaClip = useId();
   return <button type='button' className='memory-portal' aria-label='拨动光影' data-shifted={turn % 2 === 1} onClick={() => setTurn(value => value + 1)} style={{ '--portal-turn': turn * 90 + 'deg' } as CSSProperties}>
     <span className='portal-orbit portal-orbit-one' /><span className='portal-orbit portal-orbit-two' />
     <svg className='auth-portal-art' viewBox='0 0 560 370' fill='none' aria-hidden='true'>
+      <defs><clipPath id={seaClip}><circle cx='280' cy='185' r='160' /></clipPath></defs>
       <g className='portal-theme portal-garden'>
         <path d='M120 335c20-102 90-139 157-153' stroke='#cce4aa' strokeWidth='3' />
         <path d='M167 267c-78 2-113-38-110-79 62-8 112 19 110 79Z' fill='#8fbb83' /><path d='M192 235c8-78 54-100 94-88 0 57-36 91-94 88Z' fill='#d6e8b7' />
@@ -14,8 +16,10 @@ export function MemoryPortal() {
         <path d='m442 265 7 18 18 7-18 7-7 18-7-18-18-7 18-7Z' fill='#e9a96c' />
       </g>
       <g className='portal-theme portal-sea'>
+        <g clipPath={'url(#' + seaClip + ')'}><circle cx='280' cy='185' r='160' fill='#173e52' />
         <circle cx='366' cy='135' r='87' fill='#ffbe81' className='portal-sun' /><path d='M44 220q65-60 130 0t130 0 130 0 130 0v140H44Z' fill='#70bbc7' /><path d='M30 268q75-60 150 0t150 0 150 0 150 0v110H30Z' fill='#388eac' />
-        <g className='portal-vessel'><path d='m174 250 153-8-34 36h-87Z' fill='#f4eed6' /><path d='m251 106-3 129-78 4Z' fill='#fff5db' /><path d='m263 156 61 80-62 2Z' fill='#e8a271' /><path d='M251 106v138' stroke='#243c50' strokeWidth='3' /></g><path d='M68 315h85m213-23h89' stroke='#dff3df' strokeWidth='3' strokeLinecap='round' />
+        <g className='portal-vessel'><path d='m174 250 153-8-34 36h-87Z' fill='#f4eed6' /><path d='m251 106-3 129-78 4Z' fill='#fff5db' /><path d='m263 156 61 80-62 2Z' fill='#e8a271' /><path d='M251 106v138' stroke='#243c50' strokeWidth='3' /></g><path d='M68 315h85m213-23h89' stroke='#dff3df' strokeWidth='3' strokeLinecap='round' /></g>
+        <circle cx='280' cy='185' r='160' stroke='#edf1d3' strokeOpacity='.24' />
       </g>
       <g className='portal-theme portal-film'>
         <path d='M74 140C180 7 349 17 456 105' stroke='#dfaa70' strokeWidth='2' strokeDasharray='5 7' /><g className='portal-film-frame'><rect x='130' y='56' width='280' height='265' rx='8' fill='#f4e2b5' /><rect x='151' y='81' width='238' height='180' fill='#c7724f' /><circle cx='307' cy='131' r='32' fill='#ffe7a6' /><path d='m151 240 77-103 62 87 46-59 53 75v21H151Z' fill='#634f43' /><path d='M155 288h88' stroke='#7d5a41' strokeWidth='3' /></g><g fill='#f2bc72'>{[0,1,2].map(i => <g key={i}><rect x='90' y={90+i*77} width='18' height='34' rx='3' /><rect x='432' y={90+i*77} width='18' height='34' rx='3' /></g>)}</g>
