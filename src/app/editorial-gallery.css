@@ -1,5 +1,6 @@
 /* An equal-height reel: full photographs, tactile neighbors, no invented captions. */
-.living-gallery { padding: 18px 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: none; overflow: hidden; }
+.living-gallery { position: relative; isolation: isolate; padding: 22px 0 15px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(125deg,var(--surface) 65%,color-mix(in srgb,var(--accent-soft) 24%,var(--surface))); box-shadow: 0 10px 28px -24px var(--album-shadow); overflow: hidden; }
+.living-gallery::before { content: ''; position: absolute; inset: 6px; border: 1px solid color-mix(in srgb,var(--line) 50%,transparent); border-radius: 7px; pointer-events: none; }
 .gallery-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin: 0 24px 14px; }
 .gallery-eyebrow { font: 8px/1.4 var(--font-display),sans-serif; color: var(--ink-muted); letter-spacing: .17em; }
 .gallery-heading h2 { display: flex; align-items: center; gap: 10px; font: 400 22px/1.4 'Songti SC','STSong',serif; margin: 5px 0 0; }
@@ -7,25 +8,30 @@
 .gallery-page { display: flex; align-items: baseline; gap: 9px; font-family: var(--font-display),sans-serif; font-variant-numeric: tabular-nums; }
 .gallery-page strong { font-size: 30px; font-weight: 400; color: var(--accent); }
 .gallery-page > span { font-size: 10px; color: var(--ink-muted); }
-.photo-gallery-viewport { --photo-height: clamp(250px,26vw,320px); --reel-gap: 12px; position: relative; min-width: 0; container-type: inline-size; border-block: 1px solid var(--line); background: var(--surface-dim); }
+.photo-gallery-viewport { --photo-height: clamp(250px,26vw,320px); --reel-gap: 12px; position: relative; min-width: 0; container-type: inline-size; border-block: 1px solid var(--line); background: repeating-linear-gradient(90deg,transparent 0 95px,color-mix(in srgb,var(--accent) 5%,transparent) 95px 96px),var(--surface-dim); }
 .gallery-rail { display: flex; justify-content: space-between; gap: 16px; padding: 10px 24px 0; font: 7px/1.4 var(--font-display),sans-serif; color: var(--ink-muted); letter-spacing: .18em; }
+.gallery-register { display: inline-flex; align-items: center; gap: 4px; }
+.gallery-register i { width: 5px; height: 5px; border: 1px solid var(--warm); opacity: .6; }
+.gallery-register i:nth-child(2) { background: var(--warm); }
 .photo-reel { position: relative; display: flex; align-items: center; gap: var(--reel-gap); height: calc(var(--photo-height) + 34px); overflow-x: auto; overflow-y: hidden; overscroll-behavior-inline: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-block: 16px; touch-action: pan-x pan-y; }
 .photo-reel::-webkit-scrollbar { display: none; }
 .photo-reel::before, .photo-reel::after { content: ''; display: block; height: 1px; flex: 0 0 max(0px,calc((100cqw - min(calc(var(--photo-height) * var(--first-ratio)),calc(100cqw - 44px))) / 2 - var(--reel-gap))); }
 .photo-reel::after { flex-basis: max(0px,calc((100cqw - min(calc(var(--photo-height) * var(--last-ratio)),calc(100cqw - 44px))) / 2 - var(--reel-gap))); }
-.gallery-photo { position: relative; display: block; flex: 0 0 auto; width: min(calc(var(--photo-height) * var(--photo-ratio)),calc(100cqw - 44px)); height: min(var(--photo-height),calc((100cqw - 44px) / var(--photo-ratio))); padding: 0; border: 0; border-radius: 2px; background: var(--surface); outline: 3px solid var(--album-paper); box-shadow: 0 0 0 4px var(--line); scroll-snap-align: center; scroll-snap-stop: always; overflow: hidden; transform: none; opacity: 1; cursor: grab; user-select: none; -webkit-user-select: none; transition: box-shadow .25s; }
-.gallery-photo[data-current='true'] { box-shadow: 0 0 0 4px var(--accent); }
+.gallery-photo { position: relative; display: block; flex: 0 0 auto; width: min(calc(var(--photo-height) * var(--photo-ratio)),calc(100cqw - 44px)); height: min(var(--photo-height),calc((100cqw - 44px) / var(--photo-ratio))); padding: 0; border: 0; border-radius: 2px; background: var(--surface); outline: 3px solid var(--album-paper); box-shadow: 0 0 0 4px var(--line); scroll-snap-align: center; scroll-snap-stop: always; overflow: hidden; transform: none; opacity: .9; cursor: grab; user-select: none; -webkit-user-select: none; transition: opacity 1.1s ease-in-out,box-shadow 1.1s ease-in-out; }
+.gallery-photo[data-current='true'] { opacity: 1; box-shadow: 0 0 0 4px color-mix(in srgb,var(--accent) 65%,var(--line)); }
 .gallery-photo::after { content: ''; position: absolute; inset: 0; border: 1px solid #ffffff20; border-radius: inherit; pointer-events: none; }
 .gallery-photo > .decoded-image { display: block; width: 100%; height: 100%; background: transparent; }
 .gallery-photo .decoded-image > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; transform: none; }
 .gallery-photo:focus-visible { outline: 3px solid var(--accent); outline-offset: 9px; }
-.photo-reel[data-dragging='true'] { scroll-snap-type: none; }
+.photo-reel:is([data-dragging='true'],[data-transitioning='true']) { scroll-snap-type: none; }
 .photo-reel[data-dragging='true'] .gallery-photo { cursor: grabbing; transition: opacity .2s; }
+.gallery-print-index { position: absolute; left: 9px; bottom: 9px; display: flex; align-items: center; gap: 10px; padding: 4px 6px; border: 1px solid color-mix(in srgb,var(--line) 65%,transparent); background: color-mix(in srgb,var(--surface) 90%,transparent); color: var(--ink-muted); font: 7px/1 var(--font-display),sans-serif; letter-spacing: .06em; pointer-events: none; }
+.gallery-print-index i { display: block; width: 14px; height: 4px; background: repeating-linear-gradient(90deg,var(--ink-muted) 0 1px,transparent 1px 3px); opacity: .5; }
 .gallery-zoom { position: absolute; right: 11px; bottom: 11px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 50%; background: var(--motion-pop); color: var(--motion-on-pop); transform: translateY(8px) scale(.75); opacity: 0; transition: transform .4s cubic-bezier(.16,1,.3,1),opacity .3s; }
 .gallery-zoom > span { display: none; }
 .gallery-photo[data-current='true']:is(:hover,:focus-visible) .gallery-zoom { transform: none; opacity: 1; }
 .gallery-caption { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 24px 12px; }
-.gallery-authored { min-width: 0; max-width: 650px; animation: gallery-caption-enter .65s cubic-bezier(.16,1,.3,1) both; }
+.gallery-authored { min-width: 0; max-width: 650px; padding-left: 13px; border-left: 1px solid color-mix(in srgb,var(--warm) 60%,var(--line)); animation: gallery-caption-enter 1.1s ease-in-out both; }
 .gallery-authored time { font-size: 10px; color: var(--ink-muted); letter-spacing: .04em; }
 .gallery-authored h3 { font: 400 20px/1.5 'Songti SC','STSong',serif; margin: 7px 0 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gallery-authored p { font-size: 12px; line-height: 1.7; color: var(--ink-muted); margin: 6px 0 0; white-space: pre-line; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -49,7 +55,7 @@
 .gallery-empty p { color: var(--ink-muted); font-size: 12px; }
 :root[data-theme='film'] .living-gallery { border-radius: 8px; }
 :root[data-theme='film'] .photo-gallery-viewport { border-inline: 8px dashed color-mix(in srgb,var(--accent) 24%,transparent); }
-@keyframes gallery-caption-enter { from { opacity: .2; translate: 14px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes gallery-caption-enter { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
 @media(max-width:760px) {
  .living-gallery { padding: 16px 0 10px; border-radius: 10px; }
  .gallery-heading { margin-inline: 18px; }
@@ -62,7 +68,9 @@
  .gallery-rail { padding: 8px 18px 0; font-size: 6px; }
  .gallery-speed { display: none; }
  .gallery-photo[data-current='true'] .gallery-zoom { transform: none; opacity: 1; width: 32px; height: 32px; right: 7px; bottom: 7px; }
- .gallery-caption { padding: 0 18px 15px; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+ .gallery-caption { padding: 13px 18px 15px; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+ .gallery-authored { padding-left: 9px; }
+ .gallery-print-index { left: 6px; bottom: 6px; padding: 3px 5px; font-size: 6px; }
  .gallery-authored { flex: 1 1 140px; }
  .gallery-authored h3 { font-size: 19px; }
  .gallery-authored p { font-size: 11px; }

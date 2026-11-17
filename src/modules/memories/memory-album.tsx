@@ -9,6 +9,9 @@ import { galleryPhotos, type GalleryPhoto } from '@/lib/photo-gallery';
 import { MediaViewer, previewUrl } from './media';
 import type { MemoryList } from './types';
 
+const PHOTO_HOLD_MS = 4000;
+const PHOTO_TRANSITION_MS = 1100;
+
 function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const [index, setIndex] = useState(0);
   const [ratios, setRatios] = useState<Record<string, number>>({});
@@ -16,6 +19,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const [playing, setPlaying] = useState(() => photos.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [hidden, setHidden] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const [viewing, setViewing] = useState<number | null>(null);
   const reel = useRef<HTMLDivElement>(null);
   const thumbs = useRef<HTMLDivElement>(null);
@@ -25,6 +29,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const dragging = useRef<{ x: number; scroll: number } | null>(null);
   const dragged = useRef(false);
   const scrollFrame = useRef(0);
+  const motionFrame = useRef(0);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleId = useId();
   const selected = photos[index];
@@ -34,7 +39,14 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
     return Number.isFinite(value) && value > 0 ? value : 1.5;
   };
 
+  const stopMotion = useCallback(() => {
+    cancelAnimationFrame(motionFrame.current);
+    motionFrame.current = 0;
+    if (reel.current) delete reel.current.dataset.transitioning;
+    setTransitioning(false);
+  }, []);
   const choose = useCallback((next: number, smooth = true) => {
+    stopMotion();
     if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
     const value = (next + photos.length) % photos.length;
     const candidates = photos.length > 1 ? [value, value + photos.length, value + photos.length * 2] : [value];
@@ -43,7 +55,29 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
     destination.current = position;
     const strip = reel.current, frame = strip?.querySelectorAll<HTMLElement>('.gallery-photo')[position];
     if (!strip || !frame) return;
-    strip.scrollTo({ left: frame.offsetLeft - (strip.clientWidth - frame.offsetWidth) / 2, behavior: smooth && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'instant' });
+    const left = frame.offsetLeft - (strip.clientWidth - frame.offsetWidth) / 2;
+    const start = strip.scrollLeft;
+    if (smooth && !matchMedia('(prefers-reduced-motion: reduce)').matches && Math.abs(left - start) > 1) {
+      strip.dataset.transitioning = 'true';
+      setTransitioning(true);
+      const began = performance.now();
+      const move = (now: number) => {
+        const progress = Math.min(1, (now - began) / PHOTO_TRANSITION_MS);
+        const eased = (1 - Math.cos(Math.PI * progress)) / 2;
+        strip.scrollTo({ left: start + (left - start) * eased, behavior: 'instant' });
+        if (progress < 1) motionFrame.current = requestAnimationFrame(move);
+        else {
+          motionFrame.current = 0;
+          delete strip.dataset.transitioning;
+          destination.current = null;
+          setTransitioning(false);
+        }
+      };
+      motionFrame.current = requestAnimationFrame(move);
+    } else {
+      strip.scrollTo({ left, behavior: 'instant' });
+      destination.current = null;
+    }
     active.current = value; setIndex(value);
     const contacts = thumbs.current, contact = contacts?.children[value] as HTMLElement | undefined;
     if (contacts && contact) {
@@ -51,25 +85,25 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
       if (left < contacts.scrollLeft || left + contact.offsetWidth > contacts.scrollLeft + contacts.clientWidth)
         contacts.scrollTo({ left: left - (contacts.clientWidth - contact.offsetWidth) / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     }
-  }, [photos.length]);
+  }, [photos.length, stopMotion]);
   useLayoutEffect(() => {
     const strip = reel.current;
     if (!strip) return;
     const observer = new ResizeObserver(() => { if (!dragging.current) choose(active.current, false); });
     observer.observe(strip);
     strip.querySelectorAll('.gallery-photo').forEach(frame => observer.observe(frame));
-    return () => { observer.disconnect(); cancelAnimationFrame(scrollFrame.current); if (settleTimer.current) clearTimeout(settleTimer.current); };
+    return () => { observer.disconnect(); cancelAnimationFrame(scrollFrame.current); cancelAnimationFrame(motionFrame.current); if (settleTimer.current) clearTimeout(settleTimer.current); };
   }, [choose]);
   useEffect(() => {
-    const changed = () => setHidden(document.hidden);
+    const changed = () => { setHidden(document.hidden); if (document.hidden) choose(active.current, false); };
     document.addEventListener('visibilitychange', changed);
     return () => document.removeEventListener('visibilitychange', changed);
-  }, []);
+  }, [choose]);
   useEffect(() => {
-    if (!playing || hidden || hovered || viewing !== null || !loaded[selected.asset.id] || photos.length < 2) return;
-    const timer = window.setTimeout(() => choose(index + 1), 1000);
+    if (!playing || hidden || hovered || transitioning || viewing !== null || !loaded[selected.asset.id] || photos.length < 2) return;
+    const timer = window.setTimeout(() => choose(index + 1), PHOTO_HOLD_MS);
     return () => clearTimeout(timer);
-  }, [playing, hidden, hovered, viewing, loaded, selected.asset.id, photos.length, index, choose]);
+  }, [playing, hidden, hovered, transitioning, viewing, loaded, selected.asset.id, photos.length, index, choose]);
   function observeScroll() {
     if (scrollFrame.current) return;
     scrollFrame.current = requestAnimationFrame(() => {
@@ -112,10 +146,10 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
     }}>
       <header className='gallery-heading'><div><span className='gallery-eyebrow'>THE STILL, ALIVE</span><h2 id={titleId}>时光相册<ThemeMotif /></h2></div><span className='gallery-page'><strong>{String(index + 1).padStart(2, '0')}</strong><span>/ {String(photos.length).padStart(2, '0')}</span></span></header>
       <div className='photo-gallery-viewport' style={{ '--first-ratio': ratio(photos[0]), '--last-ratio': ratio(photos[photos.length - 1]) } as CSSProperties}>
-        <div className='gallery-rail' aria-hidden='true'><span>PHOTO ARCHIVE</span><span>DRAG TO EXPLORE</span></div>
-        <div ref={reel} className='photo-reel' onScroll={observeScroll} onWheel={() => { destination.current = null; setPlaying(false); }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setPlaying(false)}
+        <div className='gallery-rail' aria-hidden='true'><span>PHOTO ARCHIVE</span><span className='gallery-register'><i /><i /><i /></span><span>DRAG TO EXPLORE</span></div>
+        <div ref={reel} className='photo-reel' onScroll={observeScroll} onWheel={() => { stopMotion(); destination.current = null; setPlaying(false); }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setPlaying(false)}
           onPointerDown={e => {
-            setPlaying(false); dragged.current = false; destination.current = null;
+            stopMotion(); setPlaying(false); dragged.current = false; destination.current = null;
             if (e.pointerType !== 'mouse' || e.button !== 0) return;
             dragging.current = { x: e.clientX, scroll: e.currentTarget.scrollLeft };
             (e.target as Element).closest('button')?.setPointerCapture(e.pointerId);
@@ -132,13 +166,14 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
             <DecodedImage src={previewUrl(photo.asset)} alt={photo.memory.title || '日常照片'} loading={(!mirror && i < 3) || position === photos.length - 1 ? 'eager' : 'lazy'} fetchPriority={!mirror && i === 0 ? 'high' : 'auto'} draggable={false} width={photo.asset.width || undefined} height={photo.asset.height || undefined}
               onReady={() => setLoaded(previous => previous[photo.asset.id] ? previous : { ...previous, [photo.asset.id]: true })}
               onDimensions={({ width, height }) => { if (width > 0 && height > 0) setRatios(previous => previous[photo.asset.id] === width / height ? previous : { ...previous, [photo.asset.id]: width / height }); }} />
+            <span className='gallery-print-index' aria-hidden='true'>{String(i + 1).padStart(2, '0')}<i /></span>
             <span className='gallery-zoom'><Icon name='expand' size={19} /><span>展开</span></span>
           </button>; })}
         </div>
       </div>
       <div className='gallery-caption'>
         <div className='gallery-authored' key={selected.asset.id}><time dateTime={selected.memory.happenedAt}>{dateText(selected.memory.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time>{selected.memory.title && <h3>{selected.memory.title}</h3>}{selected.memory.content && <p>{selected.memory.content}</p>}</div>
-        <div className='gallery-controls'><span className='gallery-speed'>1s / FRAME</span><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张1秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
+        <div className='gallery-controls'><span className='gallery-speed'>4s / HOLD</span><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张停留4秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
       </div>
       <div className='gallery-bottom'><div ref={thumbs} className='gallery-contacts' role='group' aria-label='选择照片'>{photos.map((photo, i) => <button key={photo.asset.id} type='button' aria-label={'第' + (i + 1) + '张照片'} aria-pressed={i === index} onClick={() => { setPlaying(false); choose(i); }}><DecodedImage src={previewUrl(photo.asset)} alt='' loading='lazy' /><span>{String(i + 1).padStart(2, '0')}</span></button>)}</div><Link href={'/memories/' + selected.memory.id} className='gallery-detail' aria-label='打开这张照片的日常详情'><Icon name='arrow' size={21} /></Link></div>
       <span className='sr-only' aria-live='polite' aria-atomic='true'>第 {index + 1} 张，共 {photos.length} 张照片</span>
