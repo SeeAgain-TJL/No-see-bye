@@ -8,7 +8,8 @@ import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
 import { PhotoWall } from "./photo-wall";
-import { MediaGrid } from "./media";
+import { MediaGrid, previewUrl } from "./media";
+import { DecodedImage } from "@/components/decoded-image";
 import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
 import { ThemeMotif } from "@/components/theme-motif";
@@ -348,7 +349,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                     )}
                     <article
-                      className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}`}
+                      className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}${m.title || m.content ? ' has-authored-copy' : ''}`}
                       data-motion-surface=""
                     >
                       {view === 'grid' && <Link
@@ -391,6 +392,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                         </div>
                       </div>
                       <div className="memory-card-preview">
+                        {view === 'grid' && m.assets[0] && (m.assets[0].mime.startsWith('image/') || m.assets[0].thumbnailUrl) && <span className="memory-card-echo" aria-hidden="true"><DecodedImage src={previewUrl(m.assets[0])} alt="" loading="lazy" /></span>}
+                        {view === 'grid' && m.assets.length > 0 && <span className="memory-card-imprint" aria-hidden="true"><ThemeMotif /></span>}
                         <MediaGrid assets={m.assets} compact />
                         <div className="memory-card-copy">
                           {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
