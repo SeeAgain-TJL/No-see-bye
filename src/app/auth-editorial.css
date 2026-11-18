@@ -89,34 +89,6 @@
   background: var(--cinema-matte);
   color: #fff9ed;
 }
-.auth-editorial.studio-auth .auth-story-copy {
-  position: relative;
-  inset: auto;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  text-align: left;
-}
-:root[data-theme] .auth-editorial.studio-auth .auth-story-copy h2 {
-  display: none;
-  margin: 0;
-  color: #fff7e6;
-  font: 400 clamp(33px, 4.1vw, 64px)/1.13 "Songti SC", "STSong", "SimSun", serif;
-  letter-spacing: -.07em;
-  text-shadow: 0 2px 24px #070e15b2;
-}
-:root[data-theme='dusk'] .auth-editorial.studio-auth h2[data-auth-theme='dusk'],
-:root[data-theme='sea'] .auth-editorial.studio-auth h2[data-auth-theme='sea'],
-:root[data-theme='film'] .auth-editorial.studio-auth h2[data-auth-theme='film'],
-:root[data-theme='night'] .auth-editorial.studio-auth h2[data-auth-theme='night'] { display: block; }
-:root[data-theme] .auth-editorial.studio-auth .auth-story-copy h2 em {
-  display: block;
-  color: var(--cinema-light);
-  font: inherit;
-  font-style: normal;
-}
-
 .auth-form-room {
   position: relative;
   z-index: 23;
@@ -275,7 +247,6 @@
     margin-block-start: 0;
     border-radius: 18px;
   }
-  :root[data-theme] .auth-editorial.studio-auth .auth-story-copy h2 { font-size: clamp(28px, 7.4vw, 47px); }
   .auth-form-room { padding: 23px 22px 26px; box-shadow: inset 0 1px var(--line); }
   :root[data-theme] .auth-editorial .auth-mode-tabs { margin-bottom: 20px; }
   :root[data-theme] .auth-editorial.studio-auth .auth-form h1 { font-size: 38px; }

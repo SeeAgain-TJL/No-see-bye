@@ -16,17 +16,14 @@ export function ThemeMotif({ theme, className = "" }: { theme?: ThemeName; class
       <circle cx="37" cy="7" r="3" /><circle cx="8" cy="7" r="1.5" fill="currentColor" stroke="none" />
     </g>
     <g data-motif="rift" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="6" width="38" height="36" rx="3" fill="currentColor" fillOpacity=".08" />
-      <path d="M13 6v36M35 6v36" strokeOpacity=".6" />
-      <path d="M8 12h2m-2 8h2m-2 8h2m-2 8h2m28-24h2m-2 8h2m-2 8h2m-2 8h2" strokeWidth="3" />
-      <circle cx="24" cy="24" r="7" /><path d="m21 18 5 5m4 1-7 2m-3 4 1-7" />
-      <path d="M18 37h12" strokeOpacity=".45" />
+      <path d="M4 18h12l5 7-6 4 2 8H4Zm40-4H33l-5 8 6 5-2 10h12Z" fill="currentColor" fillOpacity=".16" />
+      <path d="M4 24h11l4 3m11-2 5-6h9M4 32h12m17 0h11m-23 9c1-3 8-4 7-8" strokeOpacity=".58" />
+      <path d="M22 8h7l-.9 8h-5.2Z" fill="currentColor" fillOpacity=".44" />
     </g>
     <g data-motif="forest" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M26 5a15 15 0 1 0 17 21C25 31 17 16 26 5Z" fill="currentColor" fillOpacity=".2" />
-      <path d="m32 9 3 7 8 1-7 4-1 8-4-7-8-1 7-4Z" fill="currentColor" fillOpacity=".65" stroke="none" />
-      <path d="m6 32 7 10 12-3" strokeDasharray="2 3" strokeOpacity=".65" />
-      <circle cx="6" cy="32" r="1.5" fill="currentColor" stroke="none" /><circle cx="13" cy="42" r="2" fill="currentColor" stroke="none" /><circle cx="25" cy="39" r="1.5" fill="currentColor" stroke="none" />
+      <path d="m23 6-9 14h5L9 32h12v9h4v-9h12L27 20h5Z" fill="currentColor" fillOpacity=".14" />
+      <path d="m35 17 8 13h-4l6 8h-5v4m-32-2h31" strokeOpacity=".55" />
+      <path d="M8 11v6m-3-3h6m27-7v6m-3-3h6" strokeOpacity=".8" />
     </g>
     <g data-motif="iceberg" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
       <path d="m4 29 10-3 10-19 7 11 6 3 7 8H4Zm2 5 9 9 21-2 7-7" fill="currentColor" fillOpacity=".18" />

@@ -67,15 +67,15 @@ function Crystal() {
   </svg>;
 }
 
-function Star() {
-  return <svg viewBox="0 0 64 64" fill="none" className="world-mark world-night-mark" aria-hidden="true">
-    <path d="M39 13a18 18 0 1 0 12 26A19 19 0 0 1 39 13Z" fill="var(--world-soft)" fillOpacity=".72" stroke="var(--world-petal)" strokeWidth=".8" />
-    <path className="world-star-mark" d="M45 12c0 7 2 9 9 9-7 0-9 2-9 9 0-7-2-9-9-9 7 0 9-2 9-9Z" fill="var(--world-shine)" />
-    <path d="M54 32v6m-3-3h6M22 21v4m-2-2h4" stroke="var(--world-shine)" strokeWidth=".9" strokeLinecap="round" />
+function Firefly() {
+  return <svg viewBox="0 0 64 64" className="world-mark" fill="none" aria-hidden="true">
+    <path d="M30 33C14 33 8 24 11 20c6-6 18 2 21 13m1-1c4-12 15-18 20-13 3 6-6 13-20 13" fill="var(--world-soft)" stroke="var(--world-petal)" strokeWidth="1.4" />
+    <path d="M31 28c-7 3-7 15 2 18 9-4 7-15-2-18Z" fill="var(--world-shine)" stroke="var(--world-ink)" strokeWidth="1.1" />
+    <path d="M31 28c-1-5-4-8-6-9m6 6c2-4 5-7 8-8m7 24v6m-3-3h6" stroke="var(--world-shine)" strokeWidth="1.3" strokeLinecap="round" />
   </svg>;
 }
 
-const marks: Record<ThemeName, () => React.ReactNode> = { grassland: Butterfly, ocean: Fish, rift: Lantern, forest: Star, iceberg: Crystal };
+const marks: Record<ThemeName, () => React.ReactNode> = { grassland: Butterfly, ocean: Fish, rift: Lantern, forest: Firefly, iceberg: Crystal };
 
 function PaperScene() {
   return <>
@@ -130,22 +130,14 @@ function IceScene() {
   return <div className="world-icefall"><span><Crystal /></span><span><Crystal /></span><span><Crystal /></span><span><Crystal /></span><span><Crystal /></span></div>;
 }
 
-const stars = [[28, 135], [73, 83], [110, 125], [151, 52], [202, 76], [231, 34], [281, 104], [317, 59], [352, 119]];
-
-function NightScene() {
+function ForestScene() {
   return <>
-    <svg className="world-night-map" viewBox="0 0 380 170" fill="none" focusable="false">
-      <path d="M329 36a22 22 0 1 1-28-27 23 23 0 0 0 28 27Z" fill="var(--world-soft)" fillOpacity=".73" />
-      <path d="m28 135 45-52 37 42 41-73 51 24 29-42m50 70 36-45 35 60" className="world-star-thread" stroke="var(--world-petal)" strokeWidth=".8" pathLength="1" />
-      {stars.map(([x, y], index) => <g className={"world-night-point world-night-point-" + index % 3} key={x} transform={`translate(${x} ${y})`}><path d="M0-4v8m-4-4h8" stroke="var(--world-shine)" strokeWidth=".7" /><circle r="1.35" fill="var(--world-petal)" /></g>)}
-    </svg>
-    <div className="world-meteor world-meteor-first"><span /></div>
-    <div className="world-meteor world-meteor-echo"><span /></div>
-    <div className="world-fireflies"><i /><i /><i /><i /><i /></div>
+    <div className="world-forest-mist" />
+    <div className="world-fireflies"><i /><i /><i /><i /><i /><i /><i /><i /></div>
   </>;
 }
 
-const scenes: Record<ThemeName, () => React.ReactNode> = { grassland: PaperScene, ocean: SeaScene, rift: LanternScene, forest: NightScene, iceberg: IceScene };
+const scenes: Record<ThemeName, () => React.ReactNode> = { grassland: PaperScene, ocean: SeaScene, rift: LanternScene, forest: ForestScene, iceberg: IceScene };
 
 /** The scenery layers are transparent to input across the entire app shell. */
 export function AmbientScene({ awake, onToggle }: { awake: boolean; onToggle: () => void }) {

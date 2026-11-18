@@ -2,7 +2,7 @@
 export const themes = {
   forest: { label: "森林", description: "苍松与林间微光", quote: ["命运无从更改，", "但我们可以迎上去。"], film: "幽灵公主" },
   iceberg: { label: "冰山", description: "冷蓝冰层与极光", quote: ["看不见下一步时，", "先做眼前正确的事。"], film: "冰雪奇缘 2" },
-  grassland: { label: "草地", description: "风过草甸与暖阳", quote: ["谢谢这一路的冒险。", "现在，去开启新的旅程吧。"], film: "飞屋环游记" },
+  grassland: { label: "草地", description: "风过草甸与暖阳", quote: ["谢谢这趟冒险。", "去开始下一段吧。"], film: "飞屋环游记" },
   rift: { label: "裂谷", description: "赤岩峡谷与暮光", quote: ["死亡不是终点，", "遗忘才是。"], film: "寻梦环游记" },
   ocean: { label: "海洋", description: "深蓝海水与白浪", quote: ["一直游，", "一直向前游。"], film: "海底总动员" },
 } as const;
