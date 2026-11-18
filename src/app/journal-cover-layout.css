@@ -1,5 +1,5 @@
 /* Short titles leave the cover to the moving scenery. This layout has no legacy cover classes. */
-.journal-living-cover { position: relative; isolation: isolate; min-width: 0; height: 270px; margin-bottom: 20px; padding: 34px 38px; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--ink); }
+.journal-living-cover { --jl-cover-matte: var(--surface); position: relative; isolation: isolate; min-width: 0; height: 270px; margin-bottom: 20px; padding: 34px 38px; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--jl-cover-matte); color: var(--ink); }
 .journal-living-cover::before { content: ''; position: absolute; z-index: 3; inset: 8px; border: 1px solid color-mix(in srgb,var(--accent) 11%,transparent); border-radius: 11px; pointer-events: none; }
 .jl-cover-copy { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: start; width: 45%; min-height: 100%; pointer-events: none; }
 .jl-cover-copy :is(a,button) { pointer-events: auto; }
@@ -13,13 +13,13 @@
 .jl-secondary-action[aria-expanded='true'] { background: var(--accent-soft); border-color: var(--accent); }
 .jl-cover-art { position: absolute; inset: 0 0 0 auto; z-index: 1; width: 68%; }
 .jl-scope-link { position: absolute; z-index: 4; right: 22px; top: 18px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 48px; min-height: 30px; border: 1px solid color-mix(in srgb,var(--accent) 15%,transparent); border-radius: 20px; color: var(--accent); background: color-mix(in srgb,var(--surface) 70%,transparent); }
-.journal-living-cover[data-scope='public'] { background: var(--page); border-radius: 4px 22px 4px 22px; }
+.journal-living-cover[data-scope='public'] { --jl-cover-matte: var(--page); border-radius: 4px 22px 4px 22px; }
 .journal-living-cover[data-scope='public']::before { border-style: dashed; opacity: .6; }
 .journal-living-cover[data-scope='public'] .jl-cover-copy h1 { margin-top: 27px; }
 .journal-living-cover[data-scope='public'] .jl-cover-art { width: 72%; right: -15px; }
 :root[data-theme='film'] .journal-living-cover { border-radius: 5px; }
 :root[data-theme='film'] .journal-living-cover::before { border-radius: 1px; border-left: 3px double var(--line); }
-:root[data-theme='night'] .journal-living-cover { background: #23392f; }
+:root[data-theme='night'] .journal-living-cover { --jl-cover-matte: #23392f; }
 .journal-living-threshold { height: 300px; }
 .journal-result-set { scroll-margin-top: 92px; min-width: 0; }
 .journal-result-set:focus:not(:focus-visible) { outline: none; }

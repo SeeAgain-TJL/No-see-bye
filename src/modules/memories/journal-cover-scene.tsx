@@ -49,7 +49,7 @@ export function JournalCoverScene({ publicScope = false, className = "" }: { pub
       </defs>
       <g clipPath={`url(#${clip})`}>
         <g className="jls-theme jls-dusk">
-          <path d="M70 0h650v310H70z" fill={`url(#${dusk})`} />
+          <path d="M0 0h720v310H0z" fill={`url(#${dusk})`} />
           <g className="jls-depth-far">
             <circle cx="528" cy="67" r="40" fill="#f7f3d8" />
             <path d="M55 194c68-30 102-69 173-47s99 22 160-14 111 14 158-10 91-24 174 1v186H55Z" fill="#cad6ba" />
@@ -74,7 +74,7 @@ export function JournalCoverScene({ publicScope = false, className = "" }: { pub
         </g>
 
         <g className="jls-theme jls-sea">
-          <path d="M65 0h655v310H65z" fill={`url(#${sea})`} />
+          <path d="M0 0h720v310H0z" fill={`url(#${sea})`} />
           <g className="jls-depth-far">
             <circle cx="542" cy="66" r="38" fill="#f3e7c8" />
             <g className="jls-cloud-drift" fill="#edf3e8"><path d="M256 83c7-14 20-17 31-8 9-17 31-13 37 2 13-7 25-1 28 8H256Zm279 40c5-11 16-14 25-6 8-15 26-13 32 0 10-6 22-1 26 8h-83Z" /><path d="M395 42h62m-45 7h42" stroke="#edf3e8" strokeWidth="1" opacity=".7" /></g>
@@ -98,7 +98,7 @@ export function JournalCoverScene({ publicScope = false, className = "" }: { pub
         </g>
 
         <g className="jls-theme jls-film">
-          <path d="M64 0h656v310H64z" fill={`url(#${film})`} />
+          <path d="M0 0h720v310H0z" fill={`url(#${film})`} />
           <g className="jls-depth-far">
             <circle cx="548" cy="75" r="43" fill="#f5dfad" />
             <path d="M85 225c72-32 118-41 170-21s82-47 139-31 72 12 113 0 93 13 213-10v147H85Z" fill="#bda98b" />
@@ -121,7 +121,7 @@ export function JournalCoverScene({ publicScope = false, className = "" }: { pub
         </g>
 
         <g className="jls-theme jls-night">
-          <path d="M52 0h668v310H52z" fill={`url(#${night})`} />
+          <path d="M0 0h720v310H0z" fill={`url(#${night})`} />
           <g className="jls-depth-far">
             <circle cx="526" cy="70" r="35" fill="#dce0b8" mask={`url(#${moon})`} />
             {Array.from({ length: 19 }, (_, i) => <circle className="jls-star" key={i} cx={210 + i * 37 % 489} cy={16 + i * 29 % 131} r={i % 5 ? .8 : 1.5} fill="#c8d1b1" style={{ "--jls-item": i } as CSSProperties} />)}

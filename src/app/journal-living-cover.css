@@ -2,7 +2,7 @@
 .journal-living-scene { --jls-x: 0; --jls-y: 0; --jls-scope-scale: 1; position: relative; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; color: var(--accent); isolation: isolate; cursor: pointer; overflow: hidden; -webkit-tap-highlight-color: transparent; }
 .journal-living-scene:focus-visible { outline: 2px solid var(--accent); outline-offset: -5px; border-radius: 10px; }
 .journal-living-scene[data-jls-scope='public'] { --jls-scope-scale: .96; }
-.jls-canvas { display: block; width: 100%; height: 100%; overflow: visible; mask-image: linear-gradient(90deg,transparent 0,#000 15%,#000 97%,transparent); pointer-events: none; }
+.jls-canvas { display: block; width: 100%; height: 100%; overflow: visible; mask-image: linear-gradient(90deg,transparent 0,transparent 4%,#0004 12%,#000 32%,#000 97%,transparent); pointer-events: none; }
 .jls-theme { display: none; }
 :root[data-theme='dusk'] .jls-dusk,:root[data-theme='sea'] .jls-sea,:root[data-theme='film'] .jls-film,:root[data-theme='night'] .jls-night { display: inline; }
 .jls-depth-far { transform: translate(calc(var(--jls-x) * -7px),calc(var(--jls-y) * -3px)); transition: transform 1.4s cubic-bezier(.16,1,.3,1); }
@@ -72,7 +72,8 @@
 @media (hover:hover) and (prefers-reduced-motion:no-preference) { .journal-living-scene:hover .jls-touchmark { opacity: 1; border-color: var(--accent); } }
 @media(max-width:760px) {
   .jls-canvas { width: 560px; max-width: none; position: absolute; right: -70px; top: 50%; height: 250px; transform: translateY(-50%); mask-image: linear-gradient(90deg,transparent 0,#000 37%,#000 96%,transparent); }
-  .jls-touchmark { right: 10px; bottom: 12px; width: 25px; height: 25px; }
+  .journal-living-scene::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,var(--jl-cover-matte,var(--surface)) 0%,transparent 36%); pointer-events: none; }
+  .jls-touchmark { z-index: 1; right: 10px; bottom: 12px; width: 25px; height: 25px; }
   .jls-butterfly-small { display: none; }
 }
 @media(prefers-reduced-motion:reduce) {
