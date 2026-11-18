@@ -1,7 +1,7 @@
 .memory-sprite { --sprite-paper: #fff9e8; --sprite-outline: #637566; --sprite-blush: #e6aca0; --sprite-scarf: #95aa8c; --sprite-star: #dfbd79; display: block; width: 52px; height: 47px; color: var(--accent); flex-shrink: 0; }
-:root[data-theme='sea'] .memory-sprite { --sprite-paper: #f4fcf6; --sprite-outline: #537b7f; --sprite-scarf: #91bcc0; --sprite-star: #dfc6a2; }
-:root[data-theme='film'] .memory-sprite { --sprite-paper: #fff1d3; --sprite-outline: #8c7152; --sprite-scarf: #c8a77a; --sprite-star: #d8ad65; }
-:root[data-theme='night'] .memory-sprite { --sprite-paper: #eaf0d9; --sprite-outline: #63775a; --sprite-scarf: #82956a; --sprite-star: #e0c98c; }
+:root[data-theme='ocean'] .memory-sprite { --sprite-paper: #f4fcf6; --sprite-outline: #537b7f; --sprite-scarf: #91bcc0; --sprite-star: #dfc6a2; }
+:root[data-theme='rift'] .memory-sprite { --sprite-paper: #fff1d3; --sprite-outline: #8c7152; --sprite-scarf: #c8a77a; --sprite-star: #d8ad65; }
+:root[data-theme='forest'] .memory-sprite { --sprite-paper: #eaf0d9; --sprite-outline: #63775a; --sprite-scarf: #82956a; --sprite-star: #e0c98c; }
 .sprite-peek .sprite-body { transform: rotate(-5deg); transform-origin: 50px 77px; }
 .sprite-float .sprite-body { transform: translateY(-3px); }
 .home-welcome-copy { display: flex; align-items: center; gap: 15px; min-width: 0; }

@@ -1,60 +1,67 @@
 'use client';
 import Link from 'next/link';
-import { useState, type CSSProperties } from 'react';
+import { useRef, useState, type PointerEvent } from 'react';
 import { BrandMark } from '@/components/brand-mark';
 import { Icon } from '@/components/icons';
 import { useActiveTheme } from '@/components/theme-provider';
+import { themeNames, themes, type ThemeName } from '@/lib/themes';
 import { MediaViewer } from './media';
 import { MemoryAlbum } from './memory-album';
 import { MemoryStories } from './stories';
 import { PostcardStudio } from './postcard-studio';
 import type { MemoryList, UserInfo } from './types';
 
-const scenes = [
-  { id: 'dusk', label: '旧金山温室', alt: '胶卷拍摄的温室，漫射光落在交叠的枝叶上', credit: { name: 'Sasha Matveeva', url: 'https://unsplash.com/photos/RiQfTa7koCg' } },
-  { id: 'sea', label: '莫赫悬崖', alt: '海雾里的莫赫悬崖和起伏的浪', credit: { name: 'Andrej A', url: 'https://unsplash.com/photos/VF6STp3LMNQ' } },
-  { id: 'film', label: '复古影院', alt: '空影院内的金色幕布与对称座席', credit: { name: 'Peter Herrmann', url: 'https://unsplash.com/photos/j7-T7aAliSg' } },
-  { id: 'night', label: '伯尔尼阿尔卑斯山', alt: '暮色中的山林轮廓与落月', credit: { name: 'Thierry Lemaitre', url: 'https://unsplash.com/photos/PYkzZFieU-8' } },
-] as const;
-const sceneImages = scenes.map(scene => {
-  const url = `/visuals/opening-${scene.id}.webp`;
-  return { ...scene, mime: 'image/webp', url, fullUrl: url, thumbnailUrl: `/visuals/opening-${scene.id}-preview.webp` };
+const photography: Record<ThemeName, { alt: string; credit?: { name: string; url: string } }> = {
+  forest: { alt: '雾气漫过瑞士山坡上的常绿树林', credit: { name: 'Chris Linnett', url: 'https://unsplash.com/photos/BoezF2tPJbI' } },
+  iceberg: { alt: '格陵兰海面上的蓝色拱形冰山与倒影', credit: { name: 'Filippo Salvioni', url: 'https://unsplash.com/photos/aiADDysGH7M' } },
+  grassland: { alt: '夕阳照亮翁布里亚层叠的草坡', credit: { name: 'Ollie Singleton', url: 'https://unsplash.com/photos/thtjda3CDRY' } },
+  rift: { alt: '航拍犹他州峡谷的赭红岩壁和蜿蜒河床', credit: { name: 'Nick Da Fonseca', url: 'https://unsplash.com/photos/vosVDyzZJC0' } },
+  ocean: { alt: '深色海面上卷过暗礁的白色浪花', credit: { name: 'Iain', url: 'https://unsplash.com/photos/naVr1Z6xM3E' } },
+};
+const sceneImages = themeNames.map(id => {
+  const url = `/visuals/scene-${id}.webp`;
+  return { id, ...photography[id], mime: 'image/webp', url, fullUrl: url, thumbnailUrl: `/visuals/scene-${id}-preview.webp` };
 });
 
 function GuestOpening() {
   const theme = useActiveTheme();
-  const [focus, setFocus] = useState(false);
-  const [focalLength, setFocalLength] = useState(120);
   const [view, setView] = useState<number | null>(null);
-  const sceneIndex = scenes.findIndex(scene => scene.id === theme);
+  const drag = useRef<{ x: number; offset: number } | null>(null);
+  const scene = themes[theme];
 
+  function move(event: PointerEvent<HTMLElement>) {
+    if (!drag.current) return;
+    const offset = Math.max(-58, Math.min(58, drag.current.offset + (event.clientX - drag.current.x) * .55));
+    event.currentTarget.style.setProperty('--shot-offset', offset + 'px');
+  }
+  function finish(event: PointerEvent<HTMLElement>) {
+    drag.current = null;
+    event.currentTarget.removeAttribute('data-shot-dragging');
+  }
   return <>
-    <section className='cinematic-opening' data-camera-frame='' data-focused={focus} aria-labelledby='hero-title'
-      style={{ '--opening-zoom': focus ? focalLength / 100 : 1.012 } as CSSProperties}>
+    <section key={theme} className='cinematic-opening' data-camera-frame='' aria-labelledby='hero-title'
+      onPointerDown={event => {
+        if (event.button !== 0 || !(event.target instanceof Element) || event.target.closest('a, button') || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        drag.current = { x: event.clientX, offset: Number.parseFloat(event.currentTarget.style.getPropertyValue('--shot-offset')) || 0 };
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.setAttribute('data-shot-dragging', '');
+      }}
+      onPointerMove={move} onPointerUp={finish} onPointerCancel={finish} onLostPointerCapture={finish}>
       <div className='cinematic-camera-track' aria-hidden='true'>
         <div className='cinematic-opening-art' />
         <div className='cinematic-opening-optics' />
       </div>
       <div className='cinematic-opening-copy'>
         <span className='cinematic-opening-brand'><BrandMark /><span>不说再见</span></span>
-        <h1 id='hero-title'>死亡不是终点，<span>遗忘才是。</span></h1>
+        <h1 id='hero-title'>{scene.quote[0]}<span>{scene.quote[1]}</span></h1>
+        <p className='opening-film-credit'>《{scene.film}》 · {theme === 'rift' ? '主题改写' : '台词意译'}</p>
         <div className='cinematic-opening-actions'>
           <Link href='/register' className='cinematic-opening-primary' aria-label='注册账户，开启自己的空间'>开启我的空间<Icon name='arrow' size={18} /></Link>
           <Link href='/memories?scope=public' className='cinematic-opening-secondary' aria-label='浏览公开日常'>借阅人间<Icon name='arrow' size={16} /></Link>
         </div>
       </div>
-      <div className='opening-viewfinder'>
-        <button className='cinematic-opening-focus' type='button' aria-expanded={focus} aria-controls='opening-lens' onClick={() => setFocus(value => !value)}>
-          <Icon name='expand' size={17} />调整取景
-        </button>
-        <div id='opening-lens' className='opening-lens' hidden={!focus}>
-          <label htmlFor='opening-zoom'>画面缩放 <output htmlFor='opening-zoom'>{focalLength}%</output></label>
-          <input id='opening-zoom' type='range' min={102} max={160} value={focalLength} onChange={event => setFocalLength(Number(event.target.value))} />
-          <button type='button' onClick={() => setView(sceneIndex)}>查看整幅照片<Icon name='arrow' size={15} /></button>
-        </div>
-      </div>
-      <button type='button' className='opening-photo-label' onClick={() => setView(sceneIndex)} aria-label={`查看整幅照片，${scenes[sceneIndex].label}`}>
-        <Icon name='image' size={15} />{scenes[sceneIndex].label}<Icon name='arrow' size={15} />
+      <button type='button' className='opening-photo-label' onClick={() => setView(themeNames.indexOf(theme))} aria-label={`查看整幅${scene.label}摄影`}>
+        <Icon name='expand' size={15} />查看全幅
       </button>
     </section>
     {view !== null && <MediaViewer assets={sceneImages} initial={view} close={() => setView(null)} />}

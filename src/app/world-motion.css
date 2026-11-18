@@ -1,30 +1,31 @@
 /* Full-page scenery sits above the content without intercepting input. */
-:root, :root[data-theme='dusk'] { --world-petal: #98aa64; --world-soft: #d1dca3; --world-ink: #3a593e; --world-shine: #f8efc6; }
-:root[data-theme='sea'] { --world-petal: #5fa6a3; --world-soft: #c6e1d6; --world-ink: #2c6976; --world-shine: #fff4d3; }
-:root[data-theme='film'] { --world-petal: #b98058; --world-soft: #e1b680; --world-ink: #563b2e; --world-shine: #fff0c9; }
-:root[data-theme='night'] { --world-petal: #dfc994; --world-soft: #879d9b; --world-ink: #3e5c52; --world-shine: #fff1c5; }
+:root, :root[data-theme='grassland'] { --world-petal: #98aa64; --world-soft: #d1dca3; --world-ink: #3a593e; --world-shine: #f8efc6; }
+:root[data-theme='ocean'] { --world-petal: #5fa6a3; --world-soft: #c6e1d6; --world-ink: #2c6976; --world-shine: #fff4d3; }
+:root[data-theme='rift'] { --world-petal: #b98058; --world-soft: #e1b680; --world-ink: #563b2e; --world-shine: #fff0c9; }
+:root[data-theme='forest'] { --world-petal: #dfc994; --world-soft: #879d9b; --world-ink: #3e5c52; --world-shine: #fff1c5; }
+:root[data-theme='iceberg'] { --world-petal: #82b4d1; --world-soft: #b3e5fa; --world-ink: #427bb2; --world-shine: #e8faff; }
 .studio-auth { position: relative; isolation: isolate; }
 .world-atmosphere, .world-choreography { position: fixed; pointer-events: none; inset: var(--environment-top, 0px) 0 0 var(--environment-left, 0px); overflow: hidden; }
 .world-atmosphere { z-index: -1; color: var(--accent); }
 .world-ground, .world-scene { display: none; position: absolute; inset: 0; }
-:root[data-theme='dusk'] [data-world-theme='dusk'], :root[data-theme='sea'] [data-world-theme='sea'], :root[data-theme='film'] [data-world-theme='film'], :root[data-theme='night'] [data-world-theme='night'] { display: block; }
+:root[data-theme='grassland'] [data-world-theme='grassland'], :root[data-theme='ocean'] [data-world-theme='ocean'], :root[data-theme='rift'] [data-world-theme='rift'], :root[data-theme='forest'] [data-world-theme='forest'], :root[data-theme='iceberg'] [data-world-theme='iceberg'] { display: block; }
 .world-ground { opacity: .24; transition: opacity 1s ease; transform: translateY(var(--world-scroll, 0px)); }
 .world-ground > span { position: absolute; display: block; }
-.world-ground-dusk > span { width: 90px; height: 290px; border-left: 1px solid currentColor; border-radius: 50%; opacity: .16; rotate: 12deg; }
-.world-ground-dusk > span:nth-child(1) { left: -70px; bottom: -35px; }
-.world-ground-dusk > span:nth-child(2) { right: -70px; top: 14%; rotate: -14deg; }
-.world-ground-dusk > span:nth-child(3) { display: none; }
-.world-ground-sea > span { width: 260px; height: 75px; border-top: 1px solid currentColor; border-radius: 50%; opacity: .13; right: -150px; bottom: -52px; rotate: -8deg; }
-.world-ground-sea > span:nth-child(2) { bottom: -45px; right: -130px; }
-.world-ground-sea > span:nth-child(3) { bottom: -38px; right: -110px; }
-.world-ground-film > span { top: 0; bottom: 0; width: 1px; background: currentColor; opacity: .08; }
-.world-ground-film > span:first-child { left: 11px; }
-.world-ground-film > span:nth-child(2) { right: 11px; }
-.world-ground-film > span:nth-child(3) { display: none; }
-.world-ground-night > span { width: 2px; height: 2px; border-radius: 50%; background: var(--warm); opacity: .3; }
-.world-ground-night > span:nth-child(1) { top: 23%; right: 18px; }
-.world-ground-night > span:nth-child(2) { bottom: 19%; left: 22px; }
-.world-ground-night > span:nth-child(3) { top: 11%; left: 13px; }
+.world-ground-grassland > span { width: 90px; height: 290px; border-left: 1px solid currentColor; border-radius: 50%; opacity: .16; rotate: 12deg; }
+.world-ground-grassland > span:nth-child(1) { left: -70px; bottom: -35px; }
+.world-ground-grassland > span:nth-child(2) { right: -70px; top: 14%; rotate: -14deg; }
+.world-ground-grassland > span:nth-child(3) { display: none; }
+.world-ground-ocean > span { width: 260px; height: 75px; border-top: 1px solid currentColor; border-radius: 50%; opacity: .13; right: -150px; bottom: -52px; rotate: -8deg; }
+.world-ground-ocean > span:nth-child(2) { bottom: -45px; right: -130px; }
+.world-ground-ocean > span:nth-child(3) { bottom: -38px; right: -110px; }
+.world-ground-rift > span { top: 0; bottom: 0; width: 1px; background: currentColor; opacity: .08; }
+.world-ground-rift > span:first-child { left: 11px; }
+.world-ground-rift > span:nth-child(2) { right: 11px; }
+.world-ground-rift > span:nth-child(3) { display: none; }
+.world-ground-forest > span { width: 2px; height: 2px; border-radius: 50%; background: var(--warm); opacity: .3; }
+.world-ground-forest > span:nth-child(1) { top: 23%; right: 18px; }
+.world-ground-forest > span:nth-child(2) { bottom: 19%; left: 22px; }
+.world-ground-forest > span:nth-child(3) { top: 11%; left: 13px; }
 [data-world-awake='true'] .world-ground { opacity: .65; }
 .world-choreography { z-index: 22; container-type: size; }
 .studio-auth .world-choreography { z-index: 24; }
@@ -72,17 +73,36 @@
 .world-swim-far { bottom: 25%; width: clamp(25px, 4cqw, 55px); animation-duration: 23s; animation-delay: 8s; }
 .world-swim-deep { bottom: 9%; width: clamp(31px, 4.9cqw, 65px); animation-duration: 21s; animation-delay: 11.4s; }
 
-/* Film: light opens from a shutter while the film gate tracks sideways. */
-.world-film-light { position: absolute; right: 52px; bottom: 98px; width: min(92cqw, 1120px); height: clamp(115px, 48cqh, 390px); transform-origin: 100% 100%; clip-path: polygon(100% 100%, 0 12%, 6% 84%); background: linear-gradient(247deg, color-mix(in srgb, var(--world-shine) 89%, transparent), color-mix(in srgb, var(--world-soft) 37%, transparent) 38%, transparent 85%); opacity: 0; animation: world-film-open 1.85s ease both, world-film-pan 13.6s 1.85s ease-in-out infinite; }
-.world-film-projector { width: clamp(54px, 7.6cqw, 104px); aspect-ratio: 1; position: absolute; display: block; right: 5px; bottom: 45px; opacity: .85; filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--world-ink) 18%, transparent)); animation: world-film-projector 1.45s cubic-bezier(.19,1,.22,1) both; }
-.world-aperture-blades { transform-box: view-box; transform-origin: center; animation: world-film-blades 5.6s ease-in-out infinite; }
-.world-film-ribbon { position: absolute; left: -3%; bottom: -28px; width: min(91cqw, 1030px); opacity: .83; animation: world-film-ribbon 14s ease-in-out infinite; }
-.world-film-reel, .world-film-perforations { animation: world-film-track 5s linear infinite; }
-.world-film-grain { position: absolute; right: 12%; bottom: 17%; width: 55%; height: 23%; }
-.world-film-grain i { position: absolute; top: 49%; right: 2%; width: 2px; height: 2px; border-radius: 50%; background: var(--world-petal); animation: world-film-grain 6s .8s ease-in-out infinite both; }
-.world-film-grain i:nth-child(2) { top: 38%; right: 23%; animation-delay: 1.4s; }
-.world-film-grain i:nth-child(3) { top: 18%; right: 46%; animation-delay: 2.3s; }
-.world-film-grain i:nth-child(4) { top: 66%; right: 62%; animation-delay: 3.5s; }
+/* Lanterns rise in staggered currents; ice falls from above and refracts as it turns. */
+.world-lanterns, .world-icefall { position: absolute; inset: 0; }
+.world-lanterns > span, .world-icefall > span {
+  position: absolute;
+  width: var(--width, 38px);
+  aspect-ratio: 1;
+  left: var(--left, 83%);
+  opacity: 0;
+  animation-delay: var(--delay, 0s);
+}
+.world-lanterns > span {
+  bottom: 6%;
+  filter: drop-shadow(0 0 9px var(--world-soft));
+  animation-name: world-lantern-rise;
+  animation-duration: 12s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.world-icefall > span {
+  top: -8%;
+  filter: drop-shadow(0 0 4px var(--world-soft));
+  animation-name: world-ice-drift;
+  animation-duration: 10s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+:is(.world-lanterns, .world-icefall) > span:nth-child(2) { --left: 69%; --width: 25px; --delay: .75s; }
+:is(.world-lanterns, .world-icefall) > span:nth-child(3) { --left: 91%; --width: 21px; --delay: 1.7s; }
+:is(.world-lanterns, .world-icefall) > span:nth-child(4) { --left: 60%; --width: 17px; --delay: 3.4s; }
+:is(.world-lanterns, .world-icefall) > span:nth-child(5) { --left: 48%; --width: 29px; --delay: 5.2s; }
 
 /* Night: quiet lights remain after the short, descending meteor passes. */
 .world-night-map { position: absolute; width: clamp(190px, 42cqw, 450px); right: -2cqw; top: 4cqh; opacity: .76; }
@@ -108,7 +128,7 @@
 .world-switch-mark > span { width: 32px; height: 28px; }
 .world-switch-mark .world-mark * { animation-play-state: paused; }
 .world-environment [data-world-invitation] { display: none; }
-:root[data-theme='dusk'] [data-world-invitation='dusk'], :root[data-theme='sea'] [data-world-invitation='sea'], :root[data-theme='film'] [data-world-invitation='film'], :root[data-theme='night'] [data-world-invitation='night'] { display: inline-block; }
+:root[data-theme='grassland'] [data-world-invitation='grassland'], :root[data-theme='ocean'] [data-world-invitation='ocean'], :root[data-theme='rift'] [data-world-invitation='rift'], :root[data-theme='forest'] [data-world-invitation='forest'], :root[data-theme='iceberg'] [data-world-invitation='iceberg'] { display: inline-block; }
 .world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); border-color: var(--motion-deep); }
 .world-toggle[aria-pressed='true'] .world-switch-mark { --world-petal: var(--motion-pop); --world-soft: var(--motion-on-deep); }
 .world-toggle[aria-pressed='true'] .world-switch-mark .world-mark * { animation-play-state: running; }
@@ -188,13 +208,20 @@
 @keyframes world-caustic { 0%,100% { transform: translateX(-5%); opacity: .43; } 50% { transform: translateX(6%); opacity: .74; } }
 @keyframes world-sea-bubble { 0%,100% { opacity: 0; transform: translate(0, 0) scale(.6); } 30% { opacity: .53; } 86% { opacity: .12; transform: translate(9px, -18px) scale(1.07); } }
 
-@keyframes world-film-open { 0% { opacity: 0; scale: .15 .01; } 54% { opacity: .68; scale: .9 .69; } 100% { opacity: .43; scale: 1 1; } }
-@keyframes world-film-pan { 0%,100% { rotate: 0deg; } 53% { rotate: 10deg; } }
-@keyframes world-film-projector { 0% { opacity: 0; transform: scale(.51) rotate(-62deg); } 100% { opacity: .85; transform: scale(1) rotate(0deg); } }
-@keyframes world-film-blades { 0%,100% { transform: rotate(0deg) scale(.91); } 51% { transform: rotate(15deg) scale(1.04); } }
-@keyframes world-film-ribbon { 0%,100% { transform: translate(-1cqw, 0); } 52% { transform: translate(3.5cqw, -8px); } }
-@keyframes world-film-track { to { stroke-dashoffset: -300; } }
-@keyframes world-film-grain { 0%,100% { opacity: 0; transform: translate(8px, 6px); } 45% { opacity: .57; transform: translate(-22px, -6px); } 82% { opacity: .2; transform: translate(-46px, -12px); } }
+@keyframes world-lantern-rise {
+  0% { opacity: 0; transform: translate(8cqw, 11cqh) rotate(-8deg) scale(.64); }
+  20% { opacity: .93; transform: translate(2cqw, -9cqh) rotate(8deg) scale(1); }
+  48% { opacity: .72; transform: translate(-5cqw, -34cqh) rotate(-3deg) scale(.75); }
+  81% { opacity: .36; transform: translate(-15cqw, -60cqh) rotate(10deg) scale(.51); }
+  100% { opacity: 0; transform: translate(-19cqw, -82cqh) rotate(2deg) scale(.44); }
+}
+@keyframes world-ice-drift {
+  0% { opacity: 0; transform: translate(3cqw, 0) rotate(29deg) rotateY(22deg); }
+  19% { opacity: .88; }
+  44% { transform: translate(-10cqw, 46cqh) rotate(-19deg) rotateY(120deg); }
+  72% { opacity: .68; transform: translate(-15cqw, 76cqh) rotate(17deg) rotateY(223deg); }
+  100% { opacity: 0; transform: translate(-29cqw, 114cqh) rotate(57deg) rotateY(320deg); }
+}
 
 @keyframes world-night-map { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes world-star-breathe { 0%,100% { opacity: .35; } 57% { opacity: .94; } }
@@ -226,15 +253,10 @@
   .world-sea-water { bottom: 45px; }
   .world-shoal { bottom: 17%; height: 63px; }
   .world-swim-deep, .world-paper-glide-far { display: none; }
-  .world-film-light { right: 32px; bottom: 87px; height: 38cqh; }
-  .world-film-projector { right: 6px; bottom: 60px; }
-  .world-film-ribbon { bottom: 22px; }
-  .world-film-reel, .world-film-perforations { animation-timing-function: steps(120, end); }
   .world-night-map { right: 1%; top: 3%; }
   .studio-auth .world-toggle { position: fixed; top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); right: 18px; }
   .studio-auth .world-paper-grove { bottom: -44px; }
   .studio-auth .world-sea-water { bottom: 0; }
-  .studio-auth .world-film-ribbon { bottom: -11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .world-ground, .world-choreography *, .world-toggle, .world-toggle *, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
@@ -242,5 +264,6 @@
   .world-ground { transform: none; }
   .world-paper-glide-close { opacity: .58; }
   .world-shoal { opacity: .67; }
-  .world-film-light { opacity: .32; }
+  .world-lanterns > span { opacity: .64; bottom: 23%; }
+  .world-icefall > span { opacity: .52; top: 28%; }
 }

@@ -7,38 +7,39 @@ import { MemorySprite } from '@/components/memory-sprite';
 import { DecodedImage } from '@/components/decoded-image';
 import { useApp } from '@/components/providers';
 import { api, dateText } from '@/lib/client';
-import { isTheme, type ThemeName } from '@/lib/themes';
+import { defaultTheme, resolveTheme, type ThemeName } from '@/lib/themes';
 import { previewUrl } from './media';
 import type { Memory, MemoryList, UserInfo } from './types';
 
 type Draft = { recipient: string; message: string; signature: string; cover: string };
 const prompts = ['今天最想留住的，是这一刻。', '等很久以后再读到这里，希望你还记得……', '有些话，想慢慢说给你听。'];
 const palette = {
-  dusk: { sky: '#e4ead7', hill: '#8ba58c', sea: '#b5c8aa', paper: '#faf9ef', ink: '#3e5141', mark: '植物来信', subtitle: '把平凡的日子，折成一片叶子。' },
-  sea: { sky: '#d9edf0', hill: '#a0c3c2', sea: '#71a5b3', paper: '#f0f8f6', ink: '#355b67', mark: '海风邮局', subtitle: '让海风，把想念送得远一点。' },
-  film: { sky: '#eed7b3', hill: '#aa8e68', sea: '#c6ab83', paper: '#fff4dd', ink: '#725637', mark: '旧日冲印室', subtitle: '给这一帧，留一个不会褪色的注脚。' },
-  night: { sky: '#243d43', hill: '#375749', sea: '#54776c', paper: '#e9edde', ink: '#344e40', mark: '月光投递所', subtitle: '今夜的月光，也替我说一声想念。' },
+  grassland: { sky: '#e4ead7', hill: '#8ba58c', sea: '#b5c8aa', paper: '#faf9ef', ink: '#3e5141', mark: '草地来信', subtitle: '把平凡的日子，折成一片叶子。' },
+  ocean: { sky: '#d9edf0', hill: '#a0c3c2', sea: '#71a5b3', paper: '#f0f8f6', ink: '#355b67', mark: '海风邮局', subtitle: '让海风，把想念送得远一点。' },
+  rift: { sky: '#eed7b3', hill: '#aa8e68', sea: '#c6ab83', paper: '#fff4dd', ink: '#725637', mark: '峡谷回信', subtitle: '给这一帧，留一个不会褪色的注脚。' },
+  forest: { sky: '#243d43', hill: '#375749', sea: '#54776c', paper: '#e9edde', ink: '#344e40', mark: '林中来信', subtitle: '今夜的月光，也替我说一声想念。' },
+  iceberg: { sky: '#dbeef8', hill: '#8baec9', sea: '#9dccdf', paper: '#f2f8ff', ink: '#34536b', mark: '冰川来信', subtitle: '愿这一刻，顺着冰光寄到你身边。' },
 };
-function currentTheme(): ThemeName { const t = document.documentElement.dataset.theme; return isTheme(t) ? t : 'dusk'; }
+function currentTheme(): ThemeName { return resolveTheme(document.documentElement.dataset.theme ?? null); }
 function subscribeTheme(notify: () => void) {
   window.addEventListener('nsb:theme', notify); window.addEventListener('storage', notify);
   return () => { window.removeEventListener('nsb:theme', notify); window.removeEventListener('storage', notify); };
 }
-const serverTheme = (): ThemeName => 'dusk';
+const serverTheme = (): ThemeName => defaultTheme;
 
 function Landscape({ theme }: { theme: ThemeName }) {
   const p = palette[theme];
   return <svg className='ps-landscape' viewBox='0 0 900 590' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'>
     <rect width='900' height='590' fill={p.sky} />
-    {theme === 'night' ? <><path d='M699 64a64 64 0 1 0 55 98c-71 14-100-58-55-98Z' fill='#ece1ac' /><path d='m93 95 89 43 64-72 84 53' fill='none' stroke='#d5e0bd' strokeWidth='2' opacity='.6' />{[[93,95],[182,138],[246,66],[330,119],[479,92],[550,171],[809,236]].map(([x,y]) => <circle key={x} cx={x} cy={y} r='3' fill='#fff5c8' />)}</> : <><circle cx='701' cy='136' r='62' fill={theme === 'film' ? '#d79c61' : '#f0bf83'} /><g fill='#fffdf3' opacity='.8'><path d='M82 158c0-29 32-42 55-24 13-39 65-32 73 1 29-21 59-5 61 23Z' /><path d='M435 77c5-23 31-27 48-12 14-26 52-19 56 7 21-11 42-1 43 11H435Z' /></g></>}
+    {theme === 'forest' ? <><path d='M699 64a64 64 0 1 0 55 98c-71 14-100-58-55-98Z' fill='#ece1ac' /><path d='m93 95 89 43 64-72 84 53' fill='none' stroke='#d5e0bd' strokeWidth='2' opacity='.6' />{[[93,95],[182,138],[246,66],[330,119],[479,92],[550,171],[809,236]].map(([x,y]) => <circle key={x} cx={x} cy={y} r='3' fill='#fff5c8' />)}</> : <><circle cx='701' cy='136' r='62' fill={theme === 'rift' ? '#d79c61' : '#f0bf83'} /><g fill='#fffdf3' opacity='.8'><path d='M82 158c0-29 32-42 55-24 13-39 65-32 73 1 29-21 59-5 61 23Z' /><path d='M435 77c5-23 31-27 48-12 14-26 52-19 56 7 21-11 42-1 43 11H435Z' /></g></>}
     <path d='M0 363c110-53 213-155 344-94 150 69 206-89 354-63 78 13 143 51 202 44v340H0Z' fill={p.hill} />
     <path d='M0 398c183-87 305 20 466-56 155-73 265-25 434-67v315H0Z' fill={p.sea} />
-    <path d='M0 523c200-68 334 2 511-40 150-36 260-12 389-35v142H0Z' fill={theme === 'night' ? '#a1b29a' : '#e9d4b0'} />
+    <path d='M0 523c200-68 334 2 511-40 150-36 260-12 389-35v142H0Z' fill={theme === 'forest' ? '#a1b29a' : theme === 'iceberg' ? '#dcecf5' : '#e9d4b0'} />
     <g stroke='#fff7df' strokeWidth='3' opacity='.7' fill='none'><path d='M115 420h96m77 35h120m197-54h143M0 549c180-43 370 3 549-38 121-28 225-10 351-22' /></g>
-    {theme === 'sea' && <g transform='translate(437 353)'><path d='m0 31 72 0-18 17H17Z' fill='#4c5e72' /><path d='M36-29v57H0Z' fill='#fff9df' /><path d='m42-12 25 40H42Z' fill='#dfb398' /></g>}
-    {theme === 'dusk' && <g stroke='#496f50' strokeWidth='4' fill='#dbe4ba'><path d='M117 563c1-54 15-93 43-132' fill='none' /><path d='M135 508c-51-3-66-31-56-54 37 4 58 23 56 54Zm12-33c36 0 58-20 60-44-36-2-61 15-60 44Z' /></g>}
-    {theme === 'film' && <g fill='#6b553f' opacity='.55'>{Array.from({ length: 12 }, (_, i) => <g key={i}><rect x={24+i*74} y='14' width='31' height='9' rx='2' /><rect x={24+i*74} y='567' width='31' height='9' rx='2' /></g>)}</g>}
-    {theme === 'night' && <g fill='#eee8b7'><circle cx='184' cy='415' r='4' /><circle cx='244' cy='474' r='3' /><circle cx='739' cy='444' r='4' /></g>}
+    {theme === 'ocean' && <g transform='translate(437 353)'><path d='m0 31 72 0-18 17H17Z' fill='#4c5e72' /><path d='M36-29v57H0Z' fill='#fff9df' /><path d='m42-12 25 40H42Z' fill='#dfb398' /></g>}
+    {theme === 'grassland' && <g stroke='#496f50' strokeWidth='4' fill='#dbe4ba'><path d='M117 563c1-54 15-93 43-132' fill='none' /><path d='M135 508c-51-3-66-31-56-54 37 4 58 23 56 54Zm12-33c36 0 58-20 60-44-36-2-61 15-60 44Z' /></g>}
+    {theme === 'rift' && <g fill='#6b553f' opacity='.55'>{Array.from({ length: 12 }, (_, i) => <g key={i}><rect x={24+i*74} y='14' width='31' height='9' rx='2' /><rect x={24+i*74} y='567' width='31' height='9' rx='2' /></g>)}</g>}
+    {theme === 'forest' && <g fill='#eee8b7'><circle cx='184' cy='415' r='4' /><circle cx='244' cy='474' r='3' /><circle cx='739' cy='444' r='4' /></g>}
   </svg>;
 }
 
@@ -143,7 +144,7 @@ export function PostcardStudio({ user, data, close, onSaved }: { user: UserInfo;
       await document.fonts.ready;
       const canvas = document.createElement('canvas'); canvas.width = 1800; canvas.height = 1200;
       const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('当前浏览器不支持导出图片');
-      ctx.fillStyle = theme === 'night' ? '#263d30' : p.sky; ctx.fillRect(0, 0, 1800, 1200);
+      ctx.fillStyle = theme === 'forest' ? '#263d30' : p.sky; ctx.fillRect(0, 0, 1800, 1200);
       ctx.fillStyle = p.paper; ctx.fillRect(44, 44, 838, 1112); ctx.fillRect(914, 44, 842, 1112);
       const fit = Math.min(774 / cover.naturalWidth, 870 / cover.naturalHeight);
       ctx.fillStyle = p.sky; ctx.fillRect(76, 76, 774, 870);

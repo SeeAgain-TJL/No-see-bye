@@ -40,9 +40,9 @@
 .journal-index-bookmark > svg:last-child { margin-left: auto; }
 .journal-index-bookmark[aria-pressed='true'] > svg:first-child { fill: var(--accent-soft); }
 .journal-index-empty { color: var(--ink-muted); font: 18px/2 'STKaiti', 'KaiTi', serif; padding-block: 32px; margin: 0; }
-:root[data-theme='film'] .journal-personal-book { border-left: 4px double var(--accent); border-radius: 2px; }
-:root[data-theme='night'] .journal-personal-book { background: linear-gradient(130deg, var(--surface), var(--hero)); box-shadow: inset 0 1px 0 #ffffff0b; }
-:root[data-theme='dusk'] .journal-personal-book { background: repeating-linear-gradient(0deg, transparent 0 27px, color-mix(in srgb, var(--line) 22%, transparent) 27px 28px), var(--surface); }
+:root[data-theme='rift'] .journal-personal-book { border-left: 4px double var(--accent); border-radius: 2px; }
+:root[data-theme='forest'] .journal-personal-book { background: linear-gradient(130deg, var(--surface), var(--hero)); box-shadow: inset 0 1px 0 #ffffff0b; }
+:root[data-theme='grassland'] .journal-personal-book { background: repeating-linear-gradient(0deg, transparent 0 27px, color-mix(in srgb, var(--line) 22%, transparent) 27px 28px), var(--surface); }
 
 /* Discovery: an unbound atlas, a compass, and paths found in public records. */
 :root[data-theme] .journal-experience .journal-open-horizon { grid-template-columns: minmax(0, 1.1fr) minmax(230px, .8fr); gap: 25px 58px; padding: 10px 0 43px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; }

@@ -1,5 +1,5 @@
-/* Four distinct palettes, with clear foregrounds and neutral photographic surfaces. */
-:root, :root[data-theme="dusk"] {
+/* Landscape palettes with clear foregrounds and neutral photographic surfaces. */
+:root, :root[data-theme="grassland"] {
   color-scheme: light;
   --page: #f5f4ee; --surface: #fffef8; --surface-dim: #eeeee4; --hero: #e9ede0;
   --ink: #2d3d32; --ink-muted: #6b7568; --line: #d9dece;
@@ -7,7 +7,7 @@
   --warm: #a78760; --warm-soft: #e9ddc5; --cool-soft: #e3ebe6; --shadow-color: #273c2810;
   --album-paper: #fffefb; --album-shadow: #30372b24; --album-glow: #dfe6d5;
 }
-:root[data-theme="sea"] {
+:root[data-theme="ocean"] {
   color-scheme: light;
   --page: #eef5f6; --surface: #fbfdfd; --surface-dim: #e1edf0; --hero: #dcecf0;
   --ink: #294851; --ink-muted: #59737c; --line: #cbdfe3;
@@ -15,7 +15,7 @@
   --warm: #9b8065; --warm-soft: #e7ddcc; --cool-soft: #dfecef; --shadow-color: #2b4e4a10;
   --album-paper: #fbfdfc; --album-shadow: #29454b22; --album-glow: #d8e6e6;
 }
-:root[data-theme="film"] {
+:root[data-theme="rift"] {
   color-scheme: light;
   --page: #f5efe4; --surface: #fff9ed; --surface-dim: #eee2d0; --hero: #ecddc5;
   --ink: #493b30; --ink-muted: #7b6856; --line: #ded0ba;
@@ -23,13 +23,21 @@
   --warm: #9a7851; --warm-soft: #e9d9b7; --cool-soft: #e3e7d9; --shadow-color: #65442a12;
   --album-paper: #fffaf1; --album-shadow: #58452c23; --album-glow: #eadbc1;
 }
-:root[data-theme="night"] {
+:root[data-theme="forest"] {
   color-scheme: dark;
   --page: #172620; --surface: #22342c; --surface-dim: #1d2d26; --hero: #2a3e35;
   --ink: #e7ece2; --ink-muted: #acbaad; --line: #3e5548;
   --accent: #c0d2b3; --accent-soft: #344b3c; --on-accent: #1c2e23;
   --warm: #c7af89; --warm-soft: #494737; --cool-soft: #34483e; --shadow-color: #08110d30;
   --album-paper: #344137; --album-shadow: #060e0959; --album-glow: #3e5140;
+}
+:root[data-theme="iceberg"] {
+  color-scheme: light;
+  --page: #eef3fa; --surface: #fbfcff; --surface-dim: #e2edf7; --hero: #dce9f5;
+  --ink: #233952; --ink-muted: #506980; --line: #ccdce9;
+  --accent: #325d82; --accent-soft: #dbeaf9; --on-accent: #f9fdff;
+  --warm: #8c6c80; --warm-soft: #ebe3ee; --cool-soft: #d8e9f6; --shadow-color: #13416a15;
+  --album-paper: #fcfdff; --album-shadow: #173d5b2e; --album-glow: #d6e6f5;
 }
 :root {
   --bg: var(--page); --paper: var(--surface); --muted: var(--ink-muted);
@@ -108,10 +116,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-colo
 .theme-menu small { display: block; font-size: 10px; margin-top: 5px; color: var(--ink-muted); }
 .theme-swatch { width: 29px; height: 35px; border-radius: 6px 6px 12px 6px; flex-shrink: 0; border: 1px solid #00000012; }
 .theme-check { margin-left: auto; color: var(--accent); }
-[data-theme-preview="dusk"] { background: #f6f5f1; box-shadow: inset 0 -12px #526959; }
-[data-theme-preview="sea"] { background: #e4edeb; box-shadow: inset 0 -12px #4b7079; }
-[data-theme-preview="film"] { background: #eee5d6; box-shadow: inset 0 -12px #8a6849; }
-[data-theme-preview="night"] { background: #26322b; box-shadow: inset 0 -12px #bccbb0; }
+[data-theme-preview="grassland"] { background: #f6f5f1; box-shadow: inset 0 -12px #526959; }
+[data-theme-preview="ocean"] { background: #e4edeb; box-shadow: inset 0 -12px #4b7079; }
+[data-theme-preview="rift"] { background: #eee5d6; box-shadow: inset 0 -12px #8a6849; }
+[data-theme-preview="forest"] { background: #26322b; box-shadow: inset 0 -12px #bccbb0; }
 :root[data-theme-transition]::view-transition-old(root), :root[data-theme-transition]::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 :root[data-theme-transition]::view-transition-new(root) { animation: theme-reveal .48s cubic-bezier(.2,.6,.2,1) both; }
 @keyframes theme-reveal { from { clip-path: circle(0 at var(--theme-x) var(--theme-y)); } to { clip-path: circle(var(--theme-radius) at var(--theme-x) var(--theme-y)); } }

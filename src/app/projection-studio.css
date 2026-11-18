@@ -55,55 +55,35 @@
 .app-shell .breadcrumb { font-size: 12px; letter-spacing: .025em; }
 .app-shell .quick-search-trigger { border-radius: 8px; min-height: 40px; }
 
-:root[data-theme='dusk'] { --opening-position: 65%; --opening-optics: linear-gradient(114deg, transparent 43%, #d9efe813 54%, transparent 66%); }
-:root[data-theme='sea'] { --opening-position: 62%; --opening-optics: linear-gradient(166deg, transparent 64%, #77bbce38 72%, transparent 82%); }
-:root[data-theme='film'] { --opening-position: 55%; --opening-optics: linear-gradient(98deg, transparent 55%, #d8843a45 77%, transparent 95%); }
-:root[data-theme='night'] { --cinema-matte: #151e24; --opening-position: 73%; --opening-optics: radial-gradient(ellipse at 80% 40%, #bccbfa2d, transparent 49%); }
 .projection-home .cinematic-opening {
   margin-bottom: clamp(32px, 4.5vw, 60px);
   min-height: clamp(474px, 44vw, 650px);
-  align-items: end;
-  padding: clamp(34px, 6vw, 76px);
+  align-items: center;
+  padding: clamp(32px, 5.5vw, 72px);
+  padding-bottom: clamp(64px, 8vw, 118px);
   border-radius: 17px;
+  touch-action: pan-y;
 }
 .projection-home .cinematic-opening::before {
-  background: linear-gradient(90deg, #080e12e7 0%, #080e12ab 29%, #09101819 67%, transparent 100%),
-    linear-gradient(0deg, #080e12a6, transparent 38%, transparent 78%, #080e1255);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cinema-matte) 94%, #000) 0%, color-mix(in srgb, var(--cinema-matte) 76%, transparent) 32%, transparent 76%),
+    linear-gradient(0deg, #06101899, transparent 32%, transparent 83%, #0610183a);
 }
 .projection-home .cinematic-opening::after { inset: 8px; border-radius: 9px; border-color: #eaf3de35; }
-.projection-home .cinematic-opening[data-focused='true']::after { inset: 15px; border-color: color-mix(in srgb, var(--cinema-light) 57%, transparent); }
-.projection-home .cinematic-opening[data-focused] .cinematic-opening-art {
-  transform: translate(var(--camera-x, 0px), var(--camera-y, 0px)) scale(var(--opening-zoom));
-  transform-origin: var(--opening-position) 47%;
-  filter: none;
+.projection-home .cinematic-opening-art { inset-inline: -80px; }
+.projection-home .cinematic-opening[data-shot-dragging] .cinematic-opening-art { transition: transform .13s ease-out; }
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .projection-home .cinematic-opening { cursor: grab; }
+  .projection-home .cinematic-opening[data-shot-dragging] { cursor: grabbing; user-select: none; }
 }
 .projection-home .cinematic-opening-brand { color: #f6f1e7; letter-spacing: .122em; font-size: 12px; gap: 10px; }
 .projection-home .cinematic-opening-brand .brand-symbol { width: 27px; height: 27px; box-shadow: 0 0 0 1px #c7d7ce4e; border-radius: 7px; }
-.projection-home .cinematic-opening h1 { margin-top: 22px; }
+.projection-home .cinematic-opening h1 { margin: 19px 0 12px; font-size: clamp(34px, 4.8vw, 76px); letter-spacing: -.048em; }
 .projection-home .cinematic-opening h1 > span { color: var(--cinema-light); }
+.opening-film-credit { margin: 0 0 clamp(20px, 3vw, 32px); color: #f1eddf; font-size: 12px; letter-spacing: .072em; text-shadow: 0 2px 8px #061014; }
 .projection-home .cinematic-opening-actions a { box-shadow: 0 12px 24px -11px #030708bc; }
 .projection-home .cinematic-opening-actions .cinematic-opening-primary { color: var(--cinema-matte); background: #f3efdf; border-color: #f3efdf; }
 .projection-home .cinematic-opening-actions .cinematic-opening-primary:hover { background: var(--cinema-light); }
-.opening-viewfinder { position: absolute; right: 23px; top: 23px; z-index: 4; display: grid; justify-items: end; gap: 7px; }
-.opening-viewfinder .cinematic-opening-focus { position: static; background: #0b171ce0; }
-.opening-viewfinder .cinematic-opening-focus[aria-expanded='true'] { border-color: var(--cinema-light); color: var(--cinema-light); }
-.opening-lens {
-  width: min(206px, 56vw);
-  display: grid;
-  gap: 8px;
-  padding: 11px 12px;
-  border: 1px solid #e5f1df57;
-  border-radius: 10px;
-  background: #101b20ee;
-  box-shadow: 0 14px 30px -14px #000;
-  color: var(--projection-ink);
-  backdrop-filter: blur(13px);
-}
-.opening-lens[hidden] { display: none; }
-.opening-lens label { display: flex; justify-content: space-between; gap: 5px; font-size: 11px; }
-.opening-lens output { color: var(--cinema-light); font-variant-numeric: tabular-nums; }
-.opening-lens input { width: 100%; min-height: 25px; margin: 0; accent-color: var(--cinema-light); }
-.opening-lens button, .opening-photo-label {
+.opening-photo-label {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -118,7 +98,7 @@
   white-space: nowrap;
   transition: background .23s, border-color .23s;
 }
-.opening-lens button:hover, .opening-photo-label:hover { border-color: var(--cinema-light); background: #101b20; }
+.opening-photo-label:hover { border-color: var(--cinema-light); background: #101b20; }
 .opening-photo-label { position: absolute; right: 23px; bottom: 32px; z-index: 3; backdrop-filter: blur(10px); }
 .immersive-photo-credit {
   position: absolute;
@@ -208,6 +188,8 @@
 .projection-contact-card[data-motion-hover='true']::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: radial-gradient(ellipse at var(--surface-x) var(--surface-y), #f0e8d127, transparent 46%); }
 .projection-contact-card:focus-within, .projection-contact-card:hover { border-color: var(--accent); box-shadow: 0 15px 29px -18px var(--album-shadow); }
 .projection-contact-photo { display: block; position: relative; width: 100%; padding: 0; aspect-ratio: 1.6; overflow: hidden; background: radial-gradient(ellipse at 48% 45%, var(--cinema-fill), transparent 77%), var(--cinema-matte); cursor: zoom-in; }
+.projection-contact-reflection { position: absolute; inset: -16px; pointer-events: none; background-position: center; background-size: cover; filter: blur(clamp(9px, 1.1vw, 19px)) saturate(.89); opacity: .72; }
+.projection-contact-photo:has(.decoded-image[data-state='ready']) .projection-contact-reflection { background-image: linear-gradient(135deg, #07121224, #050a154f), var(--contact-image); }
 .projection-contact-photo .decoded-image { position: absolute; inset: 0; display: block; height: 100%; background: transparent; }
 .projection-contact-photo img { width: 100%; height: 100%; display: block; object-fit: contain; }
 .projection-contact-photo:focus-visible { outline: 2px solid var(--cinema-light); outline-offset: -4px; }
@@ -227,12 +209,10 @@
   .projection-contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
-  .projection-home .cinematic-opening { min-height: clamp(452px, 126vw, 574px); padding: 25px 18px 68px; border-radius: 13px; }
-  .projection-home .cinematic-opening::before { background: linear-gradient(0deg, #070c12f0, #07111bd7 30%, #09101853 68%, transparent 95%); }
-  .projection-home .cinematic-opening h1 { margin-block: 15px 24px; font-size: clamp(32px, 9.65vw, 62px); }
+  .projection-home .cinematic-opening { align-items: end; min-height: clamp(429px, 119vw, 548px); padding: 25px 18px 94px; border-radius: 13px; }
+  .projection-home .cinematic-opening::before { background: linear-gradient(0deg, var(--cinema-matte), color-mix(in srgb, var(--cinema-matte) 82%, transparent) 36%, #0910185a 67%, transparent 93%); }
+  .projection-home .cinematic-opening h1 { margin-block: 13px 9px; font-size: clamp(27px, 8.35vw, 58px); }
   .projection-home .cinematic-opening-brand { font-size: 11px; }
-  .opening-viewfinder { top: 15px; right: 14px; }
-  .opening-viewfinder .cinematic-opening-focus { min-height: 38px; }
   .opening-photo-label { left: 18px; right: auto; bottom: 20px; min-height: 34px; }
   .projection-home .home-welcome { gap: 13px; padding: 18px 15px; }
   .projection-home .home-welcome h1 { font-size: clamp(28px, 7.5vw, 42px); }
@@ -248,5 +228,6 @@
   .projection-contact-caption a { flex-basis: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .projection-home :is(a, button, .opening-lens, .projection-contact-card, .projection-contact-expand) { transition: none; }
+  .projection-home :is(a, button, .projection-contact-card, .projection-contact-expand) { transition: none; }
+  .projection-home .cinematic-opening-art { transform: none; }
 }

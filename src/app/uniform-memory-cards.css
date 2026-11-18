@@ -88,10 +88,10 @@
 }
 .journal-experience .memory-feed.grid .memory-card-imprint > svg { width: 31px; height: 34px; }
 .journal-experience .memory-feed.grid .has-authored-copy .memory-card-imprint { opacity: .085; }
-:root[data-theme='dusk'] .journal-experience .memory-feed.grid .memory-card-imprint { border-style: dashed; border-radius: 45% 55% 48% 52%; }
-:root[data-theme='sea'] .journal-experience .memory-feed.grid .memory-card-imprint { width: 84px; height: 46px; border-radius: 50%; rotate: -8deg; }
-:root[data-theme='film'] .journal-experience .memory-feed.grid .memory-card-imprint { width: 61px; height: 61px; border-radius: 2px; border-style: double; border-width: 3px; rotate: -9deg; }
-:root[data-theme='night'] .journal-experience .memory-feed.grid .memory-card-imprint { border-radius: 50%; height: 66px; color: var(--warm); rotate: -24deg; }
+:root[data-theme='grassland'] .journal-experience .memory-feed.grid .memory-card-imprint { border-style: dashed; border-radius: 45% 55% 48% 52%; }
+:root[data-theme='ocean'] .journal-experience .memory-feed.grid .memory-card-imprint { width: 84px; height: 46px; border-radius: 50%; rotate: -8deg; }
+:root[data-theme='rift'] .journal-experience .memory-feed.grid .memory-card-imprint { width: 61px; height: 61px; border-radius: 2px; border-style: double; border-width: 3px; rotate: -9deg; }
+:root[data-theme='forest'] .journal-experience .memory-feed.grid .memory-card-imprint { border-radius: 50%; height: 66px; color: var(--warm); rotate: -24deg; }
 :root[data-theme] .journal-experience .memory-feed.grid .media-grid.archive-cover {
   grid-column: 1;
   grid-row: 1;

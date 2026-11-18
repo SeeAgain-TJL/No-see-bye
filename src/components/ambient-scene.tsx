@@ -5,10 +5,11 @@ import { Icon } from "./icons";
 import type { ThemeName } from "@/lib/themes";
 
 const invitations = [
-  ["dusk", "借一阵风", "蝶影随风而起"],
-  ["sea", "唤一场潮", "鱼群沿潮水游过"],
-  ["film", "放映旧光", "放映机已开灯"],
-  ["night", "拾一夜星", "流星划过墨林"],
+  ["forest", "唤起萤火", "森林里亮起萤火"],
+  ["iceberg", "看冰晶落下", "冰晶沿冷空气落下"],
+  ["grassland", "借一阵风", "蝶影随风而起"],
+  ["rift", "点亮灯河", "暖灯沿峡谷升起"],
+  ["ocean", "唤一场潮", "鱼群沿潮水游过"],
 ] as const;
 
 function Butterfly() {
@@ -49,14 +50,20 @@ function Fish() {
   </svg>;
 }
 
-function Aperture() {
-  return <svg viewBox="0 0 64 64" fill="none" className="world-mark world-aperture" aria-hidden="true">
-    <circle cx="32" cy="32" r="24" stroke="var(--world-petal)" strokeWidth="1.4" />
-    <circle cx="32" cy="32" r="21" stroke="var(--world-soft)" strokeWidth=".8" strokeDasharray="2 3" />
-    <g className="world-aperture-blades" fill="var(--world-soft)" stroke="var(--world-ink)" strokeWidth=".7">
-      {[0, 60, 120, 180, 240, 300].map(angle => <path key={angle} d="M21 18c6-5 13-6 20-3L32 23l-6 10-7-13Z" transform={`rotate(${angle} 32 32)`} />)}
-    </g>
-    <path d="m32 26 5 3v6l-5 3-5-3v-6Z" fill="var(--world-shine)" />
+function Lantern() {
+  return <svg viewBox="0 0 64 64" fill="none" className="world-mark" aria-hidden="true">
+    <path d="M18 16h28l-4 31H22z" fill="var(--world-petal)" stroke="var(--world-shine)" strokeWidth="1.5" />
+    <path d="M23 17h20l-4 29H26Z" fill="var(--world-shine)" fillOpacity=".73" />
+    <path d="M22 47c5-4 15-4 20 0M32 14V8m-5 43h10" stroke="var(--world-soft)" strokeWidth="2" strokeLinecap="round" />
+    <path d="M31 38c-4-3 0-7 2-11 4 6 3 9-2 11Z" fill="var(--world-ink)" fillOpacity=".7" />
+  </svg>;
+}
+
+function Crystal() {
+  return <svg viewBox="0 0 64 64" fill="none" className="world-mark" aria-hidden="true">
+    <path d="M32 6 49 30 32 58 15 30Z" fill="var(--world-soft)" fillOpacity=".69" stroke="var(--world-petal)" strokeWidth="1.4" />
+    <path d="m32 6 2 25 15-1M32 58l2-27-19-1" stroke="var(--world-shine)" strokeWidth="1.3" />
+    <path d="M32 6 22 30l10 28-17-28Z" fill="var(--world-ink)" fillOpacity=".32" />
   </svg>;
 }
 
@@ -68,7 +75,7 @@ function Star() {
   </svg>;
 }
 
-const marks: Record<ThemeName, () => React.ReactNode> = { dusk: Butterfly, sea: Fish, film: Aperture, night: Star };
+const marks: Record<ThemeName, () => React.ReactNode> = { grassland: Butterfly, ocean: Fish, rift: Lantern, forest: Star, iceberg: Crystal };
 
 function PaperScene() {
   return <>
@@ -115,20 +122,12 @@ function SeaScene() {
   </>;
 }
 
-function FilmScene() {
-  return <>
-    <span className="world-film-light" />
-    <span className="world-film-grain"><i /><i /><i /><i /><i /></span>
-    <svg className="world-film-ribbon" viewBox="0 0 910 160" fill="none" focusable="false">
-      <path d="M-36 150C150 33 286 143 432 91S681 4 951 58" stroke="var(--world-petal)" strokeOpacity=".18" strokeWidth="44" />
-      <path className="world-film-reel" d="M-36 150C150 33 286 143 432 91S681 4 951 58" stroke="var(--world-ink)" strokeOpacity=".3" strokeWidth="25" strokeDasharray="45 5" />
-      <g className="world-film-perforations" stroke="var(--world-petal)" strokeWidth="3.5" strokeDasharray="5 7">
-        <path d="M-36 131C150 14 286 124 432 72S681-15 951 39" />
-        <path d="M-36 169C150 52 286 162 432 110S681 23 951 77" />
-      </g>
-    </svg>
-    <span className="world-film-projector"><Aperture /></span>
-  </>;
+function LanternScene() {
+  return <div className="world-lanterns"><span><Lantern /></span><span><Lantern /></span><span><Lantern /></span><span><Lantern /></span><span><Lantern /></span></div>;
+}
+
+function IceScene() {
+  return <div className="world-icefall"><span><Crystal /></span><span><Crystal /></span><span><Crystal /></span><span><Crystal /></span><span><Crystal /></span></div>;
 }
 
 const stars = [[28, 135], [73, 83], [110, 125], [151, 52], [202, 76], [231, 34], [281, 104], [317, 59], [352, 119]];
@@ -146,7 +145,7 @@ function NightScene() {
   </>;
 }
 
-const scenes: Record<ThemeName, () => React.ReactNode> = { dusk: PaperScene, sea: SeaScene, film: FilmScene, night: NightScene };
+const scenes: Record<ThemeName, () => React.ReactNode> = { grassland: PaperScene, ocean: SeaScene, rift: LanternScene, forest: NightScene, iceberg: IceScene };
 
 /** The scenery layers are transparent to input across the entire app shell. */
 export function AmbientScene({ awake, onToggle }: { awake: boolean; onToggle: () => void }) {
