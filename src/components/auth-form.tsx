@@ -95,10 +95,12 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       <div className="auth-card">
         <section className="auth-story" aria-label="记忆的四季">
           <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
-          <div className="auth-story-copy">{archiveEditions.map(edition => <div className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>
-            <span className="section-eyebrow">{edition.eyebrow}</span><h2>{edition.title}</h2><p>{edition.note}</p>
-          </div>)}</div>
-          <MemoryPortal />
+          <div className="auth-story-stage">
+            <div className="auth-story-copy">{archiveEditions.map(edition => <div className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>
+              <span className="section-eyebrow">{edition.eyebrow}</span><h2>{edition.title}</h2><p>{edition.note}</p>
+            </div>)}</div>
+            <MemoryPortal />
+          </div>
           <div className="auth-story-colophon"><ThemeMotif /><div><span lang="en">A moment kept.<br />A world within.</span><small>此心所系，皆可成册。</small></div><Link href="/memories?scope=public" aria-label="浏览公开日常">借阅人间<Icon name="arrow" size={18} /></Link></div>
         </section>
         <div className="auth-form-room">

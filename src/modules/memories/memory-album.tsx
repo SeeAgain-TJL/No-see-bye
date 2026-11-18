@@ -33,6 +33,7 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleId = useId();
   const selected = photos[index];
+  const advancing = playing && !hidden && !hovered && !transitioning && viewing === null && Boolean(loaded[selected.asset.id]) && photos.length > 1;
   const reelPhotos = photos.length > 1 ? [...photos, ...photos, ...photos] : photos;
   const ratio = (photo: GalleryPhoto) => {
     const value = ratios[photo.asset.id] || (photo.asset.width && photo.asset.height ? photo.asset.width / photo.asset.height : 1.5);
@@ -100,10 +101,10 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
     return () => document.removeEventListener('visibilitychange', changed);
   }, [choose]);
   useEffect(() => {
-    if (!playing || hidden || hovered || transitioning || viewing !== null || !loaded[selected.asset.id] || photos.length < 2) return;
+    if (!advancing) return;
     const timer = window.setTimeout(() => choose(index + 1), PHOTO_HOLD_MS);
     return () => clearTimeout(timer);
-  }, [playing, hidden, hovered, transitioning, viewing, loaded, selected.asset.id, photos.length, index, choose]);
+  }, [advancing, index, choose]);
   function observeScroll() {
     if (scrollFrame.current) return;
     scrollFrame.current = requestAnimationFrame(() => {
@@ -170,10 +171,11 @@ function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
             <span className='gallery-zoom'><Icon name='expand' size={19} /><span>展开</span></span>
           </button>; })}
         </div>
+        <div className='gallery-playback-progress' aria-hidden='true' style={{ '--gallery-hold': PHOTO_HOLD_MS + 'ms' } as CSSProperties}>{advancing && <span key={selected.asset.id} />}</div>
       </div>
       <div className='gallery-caption'>
         <div className='gallery-authored' key={selected.asset.id}><time dateTime={selected.memory.happenedAt}>{dateText(selected.memory.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time>{selected.memory.title && <h3>{selected.memory.title}</h3>}{selected.memory.content && <p>{selected.memory.content}</p>}</div>
-        <div className='gallery-controls'><span className='gallery-speed'>4s / HOLD</span><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张停留4秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
+        <div className='gallery-controls'><button className='gallery-control' type='button' aria-label='上一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index - 1); }}><Icon name='back' size={21} /></button><button className='gallery-control gallery-play' type='button' aria-label={playing ? '暂停照片轮播' : '自动播放照片，每张停留4秒'} aria-pressed={playing} disabled={photos.length < 2} onClick={() => setPlaying(value => !value)}><Icon name={playing ? 'pause' : 'play'} size={18} /></button><button className='gallery-control' type='button' aria-label='下一张照片' disabled={photos.length < 2} onClick={() => { setPlaying(false); choose(index + 1); }}><Icon name='arrow' size={21} /></button></div>
       </div>
       <div className='gallery-bottom'><div ref={thumbs} className='gallery-contacts' role='group' aria-label='选择照片'>{photos.map((photo, i) => <button key={photo.asset.id} type='button' aria-label={'第' + (i + 1) + '张照片'} aria-pressed={i === index} onClick={() => { setPlaying(false); choose(i); }}><DecodedImage src={previewUrl(photo.asset)} alt='' loading='lazy' /><span>{String(i + 1).padStart(2, '0')}</span></button>)}</div><Link href={'/memories/' + selected.memory.id} className='gallery-detail' aria-label='打开这张照片的日常详情'><Icon name='arrow' size={21} /></Link></div>
       <span className='sr-only' aria-live='polite' aria-atomic='true'>第 {index + 1} 张，共 {photos.length} 张照片</span>

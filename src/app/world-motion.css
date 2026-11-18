@@ -1,8 +1,8 @@
-/* Four small living worlds. Scenery is sparse and transparent to every input. */
-:root, :root[data-theme='dusk'] { --world-petal: #91a967; --world-soft: #c9d6a8; --world-ink: #3b5744; }
-:root[data-theme='sea'] { --world-petal: #6cabae; --world-soft: #c3dcd9; --world-ink: #275f70; }
-:root[data-theme='film'] { --world-petal: #ac7956; --world-soft: #d7ad7b; --world-ink: #603f31; }
-:root[data-theme='night'] { --world-petal: #dbd9ba; --world-soft: #8fa5ad; --world-ink: #4a6065; }
+/* Full-page scenery sits above the content without intercepting input. */
+:root, :root[data-theme='dusk'] { --world-petal: #98aa64; --world-soft: #d1dca3; --world-ink: #3a593e; --world-shine: #f8efc6; }
+:root[data-theme='sea'] { --world-petal: #5fa6a3; --world-soft: #c6e1d6; --world-ink: #2c6976; --world-shine: #fff4d3; }
+:root[data-theme='film'] { --world-petal: #b98058; --world-soft: #e1b680; --world-ink: #563b2e; --world-shine: #fff0c9; }
+:root[data-theme='night'] { --world-petal: #dfc994; --world-soft: #879d9b; --world-ink: #3e5c52; --world-shine: #fff1c5; }
 .studio-auth { position: relative; isolation: isolate; }
 .world-atmosphere, .world-choreography { position: fixed; pointer-events: none; inset: var(--environment-top, 0px) 0 0 var(--environment-left, 0px); overflow: hidden; }
 .world-atmosphere { z-index: -1; color: var(--accent); }
@@ -26,49 +26,92 @@
 .world-ground-night > span:nth-child(2) { bottom: 19%; left: 22px; }
 .world-ground-night > span:nth-child(3) { top: 11%; left: 13px; }
 [data-world-awake='true'] .world-ground { opacity: .65; }
-/* The former narrow mask hid almost the entire animation. Visitors now have their own open space. */
-.world-choreography { z-index: 22; }
+.world-choreography { z-index: 22; container-type: size; }
 .studio-auth .world-choreography { z-index: 24; }
-.world-scene { color: var(--accent); animation: world-scene-arrive .7s ease both; }
-.world-border-art { position: absolute; width: clamp(260px,28vw,430px); height: auto; bottom: -8px; right: -38px; opacity: .44; }
-.world-border-dusk { right: auto; left: -67px; }
-.world-border-film { opacity: .32; }
-.world-border-night { opacity: .62; bottom: 4px; right: -24px; }
-.world-visitor { width: 100%; height: 100%; overflow: visible; }
-.world-wing { transform-box: view-box; transform-origin: 50% 49%; animation: world-wingbeat 1.85s ease-in-out infinite; }
+.world-scene { color: var(--accent); animation: world-scene-arrive .65s ease both; }
+.world-mark { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Paper: rising butterfly paths over a low, swaying botanical foreground. */
+.world-paper-grove { position: absolute; width: clamp(260px, 34cqw, 510px); bottom: -58px; left: -48px; opacity: .55; }
+.world-paper-stems { transform-box: view-box; transform-origin: 14% 100%; animation: world-paper-stems 11s ease-in-out infinite; }
+.world-paper-stems-back { opacity: .67; animation-duration: 16s; animation-delay: -5s; }
+.world-paper-air { opacity: .42; animation: world-paper-air 22s linear infinite; }
+.world-wing { transform-box: view-box; transform-origin: 50% 49%; animation: world-wingbeat 1.2s cubic-bezier(.45,.04,.25,1) infinite; }
 .world-wing-right { animation-delay: -.08s; }
-.world-visitor-night .world-wing { animation-duration: 2.6s; }
-.world-fish-tail { transform-origin: 62px 34px; animation: world-tail .9s ease-in-out infinite; }
-.world-bird-wing { transform-origin: 40px 39px; animation: world-bird-wing 2.8s ease-in-out infinite; }
-.world-first-flight { position: absolute; width: 79px; height: 70px; right: 28px; bottom: 76px; opacity: 0; animation: world-first-flight 5.7s .08s cubic-bezier(.28,.45,.36,1) both; }
-.world-first-trail { position: absolute; right: -23px; top: 35px; width: 68px; height: 16px; border-top: .8px dashed var(--world-petal); border-radius: 50%; opacity: .65; rotate: -18deg; }
-.world-scene-sea .world-first-flight { animation-name: world-first-swim; }
-.world-traveler { position: absolute; display: block; width: var(--visitor-size); height: calc(var(--visitor-size) * .875); left: var(--visitor-x); top: var(--visitor-y); opacity: .65; animation: world-wander var(--visitor-duration) var(--visitor-delay) ease-in-out infinite; }
-.world-traveler > .world-visitor { scale: var(--visitor-turn) 1; rotate: -13deg; }
-.world-traveler-4 { opacity: .4; }
-.world-perched-visitor { position: absolute; width: 66px; height: 58px; right: 22px; bottom: 83px; opacity: .87; animation: world-perched-arrive 1.2s .25s both, world-perched-float 6.5s 1.45s ease-in-out infinite; }
-.world-perched-visitor > i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--world-petal); top: 14px; left: -8px; opacity: .5; animation: world-point-breathe 4s ease-in-out infinite; }
-.world-perched-visitor > i:nth-child(3) { top: 43px; left: -24px; animation-delay: -1.4s; width: 2px; height: 2px; }
-.world-perched-visitor > i:nth-child(4) { top: -3px; left: 18px; animation-delay: -2.6s; width: 2px; height: 2px; }
-.world-grass { transform-origin: 80px 280px; animation: world-grass-sway 12s ease-in-out infinite; }
-.world-grass-back { animation-delay: -6s; animation-duration: 17s; opacity: .7; }
-.world-drift-line { stroke-dashoffset: 0; animation: world-line-drift 28s linear infinite; opacity: .45; }
-.world-tide-lines { transform-origin: center bottom; animation: world-tide 9s ease-in-out infinite; }
-.world-water-bead { animation: world-bubble 8s calc(var(--world-item) * -1.6s) ease-in-out infinite; }
-.world-film-sweep { transform-origin: 220px 240px; animation: world-film-sweep 17s ease-in-out infinite; }
-.world-star-point { transform-box: fill-box; transform-origin: center; animation: world-point-breathe 6s calc(var(--world-item) * -.7s) ease-in-out infinite; }
-.world-constellation { animation: world-line-drift 45s linear infinite; opacity: .65; }
-/* A small, theme-specific visitor makes the global control identifiable and its state clear. */
+.world-paper-lift, .world-paper-glide { position: absolute; display: block; aspect-ratio: 8 / 7; opacity: 0; }
+.world-paper-lift-main { width: clamp(52px, 7.3cqw, 102px); bottom: 62px; right: 2cqw; animation: world-paper-lift-main 5.6s .04s cubic-bezier(.35,.1,.2,1) both; }
+.world-paper-lift-echo { width: clamp(30px, 4cqw, 63px); bottom: 68px; right: 6cqw; animation: world-paper-lift-echo 5.8s .48s ease-in-out both; }
+.world-paper-lift-echo .world-wing { animation-duration: 1.49s; }
+.world-paper-glide-close { width: clamp(32px, 4.2cqw, 58px); bottom: 14%; left: 10%; animation: world-paper-glide 10s 1s ease-in-out infinite; }
+.world-paper-glide-far { width: clamp(23px, 3cqw, 45px); top: 23%; right: 10%; animation: world-paper-hover 14s 2s ease-in-out infinite; }
+.world-paper-pollen { position: absolute; width: min(32cqw, 320px); height: min(39cqh, 270px); bottom: 4%; left: 2%; }
+.world-paper-pollen i { position: absolute; top: 75%; left: 15%; width: 3px; height: 3px; border-radius: 50%; background: var(--world-petal); animation: world-paper-pollen 8s -1s ease-in-out infinite; }
+.world-paper-pollen i:nth-child(2) { left: 36%; top: 64%; animation-delay: -3s; }
+.world-paper-pollen i:nth-child(3) { left: 66%; top: 82%; animation-delay: -4.6s; }
+.world-paper-pollen i:nth-child(4) { left: 88%; top: 42%; animation-delay: -6.8s; }
+
+/* Sea: a foreground shoal swims across the current with independent tail beats. */
+.world-sea-water { position: absolute; width: 112%; left: -6%; bottom: 0; height: clamp(86px, 24cqh, 210px); opacity: .72; }
+.world-swell { animation: world-water-swell 10s ease-in-out infinite; }
+.world-swell-deep { animation-duration: 16s; animation-delay: -6s; }
+.world-current-lines { opacity: .42; animation: world-current 12s ease-in-out infinite; }
+.world-sea-light { position: absolute; inset: auto -15% 0; height: min(31cqh, 230px); opacity: .64; background: radial-gradient(ellipse at 20% 81%, color-mix(in srgb, var(--world-soft) 61%, transparent), transparent 51%), radial-gradient(ellipse at 76% 68%, color-mix(in srgb, var(--world-petal) 23%, transparent), transparent 60%); animation: world-caustic 14s ease-in-out infinite; }
+.world-fish-tail { transform-box: view-box; transform-origin: 71% 50%; animation: world-tail .86s ease-in-out infinite; }
+.world-shoal { position: absolute; right: 1.8cqw; bottom: 14%; width: clamp(120px, 17cqw, 215px); height: 84px; opacity: 0; animation: world-shoal-crossing 7.5s .06s linear both; }
+.world-shoal > span { position: absolute; display: block; aspect-ratio: 3 / 2; }
+.world-shoal-lead { width: 55%; top: 23%; left: 0; }
+.world-shoal-upper { width: 33%; top: 0; left: 50%; opacity: .74; }
+.world-shoal-lower { width: 32%; top: 59%; left: 63%; opacity: .75; }
+.world-shoal-upper .world-fish-tail { animation-delay: -.28s; }
+.world-shoal-lower .world-fish-tail { animation-delay: -.46s; }
+.world-shoal i { position: absolute; top: 54%; left: 88%; width: 5px; height: 5px; border: 1px solid var(--world-petal); border-radius: 50%; animation: world-sea-bubble 2.6s ease-out infinite; }
+.world-shoal i:nth-of-type(2) { left: 83%; top: 56%; width: 3px; height: 3px; animation-delay: -.56s; }
+.world-shoal i:nth-of-type(3) { left: 94%; top: 62%; width: 3px; height: 3px; animation-delay: -1.4s; }
+.world-swim { position: absolute; display: block; aspect-ratio: 3 / 2; right: 0; width: clamp(34px, 6cqw, 82px); opacity: 0; animation: world-swim 19s 5.3s linear infinite; }
+.world-swim-near { bottom: 18%; }
+.world-swim-far { bottom: 25%; width: clamp(25px, 4cqw, 55px); animation-duration: 23s; animation-delay: 8s; }
+.world-swim-deep { bottom: 9%; width: clamp(31px, 4.9cqw, 65px); animation-duration: 21s; animation-delay: 11.4s; }
+
+/* Film: light opens from a shutter while the film gate tracks sideways. */
+.world-film-light { position: absolute; right: 52px; bottom: 98px; width: min(92cqw, 1120px); height: clamp(115px, 48cqh, 390px); transform-origin: 100% 100%; clip-path: polygon(100% 100%, 0 12%, 6% 84%); background: linear-gradient(247deg, color-mix(in srgb, var(--world-shine) 89%, transparent), color-mix(in srgb, var(--world-soft) 37%, transparent) 38%, transparent 85%); opacity: 0; animation: world-film-open 1.85s ease both, world-film-pan 13.6s 1.85s ease-in-out infinite; }
+.world-film-projector { width: clamp(54px, 7.6cqw, 104px); aspect-ratio: 1; position: absolute; display: block; right: 5px; bottom: 45px; opacity: .85; filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--world-ink) 18%, transparent)); animation: world-film-projector 1.45s cubic-bezier(.19,1,.22,1) both; }
+.world-aperture-blades { transform-box: view-box; transform-origin: center; animation: world-film-blades 5.6s ease-in-out infinite; }
+.world-film-ribbon { position: absolute; left: -3%; bottom: -28px; width: min(91cqw, 1030px); opacity: .83; animation: world-film-ribbon 14s ease-in-out infinite; }
+.world-film-reel, .world-film-perforations { animation: world-film-track 5s linear infinite; }
+.world-film-grain { position: absolute; right: 12%; bottom: 17%; width: 55%; height: 23%; }
+.world-film-grain i { position: absolute; top: 49%; right: 2%; width: 2px; height: 2px; border-radius: 50%; background: var(--world-petal); animation: world-film-grain 6s .8s ease-in-out infinite both; }
+.world-film-grain i:nth-child(2) { top: 38%; right: 23%; animation-delay: 1.4s; }
+.world-film-grain i:nth-child(3) { top: 18%; right: 46%; animation-delay: 2.3s; }
+.world-film-grain i:nth-child(4) { top: 66%; right: 62%; animation-delay: 3.5s; }
+
+/* Night: quiet lights remain after the short, descending meteor passes. */
+.world-night-map { position: absolute; width: clamp(190px, 42cqw, 450px); right: -2cqw; top: 4cqh; opacity: .76; }
+.world-star-thread { stroke-dasharray: 1; stroke-dashoffset: 0; opacity: .45; animation: world-night-map 3.4s .3s cubic-bezier(.2,.7,.26,1) both; }
+.world-night-point { animation: world-star-breathe 5.7s ease-in-out infinite; }
+.world-night-point-1 { animation-delay: -2s; }
+.world-night-point-2 { animation-delay: -4.2s; }
+.world-star-mark { transform-origin: 45px 21px; animation: world-star-twinkle 4.2s ease-in-out infinite; }
+.world-meteor { position: absolute; right: 5%; top: 14%; width: clamp(72px, 15cqw, 206px); height: 2px; opacity: 0; }
+.world-meteor > span { display: block; height: 2px; border-radius: 50%; transform-origin: left center; transform: rotate(-23deg); background: linear-gradient(90deg, var(--world-shine) 6%, var(--world-petal) 19%, transparent 100%); box-shadow: -3px 0 9px color-mix(in srgb, var(--world-petal) 70%, transparent); }
+.world-meteor > span::before { content: ''; display: block; position: absolute; left: -2px; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--world-shine); }
+.world-meteor-first { animation: world-meteor-entry 2.15s .28s cubic-bezier(.34,.25,.7,.95) both; }
+.world-meteor-echo { width: clamp(52px, 9cqw, 117px); top: 26%; right: -5%; animation: world-meteor-echo 22s 2.8s linear infinite; }
+.world-fireflies { position: absolute; bottom: 6%; left: 2%; width: 34%; height: 34%; }
+.world-fireflies i { position: absolute; border-radius: 50%; width: 4px; height: 4px; background: var(--world-petal); box-shadow: 0 0 7px var(--world-petal); animation: world-firefly 7s ease-in-out infinite; left: 15%; top: 22%; }
+.world-fireflies i:nth-child(2) { left: 36%; top: 60%; animation-delay: -1.4s; }
+.world-fireflies i:nth-child(3) { left: 57%; top: 41%; animation-delay: -3s; width: 3px; height: 3px; }
+.world-fireflies i:nth-child(4) { left: 79%; top: 77%; animation-delay: -4.6s; width: 2px; height: 2px; }
+.world-fireflies i:nth-child(5) { left: 91%; top: 31%; animation-delay: -5.9s; width: 3px; height: 3px; }
+
 .world-toggle { z-index: 55; min-height: 44px; padding-inline: 9px 14px; border-radius: 24px; box-shadow: 0 4px 18px -12px var(--album-shadow); }
 .world-switch-mark { display: grid; place-items: center; width: 32px; height: 28px; flex: 0 0 32px; transition: rotate .6s ease, scale .6s ease; }
 .world-switch-mark > span { width: 32px; height: 28px; }
-.world-switch-mark .world-visitor { animation: none; }
-.world-switch-mark .world-visitor * { animation-play-state: paused; }
+.world-switch-mark .world-mark * { animation-play-state: paused; }
 .world-environment [data-world-invitation] { display: none; }
 :root[data-theme='dusk'] [data-world-invitation='dusk'], :root[data-theme='sea'] [data-world-invitation='sea'], :root[data-theme='film'] [data-world-invitation='film'], :root[data-theme='night'] [data-world-invitation='night'] { display: inline-block; }
 .world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); border-color: var(--motion-deep); }
 .world-toggle[aria-pressed='true'] .world-switch-mark { --world-petal: var(--motion-pop); --world-soft: var(--motion-on-deep); }
-.world-toggle[aria-pressed='true'] .world-switch-mark .world-visitor * { animation-play-state: running; }
+.world-toggle[aria-pressed='true'] .world-switch-mark .world-mark * { animation-play-state: running; }
 .world-toggle[aria-pressed='true'] > svg:last-child { opacity: .65; }
 [data-world-hidden='true'] :is(.world-ground, .world-choreography, .world-toggle) * { animation-play-state: paused !important; }
 :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
@@ -91,20 +134,84 @@
   :is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button:hover { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 35%, transparent); }
 }
 @keyframes world-scene-arrive { from { opacity: 0; } to { opacity: 1; } }
-@keyframes world-wingbeat { 0%,100% { scale: 1 1; } 45% { scale: .58 1.02; } 72% { scale: .91 1; } }
-@keyframes world-tail { 0%,100% { transform: scaleX(.78); } 50% { transform: scaleX(1); } }
-@keyframes world-bird-wing { 0%,100% { transform: scaleY(.93); } 42% { transform: scaleY(.57) rotate(-4deg); } 68% { transform: scaleY(1); } }
-@keyframes world-first-flight { 0% { opacity: 0; transform: translate(15px,25px) rotate(-18deg) scale(.7); } 8% { opacity: .95; } 35% { transform: translate(-24vw,-18vh) rotate(7deg) scale(1); opacity: .87; } 70% { transform: translate(-52vw,-34vh) rotate(-16deg) scale(.72); opacity: .74; } 100% { transform: translate(-85vw,-72vh) rotate(-24deg) scale(.35); opacity: 0; } }
-@keyframes world-first-swim { 0% { opacity: 0; transform: translate(15px,25px) rotate(10deg) scale(.7); } 8% { opacity: .95; } 35% { transform: translate(-24vw,-8vh) rotate(-12deg) scale(1); opacity: .87; } 70% { transform: translate(-52vw,-22vh) rotate(8deg) scale(.82); opacity: .74; } 100% { transform: translate(-85vw,-48vh) rotate(-8deg) scale(.55); opacity: 0; } }
-@keyframes world-wander { 0%,100% { transform: translate(0,0) rotate(-3deg); } 22% { transform: translate(-18px,-22px) rotate(9deg); } 56% { transform: translate(23px,-42px) rotate(-8deg); } 79% { transform: translate(9px,-12px) rotate(4deg); } }
-@keyframes world-perched-arrive { from { opacity: 0; transform: translate(20px,20px) rotate(-18deg); } to { opacity: .87; transform: translate(0,0) rotate(0); } }
-@keyframes world-perched-float { 0%,100% { transform: translate(0,0) rotate(-3deg); } 42% { transform: translate(-7px,-9px) rotate(5deg); } 70% { transform: translate(2px,-4px) rotate(-1deg); } }
-@keyframes world-point-breathe { 0%,100% { opacity: .25; transform: scale(.8); } 48% { opacity: 1; transform: scale(1.05); } }
-@keyframes world-grass-sway { 0%,100% { transform: rotate(-1.5deg); } 48% { transform: rotate(2.8deg); } 75% { transform: rotate(-.3deg); } }
-@keyframes world-line-drift { to { stroke-dashoffset: -80; } }
-@keyframes world-tide { 0%,100% { transform: translate(-5px,3px) scaleY(.96); } 50% { transform: translate(8px,-8px) scaleY(1.04); } }
-@keyframes world-bubble { 0%,100% { opacity: .18; transform: translate(0,0); } 45% { opacity: .65; transform: translate(4px,-16px); } }
-@keyframes world-film-sweep { 0%,100% { transform: translateY(2px) rotate(-.5deg); } 50% { transform: translateY(-9px) rotate(1deg); } }
+@keyframes world-wingbeat { 0%,100% { scale: 1 1; } 27% { scale: .47 1.04; } 54% { scale: .9 1; } 65% { scale: .68 1.02; } }
+@keyframes world-paper-lift-main {
+  0% { opacity: 0; transform: translate(2cqw, 26px) rotate(-19deg) scale(.45); }
+  18% { opacity: .97; transform: translate(-7cqw, -13cqh) rotate(-42deg) scale(.98); }
+  43% { opacity: .94; transform: translate(-24cqw, -21cqh) rotate(-72deg) scale(1.07); }
+  65% { opacity: .84; transform: translate(-35cqw, -36cqh) rotate(-22deg) scale(.75); }
+  85% { opacity: .5; transform: translate(-42cqw, -53cqh) rotate(-5deg) scale(.53); }
+  100% { opacity: 0; transform: translate(-51cqw, -67cqh) rotate(-25deg) scale(.33); }
+}
+@keyframes world-paper-lift-echo {
+  0% { opacity: 0; transform: translate(0, 16px) rotate(-16deg) scale(.6); }
+  23% { opacity: .77; transform: translate(-13cqw, -11cqh) rotate(-57deg) scale(1); }
+  56% { opacity: .65; transform: translate(-27cqw, -29cqh) rotate(-27deg) scale(.91); }
+  81% { opacity: .46; transform: translate(-34cqw, -46cqh) rotate(-31deg) scale(.67); }
+  100% { opacity: 0; transform: translate(-47cqw, -60cqh) rotate(-54deg) scale(.45); }
+}
+@keyframes world-paper-glide {
+  0%,100% { opacity: 0; transform: translate(-4cqw, 3cqh) rotate(20deg); }
+  25% { opacity: .62; transform: translate(3cqw, -9cqh) rotate(24deg); }
+  62% { opacity: .77; transform: translate(10cqw, -16cqh) rotate(37deg); }
+  84% { opacity: .5; transform: translate(16cqw, -13cqh) rotate(76deg); }
+}
+@keyframes world-paper-hover {
+  0%,100% { opacity: 0; transform: translate(4cqw, 10cqh) rotate(-45deg); }
+  30% { opacity: .45; transform: translate(-1cqw, 5cqh) rotate(-18deg); }
+  64% { opacity: .63; transform: translate(-7cqw, -1cqh) rotate(-68deg); }
+  85% { opacity: .32; transform: translate(-10cqw, -9cqh) rotate(-26deg); }
+}
+@keyframes world-paper-stems { 0%,100% { transform: rotate(-2deg); } 45% { transform: rotate(3.4deg); } 72% { transform: rotate(.4deg); } }
+@keyframes world-paper-air { to { stroke-dashoffset: -70; } }
+@keyframes world-paper-pollen { 0%,100% { opacity: .1; transform: translate(0, 8px); } 48% { opacity: .61; transform: translate(20px, -25px); } }
+
+@keyframes world-tail { 0%,100% { transform: scaleX(.64) rotate(-7deg); } 50% { transform: scaleX(1) rotate(7deg); } }
+@keyframes world-shoal-crossing {
+  0% { opacity: 0; transform: translate(7cqw, 10px) scale(.78); }
+  14% { opacity: .97; }
+  25% { transform: translate(-19cqw, -4px) rotate(3deg) scale(.99); }
+  50% { transform: translate(-46cqw, 5px) rotate(-2deg) scale(1.02); }
+  77% { opacity: .91; transform: translate(-75cqw, -6px) rotate(2deg) scale(.92); }
+  100% { opacity: 0; transform: translate(-109cqw, 2px) scale(.82); }
+}
+@keyframes world-swim {
+  0% { opacity: 0; transform: translate(calc(100% + 2cqw), -5px); }
+  11% { opacity: .63; }
+  35% { transform: translate(-37cqw, 4px) rotate(-3deg); }
+  65% { transform: translate(-69cqw, -7px) rotate(3deg); }
+  88% { opacity: .57; }
+  100% { opacity: 0; transform: translate(-111cqw, 4px); }
+}
+@keyframes world-water-swell { 0%,100% { transform: translate(0, 2px); } 50% { transform: translate(3cqw, -8px); } }
+@keyframes world-current { 0%,100% { transform: translate(-1cqw, 2px); } 50% { transform: translate(3cqw, -4px); } }
+@keyframes world-caustic { 0%,100% { transform: translateX(-5%); opacity: .43; } 50% { transform: translateX(6%); opacity: .74; } }
+@keyframes world-sea-bubble { 0%,100% { opacity: 0; transform: translate(0, 0) scale(.6); } 30% { opacity: .53; } 86% { opacity: .12; transform: translate(9px, -18px) scale(1.07); } }
+
+@keyframes world-film-open { 0% { opacity: 0; scale: .15 .01; } 54% { opacity: .68; scale: .9 .69; } 100% { opacity: .43; scale: 1 1; } }
+@keyframes world-film-pan { 0%,100% { rotate: 0deg; } 53% { rotate: 10deg; } }
+@keyframes world-film-projector { 0% { opacity: 0; transform: scale(.51) rotate(-62deg); } 100% { opacity: .85; transform: scale(1) rotate(0deg); } }
+@keyframes world-film-blades { 0%,100% { transform: rotate(0deg) scale(.91); } 51% { transform: rotate(15deg) scale(1.04); } }
+@keyframes world-film-ribbon { 0%,100% { transform: translate(-1cqw, 0); } 52% { transform: translate(3.5cqw, -8px); } }
+@keyframes world-film-track { to { stroke-dashoffset: -300; } }
+@keyframes world-film-grain { 0%,100% { opacity: 0; transform: translate(8px, 6px); } 45% { opacity: .57; transform: translate(-22px, -6px); } 82% { opacity: .2; transform: translate(-46px, -12px); } }
+
+@keyframes world-night-map { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes world-star-breathe { 0%,100% { opacity: .35; } 57% { opacity: .94; } }
+@keyframes world-star-twinkle { 0%,100% { opacity: .68; scale: .74; } 53% { opacity: 1; scale: 1.18; } }
+@keyframes world-meteor-entry {
+  0% { opacity: 0; transform: translate(6cqw, -3cqh) scaleX(.45); }
+  22% { opacity: .97; }
+  64% { opacity: .88; }
+  100% { opacity: 0; transform: translate(-46cqw, 28cqh) scaleX(.65); }
+}
+@keyframes world-meteor-echo {
+  0%,10% { opacity: 0; transform: translate(0, 0); }
+  13% { opacity: .82; }
+  19% { opacity: 0; transform: translate(-37cqw, 23cqh); }
+  100% { opacity: 0; }
+}
+@keyframes world-firefly { 0%,100% { opacity: .15; transform: translate(0, 7px); } 48% { opacity: .87; transform: translate(9px, -11px); } }
 @media (max-width: 760px) {
   .app-shell .mobile-nav { padding-left: 6px; padding-right: 66px; }
   :root[data-theme] .app-shell .mobile-nav a { min-width: 0; }
@@ -113,19 +220,27 @@
   :root[data-theme] .world-toggle > .world-switch-label, .world-toggle > svg:last-child { display: none; }
   .app-shell .world-toggle { z-index: 55; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); background: var(--surface); border-color: var(--line); box-shadow: none; }
   .app-shell .world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); }
-  .world-border-art { width: 225px; opacity: .3; right: -91px; bottom: 64px; }
-  .world-border-dusk { left: -83px; right: auto; }
-  .world-border-night { opacity: .46; }
-  .world-perched-visitor { width: 44px; height: 39px; right: 11px; bottom: 88px; }
-  .world-first-flight { width: 60px; height: 53px; right: 9px; bottom: 82px; }
-  .world-traveler { width: calc(var(--visitor-size) * .75); height: calc(var(--visitor-size) * .66); opacity: .5; }
-  .world-traveler-2, .world-traveler-4 { display: none; }
+  .world-paper-grove { bottom: 16px; left: -70px; opacity: .51; }
+  .world-paper-lift-main { right: 10px; bottom: 74px; }
+  .world-paper-lift-echo { bottom: 80px; }
+  .world-sea-water { bottom: 45px; }
+  .world-shoal { bottom: 17%; height: 63px; }
+  .world-swim-deep, .world-paper-glide-far { display: none; }
+  .world-film-light { right: 32px; bottom: 87px; height: 38cqh; }
+  .world-film-projector { right: 6px; bottom: 60px; }
+  .world-film-ribbon { bottom: 22px; }
+  .world-film-reel, .world-film-perforations { animation-timing-function: steps(120, end); }
+  .world-night-map { right: 1%; top: 3%; }
   .studio-auth .world-toggle { position: fixed; top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); right: 18px; }
-  .studio-auth .world-border-art { bottom: 0; }
+  .studio-auth .world-paper-grove { bottom: -44px; }
+  .studio-auth .world-sea-water { bottom: 0; }
+  .studio-auth .world-film-ribbon { bottom: -11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .world-ground, .world-choreography *, .world-toggle, .world-toggle *, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
-  .world-first-flight { display: none; }
+  .world-paper-lift, .world-paper-glide-far, .world-swim, .world-meteor { display: none; }
   .world-ground { transform: none; }
-  .world-perched-visitor { opacity: .87; }
+  .world-paper-glide-close { opacity: .58; }
+  .world-shoal { opacity: .67; }
+  .world-film-light { opacity: .32; }
 }

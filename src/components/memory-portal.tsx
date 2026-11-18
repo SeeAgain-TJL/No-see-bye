@@ -17,7 +17,7 @@ export function MemoryPortal() {
   const traveler = prefix + '-traveler';
   const fern = prefix + '-fern';
   function move(event: PointerEvent<HTMLButtonElement>) {
-    if (event.pointerType !== 'mouse' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     event.currentTarget.style.setProperty('--scene-x', ((event.clientX - bounds.left) / bounds.width - .5).toFixed(3));
     event.currentTarget.style.setProperty('--scene-y', ((event.clientY - bounds.top) / bounds.height - .5).toFixed(3));
@@ -28,8 +28,8 @@ export function MemoryPortal() {
   }
   return <button type='button' className='memory-portal anime-portal' aria-label='唤醒主题风景' aria-pressed={awakened} data-awakened={awakened}
     onClick={() => setAwakened(value => !value)} onPointerMove={move} onPointerLeave={leave}>
-    <span className='anime-scene-edition' aria-hidden='true'><span>NO SEE BYE / ANIMATED ATELIER</span><span className='anime-scene-indicator'><i />{awakened ? 'WANDER' : 'STILL'}</span></span>
-    <svg className='anime-scene' viewBox='0 0 600 370' fill='none' aria-hidden='true'>
+    <span className='anime-scene-window' aria-hidden='true'>
+    <svg className='anime-scene' viewBox='22 19 556 322' preserveAspectRatio='xMidYMid slice' fill='none'>
       <defs>
         <clipPath id={scene}><rect x='22' y='19' width='556' height='322' rx='5' /></clipPath>
         <linearGradient id={prefix + '-garden-sky'} x1='300' y1='20' x2='300' y2='340' gradientUnits='userSpaceOnUse'><stop stopColor='#bed7bd' /><stop offset='1' stopColor='#edf0c8' /></linearGradient>
@@ -205,10 +205,10 @@ export function MemoryPortal() {
         <rect className='anime-scene-response' x='28' y='25' width='544' height='310' rx='3' stroke='#edf0d2' strokeWidth='1' pathLength='100' />
       </g>
       <rect x='22' y='19' width='556' height='322' rx='5' stroke='var(--optic-light)' strokeOpacity='.35' />
-      <path d='M11 37V9h31m516 0h31v28M11 323v28h31m516 0h31v-28' stroke='var(--optic-metal)' strokeWidth='1' />
-      <path d='M300 9v-5m0 347v5M11 180H5m584 0h6' stroke='var(--optic-light)' strokeOpacity='.55' />
       <g className='anime-scene-cursor'><path d='M281 166v-8h8m22 0h8v8m-38 22v8h8m22 0h8v-8' stroke='#f2f1d1' strokeWidth='1' opacity='.8' /></g>
     </svg>
-    <span className='anime-scene-caption'>{editions.map(([theme, number, note, action]) => <span className='anime-edition-caption' data-anime-theme={theme} key={theme}><span><small>{number}</small><strong>{note}</strong></span><span className='anime-scene-invitation'>{action}<Icon name='arrow' size={16} /></span></span>)}</span>
+    <span className='anime-scene-state'><i />{awakened ? '镜头展开' : '片刻停驻'}</span>
+    </span>
+    <span className='anime-scene-caption' aria-hidden='true'>{editions.map(([theme, number, note, action]) => <span className='anime-edition-caption' data-anime-theme={theme} key={theme}><span><small>{number}</small><strong>{note}</strong></span><span className='anime-scene-invitation'>{awakened ? '回到此刻' : action}<Icon name={awakened ? 'restore' : 'arrow'} size={16} /></span></span>)}</span>
   </button>;
 }

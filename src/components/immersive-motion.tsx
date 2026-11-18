@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { AmbientScene } from "./ambient-scene";
 
 const surfaces = ".keepsake-entry, .memory-card, .wall-item, .motion-surface";
-const scenicFrames = '.keepsake-hero, .journal-living-cover, .living-gallery, .auth-story';
-const scenicArtwork = '.daydream-art, .jl-cover-art, .photo-gallery-viewport, .anime-scene';
-const scenicCopy = '.studio-hero-copy, .jl-cover-copy, .gallery-heading, .auth-story-copy';
+const scenicFrames = '.cinematic-opening, .journal-living-cover, .living-gallery, .auth-story';
+const scenicArtwork = '.cinematic-opening-art, .jl-cover-art, .photo-gallery-viewport, .anime-scene';
+const scenicCopy = '.cinematic-opening-copy, .jl-cover-copy, .gallery-heading, .auth-story-copy';
 const arrivals = `${surfaces}, ${scenicFrames}, .home-welcome, .stats-strip, .motion-reveal, .auth-form, .editor-paper, .detail-article, .settings-card`;
 const magneticControls = '.home-small-actions button, .gallery-control, .auth-submit, .studio-button, .journal-cover-write, .world-toggle';
 const worldSubscribers = new Set<() => void>();
@@ -63,6 +63,8 @@ export function ImmersiveMotion() {
       activeSurface.style.removeProperty("--surface-y");
       activeSurface.style.removeProperty("--tilt-x");
       activeSurface.style.removeProperty("--tilt-y");
+      activeSurface.style.removeProperty("--camera-x");
+      activeSurface.style.removeProperty("--camera-y");
       activeSurface = null;
     };
     const ease = 'cubic-bezier(.2,.72,.24,1)';
@@ -131,6 +133,11 @@ export function ImmersiveMotion() {
       const py = Math.max(0, Math.min(1, (y - bounds.top) / bounds.height));
       element.style.setProperty("--surface-x", `${px * 100}%`);
       element.style.setProperty("--surface-y", `${py * 100}%`);
+      if (element.hasAttribute("data-camera-frame")) {
+        element.style.setProperty("--camera-x", `${(px - .5) * 36}px`);
+        element.style.setProperty("--camera-y", `${(py - .5) * 22}px`);
+        return;
+      }
       element.style.setProperty("--tilt-x", `${(0.5 - py) * 1.5}deg`);
       element.style.setProperty("--tilt-y", `${(px - 0.5) * 2}deg`);
       element.dataset.motionHover = "true";
@@ -145,8 +152,8 @@ export function ImmersiveMotion() {
         control.style.setProperty('--magnet-x', `${Math.max(-3,Math.min(3,(event.clientX - bounds.left - bounds.width / 2) * .10))}px`);
         control.style.setProperty('--magnet-y', `${Math.max(-3,Math.min(3,(event.clientY - bounds.top - bounds.height / 2) * .14))}px`);
       }
-      const element = target?.closest<HTMLElement>("[data-motion-surface]");
-      if (!element || element.matches(scenicFrames) || target?.closest("dialog") || !content.contains(element)) { resetSurface(); return; }
+      const element = target?.closest<HTMLElement>("[data-motion-surface], [data-camera-frame]");
+      if (!element || (element.matches(scenicFrames) && !element.hasAttribute("data-camera-frame")) || target?.closest("dialog") || !content.contains(element)) { resetSurface(); return; }
       if (activeSurface !== element) { resetSurface(); activeSurface = element; }
       pointer = { element, x: event.clientX, y: event.clientY };
       if (!pointerFrame) pointerFrame = requestAnimationFrame(paintPointer);
