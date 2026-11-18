@@ -21,4 +21,4 @@ The `scene-*.webp` landscapes are cropped from real photographs and bundled unde
 
 ## Animated sign-in scenes
 
-The five `auth-*.webp` backgrounds are original ImageGen illustrations. They depict the forest archive, glacial library, grassland post office, lantern bridge and underwater archive. Animation, input and lighting layers are rendered by the site.
+The five `auth-*.webp` backgrounds are original illustrations revised with the built-in ImageGen editor. The brief used matte gouache, a visible paper grain, and lighting tied to each scene. The 1120 × 1400 images depict a forest railway archive, a reading room cut into glacial ice, a country post office, a canyon footbridge, and a submerged observatory. Animation, input, and lighting are rendered by the site.
