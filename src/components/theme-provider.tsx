@@ -20,8 +20,12 @@ function subscribe(notify: () => void) {
 }
 const serverTheme = (): ThemeName => "dusk";
 
+export function useActiveTheme() {
+  return useSyncExternalStore(subscribe, activeTheme, serverTheme);
+}
+
 export function ThemeSwitcher() {
-  const current = useSyncExternalStore(subscribe, activeTheme, serverTheme);
+  const current = useActiveTheme();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);

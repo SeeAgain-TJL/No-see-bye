@@ -1,24 +1,26 @@
-'use client';
-import Link from 'next/link';
-import { Icon } from '@/components/icons';
-import { ThemeMotif } from '@/components/theme-motif';
-import { dateText } from '@/lib/client';
-import { moodLabel } from './moods';
-import { MediaGrid } from './media';
-import type { Memory } from './types';
+"use client";
 
-export function CollectionCard({ memory, index = 0 }: { memory: Memory; index?: number }) {
-  const href = '/memories/' + memory.id;
-  const context = [memory.location, moodLabel(memory.mood)].filter(Boolean).join(' · ');
-  return <article className={'recent-entry keepsake-entry' + (!memory.assets.length ? ' recent-entry-note' : '')} data-keepsake={index % 3}>
-    <span className='motion-spotlight' aria-hidden='true' />
-    <div className='keepsake-trim' aria-hidden='true'><span className='keepsake-tape' /><span className='keepsake-number'>NO. {String(index + 1).padStart(2, '0')}</span><ThemeMotif className='keepsake-flower' /></div>
-    {!!memory.assets.length && <div className='recent-entry-cover'><MediaGrid assets={memory.assets} compact /></div>}
-    <div className='recent-entry-info'>
-      <div className='recent-entry-meta'><Link href={href} aria-label={'打开' + dateText(memory.happenedAt) + '的日常'}><time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}</time></Link><span title={memory.visibility === 'public' ? '公开日常' : '仅自己可见'}><Icon name={memory.visibility === 'public' ? 'globe' : 'lock'} size={13} /><span className='sr-only'>{memory.visibility === 'public' ? '公开日常' : '仅自己可见'}</span></span></div>
-      {memory.title && <Link href={href} className='recent-entry-title'><h3>{memory.title}</h3></Link>}
-      {memory.content && <p className='recent-entry-excerpt'>{memory.content}</p>}
-      <div className='recent-entry-footer'><span className='recent-entry-context'>{context}</span><Link href={href} className='entry-open' aria-label={'打开' + dateText(memory.happenedAt) + '的日常'}><Icon name='arrow' size={18} /></Link></div>
+import Link from "next/link";
+import { DecodedImage } from "@/components/decoded-image";
+import { Icon } from "@/components/icons";
+import { dateText } from "@/lib/client";
+import type { GalleryPhoto } from "@/lib/photo-gallery";
+import { previewUrl } from "./media";
+
+export function CollectionCard({ photo, index, onOpen }: { photo: GalleryPhoto; index: number; onOpen: () => void }) {
+  const { memory, asset } = photo;
+  const date = dateText(memory.happenedAt, { year: "numeric", month: "long", day: "numeric" });
+  return <article className="projection-contact-card" data-motion-surface="">
+    <button className="projection-contact-photo" type="button" aria-label={`查看第 ${index + 1} 张照片，${memory.title || date}`} onClick={onOpen}>
+      <DecodedImage src={previewUrl(asset)} alt={memory.title || "日常照片"} width={asset.width || undefined} height={asset.height || undefined} loading="lazy" />
+      <span className="projection-contact-expand" aria-hidden="true"><Icon name="expand" size={18} /></span>
+    </button>
+    <div className="projection-contact-caption">
+      <div>
+        <time dateTime={memory.happenedAt}>{date}</time>
+        {memory.title && <h3>{memory.title}</h3>}
+      </div>
+      <Link href={`/memories/${memory.id}`} aria-label={`打开${memory.title || date}的日常`}><Icon name="arrow" size={17} /></Link>
     </div>
   </article>;
 }

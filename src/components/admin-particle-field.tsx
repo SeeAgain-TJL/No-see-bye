@@ -1,170 +1,190 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { drawGlassScene, readGlassLight } from "./admin-glass-renderer";
+import "./admin-glass-scene.css";
 
-const TAU = Math.PI * 2;
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+type SceneControls = { synced: number; paused: boolean; focused?: boolean };
 
-function spherePoint(index: number, total: number) {
-  const height = 1 - 2 * (index + .5) / total;
-  const radius = Math.sqrt(1 - height * height);
-  const angle = index * GOLDEN_ANGLE;
-  return { x: Math.cos(angle) * radius, y: height, z: Math.sin(angle) * radius };
-}
-
-export function AdminParticleField({ synced, paused }: { synced: number; paused: boolean }) {
+export function AdminParticleField(props: SceneControls) {
+  const { synced, paused, focused } = props;
+  const artwork = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const syncPulse = useRef(0);
+  const update = useRef<((settings: SceneControls) => void) | null>(null);
 
   useEffect(() => {
-    if (synced) syncPulse.current = performance.now();
-  }, [synced]);
-
-  useEffect(() => {
+    const scene = artwork.current;
     const target = canvas.current;
-    const ctx = target?.getContext("2d");
-    if (!target || !ctx) return;
+    const context = target?.getContext("2d");
+    const stage = scene?.closest<HTMLElement>(".admin-monitor-stage");
+    if (!scene || !target || !context || !stage) return;
 
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0;
+    let settings: SceneControls = { synced: 0, paused: true };
+    let light = readGlassLight(getComputedStyle(scene));
     let inView = true;
+    let drawable = true;
     let width = 0;
     let height = 0;
-    let lastDraw = -Infinity;
+    let aim = { x: 0, y: 0 };
+    let camera = { x: 0, y: 0 };
+    let zoom = 0;
+    let frame = 0;
+    let lastDraw = 0;
     let elapsed = 0;
-    let lastFrame = 0;
-    let color = "#b1e5cc";
-    let warm = "#e8b880";
-    let points: ReturnType<typeof spherePoint>[] = [];
+    let pulseStart = -Infinity;
+    let releaseAt = 0;
 
-    function draw(now: number, animate: boolean) {
-      if (!ctx || !width || !height) return;
-      const radius = Math.min(width * .27, height * .34);
-      const x = width * .53;
-      const y = height * .50;
-      const spin = animate ? elapsed * .00015 : .7;
-      const bank = -.32;
-      const pulseProgress = (now - syncPulse.current) / 1500;
-      const pulse = animate && syncPulse.current && pulseProgress >= 0 && pulseProgress <= 1 ? 1 - pulseProgress : 0;
-      ctx.clearRect(0, 0, width, height);
-
-      // A dim field and orbit provide depth behind the lit side of the globe.
-      for (let i = 0; i < 56; i++) {
-        const px = ((i * 197 + 41) % 653) / 653 * width;
-        const py = ((i * 131 + 89) % 359) / 359 * height;
-        ctx.fillStyle = i % 7 === 0 ? warm : color;
-        ctx.globalAlpha = .1 + .17 * (i % 6) / 6;
-        ctx.fillRect(px, py, i % 9 === 0 ? 1.6 : .75, i % 9 === 0 ? 1.6 : .75);
-      }
-
-      ctx.lineWidth = .7;
-      ctx.strokeStyle = color;
-      for (const ring of [1.38, 1.53, 1.73]) {
-        ctx.beginPath();
-        ctx.ellipse(x, y, radius * ring, radius * .47 * ring, bank, 0, TAU);
-        ctx.globalAlpha = ring === 1.53 ? .21 : .08;
-        ctx.stroke();
-      }
-      if (pulse > 0) {
-        ctx.beginPath();
-        ctx.ellipse(x, y, radius * (1.38 + pulseProgress * .63), radius * (.64 + pulseProgress * .33), bank, 0, TAU);
-        ctx.strokeStyle = warm;
-        ctx.globalAlpha = pulse * .68;
-        ctx.stroke();
-      }
-
-      const cosine = Math.cos(spin);
-      const sine = Math.sin(spin);
-      const tiltCosine = Math.cos(bank);
-      const tiltSine = Math.sin(bank);
-      for (const point of points) {
-        const px = point.x * cosine - point.z * sine;
-        const depth = point.x * sine + point.z * cosine;
-        const py = point.y * tiltCosine - depth * tiltSine;
-        const front = point.y * tiltSine + depth * tiltCosine;
-        const perspective = 1 / (1 - front * .23);
-        const lit = Math.max(0, front * .55 + px * .46 - py * .17);
-        const size = (.63 + lit * 1.25) * perspective;
-        ctx.fillStyle = lit > .68 ? warm : color;
-        ctx.globalAlpha = front > 0 ? .23 + lit * .73 : .08 + lit * .25;
-        ctx.beginPath();
-        ctx.arc(x + px * radius * perspective, y + py * radius * perspective, size, 0, TAU);
-        ctx.fill();
-      }
-
-      for (let i = 0; i < 32; i++) {
-        const angle = i / 32 * TAU + spin * .6;
-        const ringX = Math.cos(angle) * radius * 1.53;
-        const ringY = Math.sin(angle) * radius * .70;
-        const orbitX = x + ringX * tiltCosine - ringY * tiltSine;
-        const orbitY = y + ringX * tiltSine + ringY * tiltCosine;
-        ctx.fillStyle = i % 6 === 0 ? warm : color;
-        ctx.globalAlpha = .16 + Math.max(0, Math.sin(angle)) * .53;
-        ctx.fillRect(orbitX, orbitY, i % 6 === 0 ? 2 : 1, i % 6 === 0 ? 2 : 1);
-      }
-      ctx.globalAlpha = 1;
+    function visible() {
+      return drawable && inView && !document.hidden;
     }
 
-    function loop(now: number) {
-      if (lastFrame) elapsed += Math.min(50, now - lastFrame);
-      lastFrame = now;
-      if (now - lastDraw >= 32) {
-        draw(now, true);
-        lastDraw = now;
-      }
-      frame = requestAnimationFrame(loop);
+    function requestDraw() {
+      if (!frame && visible()) frame = requestAnimationFrame(render);
     }
 
-    function syncAnimation() {
-      cancelAnimationFrame(frame);
-      lastFrame = 0;
-      if (!paused && !motion.matches && inView && !document.hidden) frame = requestAnimationFrame(loop);
-      else draw(performance.now(), false);
+    function render(now: number) {
+      frame = 0;
+      if (!visible() || !context || !scene || !width || !height) return;
+      const delta = lastDraw ? Math.min(64, now - lastDraw) : 34;
+      const reduced = motion.matches;
+      const hasPulse = !reduced && now - pulseStart < 1400;
+      const running = !reduced && !settings.paused;
+      const focus = settings.focused ? 1 : 0;
+      const blend = reduced ? 1 : 1 - Math.exp(-delta / 116);
+
+      if (running && delta < 30) {
+        requestDraw();
+        return;
+      }
+      if (releaseAt && now >= releaseAt) {
+        aim = { x: 0, y: 0 };
+        releaseAt = 0;
+      }
+      if (running) elapsed += delta / 1000;
+      lastDraw = now;
+      camera = {
+        x: camera.x + ((reduced ? 0 : aim.x) - camera.x) * blend,
+        y: camera.y + ((reduced ? 0 : aim.y) - camera.y) * blend,
+      };
+      zoom += (focus - zoom) * blend;
+      drawGlassScene(context, {
+        width, height, time: elapsed, pointer: camera, focus: zoom,
+        pulse: hasPulse ? (1 - (now - pulseStart) / 1400) ** 2 : 0,
+        light,
+      });
+      if (!scene.dataset.ready) scene.dataset.ready = "true";
+
+      const moving = Math.abs(zoom - focus) + Math.abs(camera.x - aim.x) + Math.abs(camera.y - aim.y) > .002;
+      if (!reduced && (running || moving || hasPulse || releaseAt)) requestDraw();
+      else lastDraw = 0;
     }
 
     function resize() {
-      if (!target || !ctx) return;
-      width = target.clientWidth;
-      height = target.clientHeight;
-      const density = Math.min(2, window.devicePixelRatio || 1);
+      if (!target || !context || !scene) return;
+      width = scene.clientWidth;
+      height = scene.clientHeight;
+      const density = Math.min(1.6, devicePixelRatio || 1);
       target.width = Math.max(1, Math.round(width * density));
       target.height = Math.max(1, Math.round(height * density));
-      ctx.setTransform(density, 0, 0, density, 0, 0);
-      const total = width < 480 ? 460 : 880;
-      points = Array.from({ length: total }, (_, index) => spherePoint(index, total));
-      refreshColors();
+      context.setTransform(density, 0, 0, density, 0, 0);
+      requestDraw();
     }
 
-    function refreshColors() {
-      if (!target) return;
-      const style = getComputedStyle(target);
-      color = style.getPropertyValue("--admin-signal").trim() || "#b1e5cc";
-      warm = style.getPropertyValue("--admin-gold").trim() || "#e8b880";
-      draw(performance.now(), !paused && !motion.matches);
+    function pauseInvisible() {
+      if (visible()) requestDraw();
+      else {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        lastDraw = 0;
+      }
     }
 
+    function contextLost() {
+      drawable = false;
+      if (scene) delete scene.dataset.ready;
+      pauseInvisible();
+    }
+
+    function contextRestored() {
+      drawable = true;
+      resize();
+    }
+
+    function move(event: PointerEvent) {
+      if (motion.matches || !scene) return;
+      const bounds = scene.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+      aim = {
+        x: clamp((event.clientX - bounds.left) / bounds.width * 2 - 1),
+        y: clamp((event.clientY - bounds.top) / bounds.height * 2 - 1),
+      };
+      releaseAt = 0;
+      requestDraw();
+    }
+
+    function reset(event: PointerEvent) {
+      if (event.type === "pointerup" && event.pointerType === "mouse") return;
+      if (event.type === "pointerleave" && releaseAt) return;
+      if (event.type === "pointerup" && !motion.matches) releaseAt = performance.now() + 330;
+      else {
+        aim = { x: 0, y: 0 };
+        releaseAt = 0;
+      }
+      requestDraw();
+    }
+
+    update.current = next => {
+      if (settings.synced && settings.synced !== next.synced && next.synced) pulseStart = performance.now();
+      settings = next;
+      requestDraw();
+    };
     const resizeObserver = new ResizeObserver(resize);
     const viewObserver = new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
-      syncAnimation();
+      pauseInvisible();
     });
-    const themeObserver = new MutationObserver(refreshColors);
-    resizeObserver.observe(target);
-    viewObserver.observe(target);
+    const themeObserver = new MutationObserver(() => {
+      light = readGlassLight(getComputedStyle(scene));
+      requestDraw();
+    });
+    resizeObserver.observe(scene);
+    viewObserver.observe(scene);
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    document.addEventListener("visibilitychange", syncAnimation);
-    motion.addEventListener("change", syncAnimation);
+    document.addEventListener("visibilitychange", pauseInvisible);
+    motion.addEventListener("change", requestDraw);
+    target.addEventListener("contextlost", contextLost);
+    target.addEventListener("contextrestored", contextRestored);
+    stage.addEventListener("pointermove", move, { passive: true });
+    stage.addEventListener("pointerdown", move, { passive: true });
+    stage.addEventListener("pointerleave", reset);
+    stage.addEventListener("pointerup", reset);
+    stage.addEventListener("pointercancel", reset);
     resize();
-    syncAnimation();
+
     return () => {
+      update.current = null;
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       viewObserver.disconnect();
       themeObserver.disconnect();
-      document.removeEventListener("visibilitychange", syncAnimation);
-      motion.removeEventListener("change", syncAnimation);
+      document.removeEventListener("visibilitychange", pauseInvisible);
+      motion.removeEventListener("change", requestDraw);
+      target.removeEventListener("contextlost", contextLost);
+      target.removeEventListener("contextrestored", contextRestored);
+      stage.removeEventListener("pointermove", move);
+      stage.removeEventListener("pointerdown", move);
+      stage.removeEventListener("pointerleave", reset);
+      stage.removeEventListener("pointerup", reset);
+      stage.removeEventListener("pointercancel", reset);
     };
-  }, [paused]);
+  }, []);
 
-  return <canvas ref={canvas} className="admin-particle-field" aria-hidden="true" />;
+  useEffect(() => { update.current?.({ synced, paused, focused }); }, [synced, paused, focused]);
+
+  return <div ref={artwork} className="admin-glass-scene" aria-hidden="true">
+    <div className="admin-glass-fallback"><i /><i /><i /></div>
+    <canvas ref={canvas} />
+  </div>;
 }

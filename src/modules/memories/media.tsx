@@ -4,8 +4,14 @@ import type { MediaAsset } from './types';
 import { Icon } from '@/components/icons';
 import { DecodedImage } from '@/components/decoded-image';
 
-export const previewUrl = (asset: MediaAsset) => asset.thumbnailUrl || asset.url + (asset.url.includes('?') ? '&' : '?') + 'variant=preview';
-const displayUrl = (asset: MediaAsset) => asset.url + (asset.url.includes('?') ? '&' : '?') + 'variant=display';
+type ViewerAsset = Pick<MediaAsset, 'id' | 'mime' | 'url' | 'thumbnailUrl'> & {
+  fullUrl?: string;
+  alt?: string;
+  credit?: { name: string; url: string };
+};
+const addQuery = (url: string, query: string) => url + (url.includes('?') ? '&' : '?') + query;
+export const previewUrl = (asset: Pick<MediaAsset, 'thumbnailUrl' | 'url'>) => asset.thumbnailUrl || addQuery(asset.url, 'variant=preview');
+const displayUrl = (asset: ViewerAsset) => asset.fullUrl || addQuery(asset.url, 'variant=display');
 
 export function MediaThumbnail({ asset, onOpen, className = 'media-tile', label, count = 1, onRatio }: { asset: MediaAsset; onOpen: () => void; className?: string; label: string; count?: number; onRatio?: (ratio: number) => void }) {
   const [ratio, setRatio] = useState(asset.width && asset.height ? asset.width / asset.height : 1.5);
@@ -32,7 +38,7 @@ export function MediaGrid({ assets, compact = false }: { assets: MediaAsset[]; c
 type Transform = { scale: number; x: number; y: number };
 type Point = { x: number; y: number };
 const resting = { scale: 1, x: 0, y: 0 };
-export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; initial: number; close: () => void }) {
+export function MediaViewer({ assets, initial, close }: { assets: ViewerAsset[]; initial: number; close: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, Point>());
@@ -97,6 +103,7 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
     const [a, b] = [...pointers.current.values()];
     return { distance: Math.hypot(b.x - a.x, b.y - a.y), center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
   }
+  const source = displayUrl(asset);
   return <dialog ref={dialog} className='immersive-viewer' aria-label='媒体预览，照片可双指缩放、拖动，轻点关闭' onClose={close} onKeyDown={e => {
     if ((e.target as HTMLElement).tagName === 'VIDEO') return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); choose(index + (e.key === 'ArrowLeft' ? -1 : 1)); }
@@ -134,9 +141,10 @@ export function MediaViewer({ assets, initial, close }: { assets: MediaAsset[]; 
       onDragStart={e => e.preventDefault()}>
       {!isVideo && !ready && <DecodedImage key={asset.id + ':preview'} className='immersive-preview' src={previewUrl(asset)} alt='' aria-hidden='true' fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => setPreviewReady(true)} />}
       {isVideo ? <video key={asset.id + ':' + attempt} src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline preload='auto' onWaiting={() => setBuffering(true)} onPlaying={() => setBuffering(false)} onCanPlay={() => setBuffering(false)} onError={() => { setFailed(true); setBuffering(false); }} />
-        : <DecodedImage key={asset.id + ':' + attempt} className='immersive-image' src={displayUrl(asset) + (attempt ? '&retry=' + attempt : '')} alt='日常照片' fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => { setReady(true); setFailed(false); }} onFailure={() => setFailed(true)} />}
+        : <DecodedImage key={asset.id + ':' + attempt} className='immersive-image' src={attempt ? addQuery(source, 'retry=' + attempt) : source} alt={asset.alt || '日常照片'} fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => { setReady(true); setFailed(false); }} onFailure={() => setFailed(true)} />}
       {failed ? <div className='immersive-status' role='alert'><span>{isVideo ? '暂时无法播放' : previewReady ? '清晰画面暂未加载，正在显示预览' : '图片加载失败'}</span><button type='button' onClick={() => { setAttempt(v => v + 1); setFailed(false); setReady(false); }}>重试</button></div> : ((!isVideo && !ready && !previewReady) || buffering) ? <span className='immersive-loader' role='status' aria-label='加载中' /> : !isVideo && !ready && previewReady ? <span className='immersive-refining' role='status'>正在加载清晰画面…</span> : null}
     </div>
     {assets.length > 1 && <><button type='button' className='immersive-prev' aria-label='上一张' onClick={() => choose(index - 1)}><Icon name='back' size={22} /></button><button type='button' className='immersive-next' aria-label='下一张' onClick={() => choose(index + 1)}><Icon name='arrow' size={22} /></button><span className='immersive-count' aria-live='polite'>{index + 1}<span> / {assets.length}</span></span></>}
+    {asset.credit && <a className='immersive-photo-credit' href={asset.credit.url} target='_blank' rel='noreferrer'>{asset.credit.name}<Icon name='arrow' size={14} /></a>}
   </dialog>;
 }

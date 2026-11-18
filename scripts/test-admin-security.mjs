@@ -63,11 +63,16 @@ const inbox = await smtpInbox();
 try {
   await start();
   await call("/api/admin/overview", { status: 401 }); await call("/api/admin/users", { status: 401 });
+  const activityDate = new Date(now + 8 * 3_600_000).toISOString().slice(0, 10);
+  const activityPath = "/api/admin/activity?date=" + activityDate;
+  await call(activityPath, { status: 401 });
   let adminSession = await login("admin"), userSession = await login("ordinary");
   await call("/api/admin/overview", { cookie: userSession.cookie, status: 403 });
   await call("/api/admin/users", { cookie: userSession.cookie, status: 403 });
+  await call(activityPath, { cookie: userSession.cookie, status: 403 });
   const forgedRole = "memory_session=" + jwt.sign({ userId: "ordinary", email: "ordinary@accounts.local", sessionVersion: 0, role: "admin" }, secret, { algorithm: "HS256", expiresIn: "5m" });
   await call("/api/admin/overview", { cookie: forgedRole, status: 403 });
+  await call(activityPath, { cookie: forgedRole, status: 403 });
   const overview = await call("/api/admin/overview", { cookie: adminSession.cookie });
   assert.equal(overview.data.summary.users, 2); assert.equal(overview.data.summary.entries, 2); assert.equal(overview.data.summary.privateEntries, 1); assert.equal(overview.data.summary.publicEntries, 1); assert.equal(overview.data.daily.length, 30);
   assert.equal(overview.data.mail.configured, false); assert.equal(overview.response.headers.get("cache-control"), "private, no-store");
@@ -77,8 +82,52 @@ try {
   assert.equal((await call("/api/admin/users?page=999&pageSize=1", { cookie: adminSession.cookie })).data.page, 2);
   await call("/api/admin/users?pageSize=101", { cookie: adminSession.cookie, status: 400 });
   assert.equal((await call("/api/admin/users?q=" + encodeURIComponent("' OR 1=1--"), { cookie: adminSession.cookie })).data.total, 0);
+  const exactUser = await call("/api/admin/users?userId=ordinary&q=nomatch", { cookie: adminSession.cookie });
+  assert.deepEqual(exactUser.data.items.map(item => item.id), ["ordinary"]);
+  assert.equal((await call("/api/admin/users?userId=ord", { cookie: adminSession.cookie })).data.total, 0);
+
+  const activity = await call(activityPath, { cookie: adminSession.cookie });
+  assert.equal(activity.response.headers.get("cache-control"), "private, no-store");
+  assert.deepEqual({ date: activity.data.date, users: activity.data.users, entries: activity.data.entries },
+    overview.data.daily.find(day => day.date === activityDate));
+  assert.deepEqual(activity.data.registrations.items.find(account => account.id === "ordinary"),
+    { id: "ordinary", username: "ordinary", displayName: "Ordinary", createdAt: new Date(now).toISOString() });
+  assert.deepEqual(activity.data.contributors, {
+    items: [{ id: "ordinary", username: "ordinary", displayName: "Ordinary", entries: 2 }], page: 1, total: 1, totalPages: 1,
+  });
+  assert(!JSON.stringify(activity.data).includes("Private body") && !JSON.stringify(activity.data).includes("example.test"));
+  await call("/api/admin/activity?date=2026-02-31", { cookie: adminSession.cookie, status: 400 });
+  await call("/api/admin/activity?date=2020-01-01", { cookie: adminSession.cookie, status: 400 });
+  await call(activityPath + "&contributorPage=0", { cookie: adminSession.cookie, status: 400 });
+
+  // Exercise both persisted timestamp formats at the Beijing day boundary, including a trash entry.
+  const boundaryDay = new Date(now + 8 * 3_600_000 - 2 * 86_400_000).toISOString().slice(0, 10);
+  const midnight = Date.parse(boundaryDay + "T00:00:00+08:00");
+  const addUser = db.prepare("INSERT INTO User (id,username,email,passwordHash,displayName,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?)");
+  const addEntry = db.prepare("INSERT INTO Entry (id,userId,content,happenedAt,createdAt,updatedAt,deletedAt) VALUES (?,?,?,?,?,?,?)");
+  addEntry.run("before-boundary", "ordinary", "Previous day", now, midnight - 1, now, null);
+  for (let number = 0; number < 9; number++) {
+    const id = "activity-" + number;
+    const createdAt = number === 0 ? new Date(midnight).toISOString().replace("T", " ").slice(0, 23) : midnight + number;
+    addUser.run(id, id, id + "@example.test", ordinaryHash, id, createdAt, now);
+    addEntry.run("entry-" + id, id, "Hidden journal contents", now, createdAt, now, number === 0 ? now : null);
+  }
+  const boundaryPath = "/api/admin/activity?date=" + boundaryDay;
+  const boundary = (await call(boundaryPath + "&registrationPage=2&contributorPage=2", { cookie: adminSession.cookie })).data;
+  assert.equal(boundary.registrations.total, 9);
+  assert.equal(boundary.contributors.total, 9);
+  assert.equal(boundary.entries, 9);
+  assert.deepEqual(boundary.registrations.items, [{ id: "activity-0", username: "activity-0", displayName: "activity-0", createdAt: new Date(midnight).toISOString() }]);
+  assert.equal(boundary.registrations.page, 2);
+  assert.equal(boundary.contributors.items[0].id, "activity-8");
+  assert.equal(boundary.contributors.totalPages, 2);
+  const updatedOverview = (await call("/api/admin/overview", { cookie: adminSession.cookie })).data;
+  assert.deepEqual(updatedOverview.daily.find(day => day.date === boundaryDay), { date: boundaryDay, users: 9, entries: 9 });
+  const emptyActivity = (await call("/api/admin/activity?date=" + updatedOverview.daily[0].date, { cookie: adminSession.cookie })).data;
+  assert.deepEqual(emptyActivity.contributors, { items: [], page: 1, total: 0, totalPages: 1 });
   db.prepare("UPDATE User SET role='user' WHERE id=?").run(admin.id);
   await call("/api/admin/overview", { cookie: adminSession.cookie, status: 403 });
+  await call(activityPath, { cookie: adminSession.cookie, status: 403 });
   db.prepare("UPDATE User SET role='admin' WHERE id=?").run(admin.id);
   const account = (await call("/api/account", { cookie: adminSession.cookie })).data;
   assert.equal(account.user.role, "admin"); assert.equal(account.security.requiresEmailVerification, false); assert.deepEqual(account.security.recoveryEmails, [admin.email, admin.backupEmail]); assert.deepEqual(account.security.verifiedEmails, []);

@@ -1,9 +1,32 @@
 import type { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 import { getUserFromRequest } from "@/core/auth";
 import { prisma } from "@/core/prisma";
 import { HttpError } from "@/core/http";
 
 export const adminNoStore = { "Cache-Control": "private, no-store" };
+const dayMs = 86_400_000;
+const beijingOffset = 8 * 3_600_000;
+const activityPageSize = 8;
+
+function activityDates(now: number) {
+  return Array.from({ length: 30 }, (_, index) =>
+    new Date(now + beijingOffset - (29 - index) * dayMs).toISOString().slice(0, 10),
+  );
+}
+
+// SQLite stores older timestamps as UTC text and newer timestamps as epoch milliseconds.
+const activityUtc = Prisma.sql`CASE WHEN typeof(source."createdAt") IN ('integer','real')
+  THEN strftime('%Y-%m-%dT%H:%M:%fZ', source."createdAt" / 1000.0, 'unixepoch')
+  ELSE strftime('%Y-%m-%dT%H:%M:%fZ', source."createdAt") END`;
+const activityDate = Prisma.sql`date(${activityUtc}, '+8 hours')`;
+
+function pageBounds(total: number, requested: number, size: number) {
+  const totalPages = Math.max(1, Math.ceil(total / size));
+  const page = Math.min(requested, totalPages);
+  return { page, totalPages, offset: (page - 1) * size };
+}
+
 export async function requireAdmin(req: NextRequest) {
   const session = await getUserFromRequest(req);
   // Roles are read from the database for every request, never trusted from a JWT or browser field.
@@ -14,8 +37,11 @@ export async function requireAdmin(req: NextRequest) {
 
 export async function adminOverview() {
   const now = Date.now();
-  const week = new Date(now - 7 * 86400_000);
+  const week = new Date(now - 7 * dayMs);
   const quarterHour = new Date(now - 15 * 60_000);
+  const dates = activityDates(now);
+  const start = dates[0];
+  const end = dates[dates.length - 1];
   const [users, activeUsers7d, activeUsers15m, entries, publicEntries, privateEntries, trashedEntries, assets, storage, photos, videos, userDays, entryDays] = await Promise.all([
     prisma.user.count(), prisma.user.count({ where: { lastSeenAt: { gte: week } } }),
     prisma.user.count({ where: { lastSeenAt: { gte: quarterHour } } }),
@@ -26,25 +52,62 @@ export async function adminOverview() {
     prisma.asset.count(), prisma.asset.aggregate({ _sum: { sizeBytes: true } }),
     prisma.asset.count({ where: { mime: { startsWith: "image/" } } }),
     prisma.asset.count({ where: { mime: { startsWith: "video/" } } }),
-    prisma.$queryRaw<Array<{ date: string; count: bigint }>>`SELECT date(CASE WHEN typeof("createdAt") IN ('integer','real') THEN datetime("createdAt"/1000,'unixepoch') ELSE "createdAt" END,'+8 hours') AS date, COUNT(*) AS count FROM User GROUP BY date HAVING date >= date('now','+8 hours','-29 days')`,
-    prisma.$queryRaw<Array<{ date: string; count: bigint }>>`SELECT date(CASE WHEN typeof("createdAt") IN ('integer','real') THEN datetime("createdAt"/1000,'unixepoch') ELSE "createdAt" END,'+8 hours') AS date, COUNT(*) AS count FROM Entry GROUP BY date HAVING date >= date('now','+8 hours','-29 days')`,
+    prisma.$queryRaw<Array<{ date: string; count: bigint }>>`SELECT ${activityDate} AS date, COUNT(*) AS count FROM User AS source GROUP BY date HAVING date BETWEEN ${start} AND ${end}`,
+    prisma.$queryRaw<Array<{ date: string; count: bigint }>>`SELECT ${activityDate} AS date, COUNT(*) AS count FROM Entry AS source GROUP BY date HAVING date BETWEEN ${start} AND ${end}`,
   ]);
   const userMap = new Map(userDays.map(row => [row.date, Number(row.count)]));
   const entryMap = new Map(entryDays.map(row => [row.date, Number(row.count)]));
-  const daily = Array.from({ length: 30 }, (_, index) => {
-    const date = new Date(Date.now() + 8 * 3600_000 - (29 - index) * 86400_000).toISOString().slice(0, 10);
-    return { date, users: userMap.get(date) || 0, entries: entryMap.get(date) || 0 };
-  });
+  const daily = dates.map(date => ({ date, users: userMap.get(date) || 0, entries: entryMap.get(date) || 0 }));
   return { sampledAt: new Date(now).toISOString(), summary: { users, activeUsers7d, activeUsers15m, entries, publicEntries, privateEntries, trashedEntries, assets, storageBytes: storage._sum.sizeBytes || 0, photos, videos },
     registration: { enabled: process.env.ALLOW_REGISTRATION !== "false" }, daily };
 }
 
-export async function adminUsers(q: string, page: number, pageSize: number) {
-  const where = q ? { OR: [{ username: { contains: q } }, { displayName: { contains: q } }, { email: { contains: q } }] } : {};
+type ActivityAccount = { id: string; username: string; displayName: string };
+
+export async function adminDayActivity(date: string, registrationPage: number, contributorPage: number) {
+  if (!activityDates(Date.now()).includes(date)) throw new HttpError(400, "请选择最近 30 天内的有效日期（北京时间）");
+
+  return prisma.$transaction(async tx => {
+    const [{ total: accountCount }] = await tx.$queryRaw<Array<{ total: bigint }>>`
+      SELECT COUNT(*) AS total FROM User AS source WHERE ${activityDate} = ${date}
+    `;
+    const [{ entries: entryCount, contributors: contributorCount }] = await tx.$queryRaw<Array<{ entries: bigint; contributors: bigint }>>`
+      SELECT COUNT(*) AS entries, COUNT(DISTINCT source.userId) AS contributors
+      FROM Entry AS source WHERE ${activityDate} = ${date}
+    `;
+    const users = Number(accountCount);
+    const entries = Number(entryCount);
+    const contributors = Number(contributorCount);
+    const registrationBounds = pageBounds(users, registrationPage, activityPageSize);
+    const contributorBounds = pageBounds(contributors, contributorPage, activityPageSize);
+    const registrations = await tx.$queryRaw<Array<ActivityAccount & { createdAt: string }>>`
+      SELECT source.id, source.username, source.displayName, ${activityUtc} AS "createdAt"
+      FROM User AS source WHERE ${activityDate} = ${date}
+      ORDER BY "createdAt" DESC, source.id ASC
+      LIMIT ${activityPageSize} OFFSET ${registrationBounds.offset}
+    `;
+    // Like the trend totals, creation counts include entries in the recycle bin until permanent removal.
+    const authors = await tx.$queryRaw<Array<ActivityAccount & { entries: bigint }>>`
+      SELECT author.id, author.username, author.displayName, COUNT(*) AS entries
+      FROM Entry AS source JOIN User AS author ON author.id = source.userId
+      WHERE ${activityDate} = ${date}
+      GROUP BY author.id, author.username, author.displayName
+      ORDER BY entries DESC, author.username ASC, author.id ASC
+      LIMIT ${activityPageSize} OFFSET ${contributorBounds.offset}
+    `;
+    return {
+      date, users, entries,
+      registrations: { items: registrations, page: registrationBounds.page, totalPages: registrationBounds.totalPages, total: users },
+      contributors: { items: authors.map(author => ({ ...author, entries: Number(author.entries) })), page: contributorBounds.page, totalPages: contributorBounds.totalPages, total: contributors },
+    };
+  });
+}
+
+export async function adminUsers(q: string, page: number, pageSize: number, userId?: string) {
+  const where = userId ? { id: userId } : q ? { OR: [{ username: { contains: q } }, { displayName: { contains: q } }, { email: { contains: q } }] } : {};
   const total = await prisma.user.count({ where });
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const current = Math.min(page, totalPages);
-  const users = await prisma.user.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "asc" }], skip: (current - 1) * pageSize, take: pageSize,
+  const { totalPages, page: current, offset } = pageBounds(total, page, pageSize);
+  const users = await prisma.user.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "asc" }], skip: offset, take: pageSize,
     select: { id: true, username: true, displayName: true, email: true, role: true, createdAt: true, lastLoginAt: true, lastSeenAt: true, loginCount: true, hasLocalPassword: true,
       oauthAccounts: { select: { provider: true } } } });
   const ids = users.map(user => user.id);
