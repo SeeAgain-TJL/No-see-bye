@@ -13,7 +13,8 @@ import { DecodedImage } from "@/components/decoded-image";
 import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
 import { ThemeMotif } from "@/components/theme-motif";
-import { JournalAtmosphere } from "./journal-atmosphere";
+import { JournalAtmosphere, JournalPrivateGate } from "./journal-atmosphere";
+import { journalNavigationQuery, type JournalSelection } from "@/lib/journal-navigation";
 export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -35,6 +36,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [pending, setPending] = useState<string | null>(null);
   const [removing, setRemoving] = useState<Memory | null>(null);
+  const results = useRef<HTMLElement>(null);
+  const activeFilters = !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
   const query = new URLSearchParams(params.toString());
   query.set("scope", scope);
   query.delete("cursor");
@@ -59,10 +62,18 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     if (value) next.set(name, value);
     else next.delete(name);
     if (name === "month") next.delete("day");
+    if (name === "type" && value === "text" && next.get("view") === "gallery") next.delete("view");
     router.push(
       `${trash ? "/memories/trash" : "/memories"}?${next.toString()}`,
       { scroll: false },
     );
+  }
+  function browse(selection: JournalSelection) {
+    router.push(`/memories?${journalNavigationQuery(params.toString(), selection)}`, { scroll: false });
+    requestAnimationFrame(() => {
+      results.current?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+      results.current?.focus({ preventScroll: true });
+    });
   }
   async function loadMore() {
     if (!data?.nextCursor || moreBusy) return;
@@ -119,13 +130,10 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       setPending(null);
     }
   }
-  if (!loading && !user && scope === 'mine') return <section className='journal-private-gate journal-experience' aria-labelledby='private-journal-title'>
-    <div className='private-gate-copy'><span className='private-gate-edition'>PRIVATE JOURNAL · 我的日常</span><h1 id='private-journal-title'>每个人，<br />都有未公开的章节。</h1><p>有些风景，留给自己。<br />有些回声，待你归来。</p><div className='private-gate-actions'><Link href='/login' className='studio-button' aria-label='登录后查看我的日常'>执钥归来<Icon name='arrow' size={17} /></Link><Link href='/memories?scope=public' className='studio-text-link' aria-label='浏览发现日常'>先阅人间<Icon name='globe' size={16} /></Link></div><span className='private-gate-footnote'>A LIFE IS MORE THAN WHAT IS SEEN.</span></div>
-    <div className='private-gate-book' aria-hidden='true'><div className='private-book-spine' /><div className='private-book-cover'><span>NO SEE BYE<br />THE UNWRITTEN SELF</span><ThemeMotif /><strong>此心<br />独白</strong><span className='private-book-lock'><Icon name='lock' size={19} />ONLY YOU HOLD THE KEY.</span></div><span className='private-book-bookmark' /></div>
-  </section>;
+  if (!loading && !user && scope === 'mine') return <div className="journal-experience"><JournalPrivateGate /></div>;
   return (
     <div className={'journal-experience' + (trash ? ' journal-trash' : scope === 'public' ? ' journal-discovery' : ' journal-personal')} data-journal-view={view}>
-      {!trash && <JournalAtmosphere key={scope} title={scope === 'public' ? '发现日常' : '我的日常'} items={data?.items || []} publicScope={scope === 'public'} view={view} ownerName={user?.displayName || user?.username} month={params.get('month') || ''} search={params.get('q') || ''} pinned={!!params.get('pinned')} onFilter={filter} onView={value => filter('view', value === 'grid' ? '' : value)} />}
+      {!trash && <JournalAtmosphere key={scope} title={scope === 'public' ? '发现日常' : '我的日常'} items={data?.items || []} publicScope={scope === 'public'} ownerId={user?.id} month={params.get('month') || ''} type={type} activeFilters={activeFilters} revision={refreshKey} onBrowse={browse} />}
       <section className="page-heading journal-page-heading">
         <div>
           <h1>
@@ -272,9 +280,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               if (month) next.set('month', month); if (day) next.set('day', day);
               router.push((trash ? '/memories/trash' : '/memories') + '?' + next.toString(), { scroll: false });
             }} />
-            {(params.get("day") || params.get("q") ||
-              params.get("month") ||
-              params.get("pinned")) && (
+            {activeFilters && (
               <Link
                 className="text-link small"
                 aria-label="清除筛选"
@@ -284,6 +290,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               </Link>
             )}
           </div>
+          <section className="journal-result-set" ref={results} tabIndex={-1} aria-label="日常列表" aria-busy={!data && !current?.error}>
           {current?.error ? (
             <div className="empty-state">
               <h2>风声稍歇，书页未启。</h2>
@@ -499,6 +506,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           {data && data.items.length > 0 && !data.nextCursor && (
             <div className="feed-end"><span aria-hidden='true'>✦</span>{scope === 'public' ? '目光所及，皆为人间。' : trash ? '旧页已收，余白犹在。' : '此卷暂歇，来日续章。'}<span lang='en'>TO BE CONTINUED</span></div>
           )}
+          </section>
         </>
       )}
       {removing && (

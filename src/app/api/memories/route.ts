@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/core/prisma";
 import { dayRange } from "@/lib/calendar";
-import { getUserFromRequest, optionalUser } from "@/core/auth";
+import { assertCurrentSession, getUserFromRequest, optionalUser } from "@/core/auth";
 import { apiError, checkOrigin, HttpError, jsonBody } from "@/core/http";
 import {
   includeMemory,
@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
       await jsonBody(req),
     );
     const entry = await prisma.$transaction(async (tx) => {
+      await assertCurrentSession(tx, user);
       await validateAssets(tx, assetIds, user.userId);
       return tx.entry.create({
         data: {

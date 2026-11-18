@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/core/prisma";
-import { getUserFromRequest } from "@/core/auth";
+import { assertCurrentSession, getUserFromRequest } from "@/core/auth";
 import { apiError, checkOrigin, HttpError } from "@/core/http";
 import { getStorage, buildStorageKey } from "@/core/storage-factory";
 import { imagePreview } from "@/core/previews";
@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     const storage = getStorage();
     key = buildStorageKey(user.userId, filename);
     const asset = await prisma.$transaction(async (tx) => {
+      await assertCurrentSession(tx, user);
       const used = await tx.asset.aggregate({
         where: { ownerId: user.userId },
         _sum: { sizeBytes: true },

@@ -117,3 +117,23 @@ model PasswordChallenge {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([expiresAt])
 }
+
+// These rows must survive a user's deletion to preserve cleanup work and its audit.
+model MediaDeletion {
+  key String @id
+  driver String
+  ownerId String
+  createdAt DateTime @default(now())
+  @@index([ownerId, createdAt])
+  @@index([driver, createdAt])
+}
+
+model AdminUserAction {
+  id String @id @default(cuid())
+  action String
+  operatorId String
+  targetId String
+  removedEntries Int
+  removedAssets Int
+  createdAt DateTime @default(now())
+}

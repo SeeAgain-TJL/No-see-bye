@@ -65,6 +65,8 @@ try {
   add("Entry", "deletedAt", "DATETIME");
   add("Asset", "filename", "TEXT NOT NULL DEFAULT ''");
   db.exec(`UPDATE Entry SET happenedAt=createdAt WHERE happenedAt IS NULL;
+    UPDATE Entry SET happenedAt=CAST(ROUND(unixepoch(happenedAt,'subsec') * 1000) AS INTEGER)
+      WHERE typeof(happenedAt)='text' AND unixepoch(happenedAt,'subsec') IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS Asset_key_key ON Asset(key);
     CREATE INDEX IF NOT EXISTS Asset_ownerId_status_idx ON Asset(ownerId,status);
     CREATE INDEX IF NOT EXISTS Asset_createdAt_idx ON Asset(createdAt);
@@ -96,10 +98,19 @@ try {
       FOREIGN KEY(userId) REFERENCES User(id) ON DELETE CASCADE);
     CREATE UNIQUE INDEX IF NOT EXISTS PasswordChallenge_userId_key ON PasswordChallenge(userId);
     CREATE INDEX IF NOT EXISTS PasswordChallenge_expiresAt_idx ON PasswordChallenge(expiresAt);
+    CREATE TABLE IF NOT EXISTS MediaDeletion (
+      key TEXT PRIMARY KEY NOT NULL, driver TEXT NOT NULL, ownerId TEXT NOT NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+    CREATE INDEX IF NOT EXISTS MediaDeletion_ownerId_createdAt_idx ON MediaDeletion(ownerId,createdAt);
+    CREATE INDEX IF NOT EXISTS MediaDeletion_driver_createdAt_idx ON MediaDeletion(driver,createdAt);
+    CREATE TABLE IF NOT EXISTS AdminUserAction (
+      id TEXT PRIMARY KEY NOT NULL, action TEXT NOT NULL, operatorId TEXT NOT NULL,
+      targetId TEXT NOT NULL, removedEntries INTEGER NOT NULL, removedAssets INTEGER NOT NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
     `);
   if (addedAuthMode) db.exec(`UPDATE User SET hasLocalPassword=false
     WHERE email LIKE '%@oauth.local' AND EXISTS (SELECT 1 FROM OAuthAccount WHERE userId=User.id)`);
-  db.exec("PRAGMA user_version=4; COMMIT;");
+  db.exec("PRAGMA user_version=5; COMMIT;");
   console.log("SQLite initialized (additive; existing records preserved).");
 } catch (error) {
   db.exec("ROLLBACK");
