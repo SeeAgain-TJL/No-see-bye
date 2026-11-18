@@ -3,27 +3,27 @@
 :root[data-theme] .theme-menu button { position: relative; border-radius: 9px; }
 :root[data-theme] .theme-trigger { transition: border-color .25s, background .25s; }
 :root[data-theme] .theme-trigger:hover { border-color: var(--accent); background: var(--accent-soft); }
-:root[data-theme='dusk'] :is(.settings-card,.journal-private-gate) { background-image: linear-gradient(90deg,transparent 0,transparent 13px,#85906d13 13px,#85906d13 14px,transparent 14px); }
-:root[data-theme='dusk'] .journal-personal-book { border-left: 4px double #8b9b73; }
-:root[data-theme='dusk'] .journal-card-mark { color: #98aa79; }
-:root[data-theme='dusk'] .journal-experience .memory-card-top { background: repeating-linear-gradient(90deg,#80936608 0 1px,transparent 1px 6px),#fbfcf2; }
-:root[data-theme='sea'] :is(.settings-card,.journal-private-gate) { border-radius: 12px 12px 28px 12px; background-image: repeating-radial-gradient(ellipse at 110% 120%,transparent 0 24px,#5e9da009 25px 26px,transparent 27px 48px); }
-:root[data-theme='sea'] .journal-personal-book { background: linear-gradient(115deg,#fbfdfd,#e7f2f3); border-color: #a8cbd1; }
-:root[data-theme='sea'] .journal-card-mark { color: #77a8ad; }
-:root[data-theme='sea'] .journal-experience .memory-card-top { background: linear-gradient(140deg,#fafdfe,#e6f0f3); border-bottom-style: solid; }
-:root[data-theme='film'] :is(.settings-card,.journal-private-gate) { border-radius: 5px; background-image: repeating-linear-gradient(0deg,transparent 0 8px,#9e7a3a2b 8px 12px,transparent 12px 20px); background-size: 2px 100%; background-repeat: no-repeat; background-position: 6px 0; }
-:root[data-theme='film'] .journal-personal-book { border: 1px solid #c8ae85; border-left: 5px double #a18154; border-radius: 4px; background: linear-gradient(115deg,#fff9ed,#f3e6cf); }
-:root[data-theme='film'] .journal-card-mark { color: #ad8b5a; }
-:root[data-theme='film'] .journal-experience .memory-card-top { background: linear-gradient(90deg,#ecdbc1 0 5px,transparent 5px calc(100% - 5px),#ecdbc1 calc(100% - 5px)),#fbf1df; border-bottom-style: double; border-bottom-width: 3px; }
-:root[data-theme='night'] :is(.settings-card,.journal-private-gate) { background-image: radial-gradient(circle at 95% 15%,#c3d1b030 0 1px,transparent 1.6px),radial-gradient(circle at 88% 23%,#b9d0d328 0 1px,transparent 1.6px); box-shadow: inset 0 1px 0 #d3debe0a,0 8px 30px -25px #07120c; }
-:root[data-theme='night'] .journal-personal-book { background: linear-gradient(115deg,#263b30,#1e3029); border-color: #617d61; }
-:root[data-theme='night'] .journal-card-mark { color: #b3c4a2; }
-:root[data-theme='night'] .journal-experience .memory-card-top { background: radial-gradient(circle at 72% 32%,#d9dbb543 0 1px,transparent 1.7px),radial-gradient(circle at 84% 65%,#c1d3ca2e 0 1px,transparent 1.7px),#293e32; border-color: #50664c; }
+:root[data-theme='grassland'] :is(.settings-card,.journal-private-gate) { background-image: linear-gradient(90deg,transparent 0,transparent 13px,#85906d13 13px,#85906d13 14px,transparent 14px); }
+:root[data-theme='grassland'] .journal-personal-book { border-left: 4px double #8b9b73; }
+:root[data-theme='grassland'] .journal-card-mark { color: #98aa79; }
+:root[data-theme='grassland'] .journal-experience .memory-card-top { background: repeating-linear-gradient(90deg,#80936608 0 1px,transparent 1px 6px),#fbfcf2; }
+:root[data-theme='ocean'] :is(.settings-card,.journal-private-gate) { border-radius: 12px 12px 28px 12px; background-image: repeating-radial-gradient(ellipse at 110% 120%,transparent 0 24px,#5e9da009 25px 26px,transparent 27px 48px); }
+:root[data-theme='ocean'] .journal-personal-book { background: linear-gradient(115deg,#fbfdfd,#e7f2f3); border-color: #a8cbd1; }
+:root[data-theme='ocean'] .journal-card-mark { color: #77a8ad; }
+:root[data-theme='ocean'] .journal-experience .memory-card-top { background: linear-gradient(140deg,#fafdfe,#e6f0f3); border-bottom-style: solid; }
+:root[data-theme='rift'] :is(.settings-card,.journal-private-gate) { border-radius: 5px; background-image: repeating-linear-gradient(0deg,transparent 0 8px,#9e7a3a2b 8px 12px,transparent 12px 20px); background-size: 2px 100%; background-repeat: no-repeat; background-position: 6px 0; }
+:root[data-theme='rift'] .journal-personal-book { border: 1px solid #c8ae85; border-left: 5px double #a18154; border-radius: 4px; background: linear-gradient(115deg,#fff9ed,#f3e6cf); }
+:root[data-theme='rift'] .journal-card-mark { color: #ad8b5a; }
+:root[data-theme='rift'] .journal-experience .memory-card-top { background: linear-gradient(90deg,#ecdbc1 0 5px,transparent 5px calc(100% - 5px),#ecdbc1 calc(100% - 5px)),#fbf1df; border-bottom-style: double; border-bottom-width: 3px; }
+:root[data-theme='forest'] :is(.settings-card,.journal-private-gate) { background-image: radial-gradient(circle at 95% 15%,#c3d1b030 0 1px,transparent 1.6px),radial-gradient(circle at 88% 23%,#b9d0d328 0 1px,transparent 1.6px); box-shadow: inset 0 1px 0 #d3debe0a,0 8px 30px -25px #07120c; }
+:root[data-theme='forest'] .journal-personal-book { background: linear-gradient(115deg,#263b30,#1e3029); border-color: #617d61; }
+:root[data-theme='forest'] .journal-card-mark { color: #b3c4a2; }
+:root[data-theme='forest'] .journal-experience .memory-card-top { background: radial-gradient(circle at 72% 32%,#d9dbb543 0 1px,transparent 1.7px),radial-gradient(circle at 84% 65%,#c1d3ca2e 0 1px,transparent 1.7px),#293e32; border-color: #50664c; }
 /* Active scenery also settles into the material edges instead of painting a glow over media. */
 :root[data-theme] [data-world-awake='true'] :is(.living-gallery,.journal-personal-book,.stats-strip) { border-color: color-mix(in srgb,var(--accent) 45%,var(--line)); transition: border-color .8s ease; }
-:root[data-theme='film'] [data-world-awake='true'] .gallery-register { opacity: .7; }
+:root[data-theme='rift'] [data-world-awake='true'] .gallery-register { opacity: .7; }
 @media (max-width:760px) {
-  :root[data-theme='film'] .journal-experience .memory-card-top { border-bottom-width: 1px; }
-  :root[data-theme='sea'] :is(.settings-card,.journal-private-gate) { border-radius: 10px 10px 20px 10px; }
+  :root[data-theme='rift'] .journal-experience .memory-card-top { border-bottom-width: 1px; }
+  :root[data-theme='ocean'] :is(.settings-card,.journal-private-gate) { border-radius: 10px 10px 20px 10px; }
 }
 @media (prefers-reduced-motion:reduce) { :root[data-theme] .theme-trigger,:root[data-theme] [data-world-awake='true'] :is(.living-gallery,.journal-personal-book,.stats-strip) { transition: none; } }

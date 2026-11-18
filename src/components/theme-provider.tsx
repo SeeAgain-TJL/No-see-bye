@@ -1,24 +1,24 @@
 "use client";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { isTheme, themes, themeNames, THEME_STORAGE_KEY, type ThemeName } from "@/lib/themes";
+import { defaultTheme, resolveTheme, themes, themeNames, THEME_STORAGE_KEY, type ThemeName } from "@/lib/themes";
 import { ThemeMotif } from "./theme-motif";
 
 function activeTheme(): ThemeName {
   const value = document.documentElement.dataset.theme;
-  return isTheme(value) ? value : "dusk";
+  return resolveTheme(value ?? null);
 }
 function subscribe(notify: () => void) {
   const sync = (event: StorageEvent) => {
     if (event.key !== THEME_STORAGE_KEY && event.key !== null) return;
-    document.documentElement.dataset.theme = isTheme(event.newValue) ? event.newValue : "dusk";
+    document.documentElement.dataset.theme = resolveTheme(event.newValue);
     notify();
   };
   window.addEventListener("storage", sync);
   window.addEventListener("nsb:theme", notify);
   return () => { window.removeEventListener("storage", sync); window.removeEventListener("nsb:theme", notify); };
 }
-const serverTheme = (): ThemeName => "dusk";
+const serverTheme = (): ThemeName => defaultTheme;
 
 export function useActiveTheme() {
   return useSyncExternalStore(subscribe, activeTheme, serverTheme);

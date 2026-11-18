@@ -1,0 +1,121 @@
+.admin-scene {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 0;
+  border-left: 1px solid #8faff033;
+  background: #070a18;
+}
+.admin-scene-viewport {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: clamp(300px, 33vw, 455px);
+  background: radial-gradient(ellipse at 50% 49%, #18264b, #070a18 73%);
+}
+.admin-scene-canvas {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  touch-action: pan-y;
+  cursor: grab;
+  visibility: hidden;
+}
+.admin-scene-viewport[data-ready="true"] .admin-scene-canvas { visibility: visible; }
+.admin-scene-canvas:active { cursor: grabbing; }
+.admin-scene-canvas:focus-visible { outline: 2px solid #9ebeff; outline-offset: -4px; }
+.admin-scene-viewport[data-ready="true"] .admin-scene-fallback { visibility: hidden; }
+.admin-scene-fallback {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: min(69%, 460px);
+  height: min(42%, 170px);
+  transform: translate(-50%, -50%) rotate(-14deg);
+  pointer-events: none;
+}
+.admin-scene-fallback i {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #8fa6ff80;
+  border-radius: 50%;
+  box-shadow: 0 0 19px #667bff33, inset 0 0 22px #667bff33;
+}
+.admin-scene-fallback i:first-child { inset: 12% 8%; border-style: dashed; }
+.admin-scene-fallback i:last-child { inset: 26% 24%; border-color: #8decfa73; }
+.admin-scene-viewport[data-mode="activity"] .admin-scene-fallback { display: none; }
+.admin-scene-topline {
+  position: absolute;
+  top: 15px;
+  left: 17px;
+  right: 17px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: none;
+}
+.admin-scene-modes, .admin-scene-zoom, .admin-scene-pause {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #8ca5ed42;
+  border-radius: 8px;
+  background: #0c1429e0;
+  color: #dce8ff;
+  box-shadow: 0 7px 18px -12px #000;
+  pointer-events: auto;
+}
+.admin-scene :is(button, select) { font-size: 12px; }
+.admin-scene :is(button, select):focus-visible { outline-color: #9bbcff; }
+.admin-scene-modes button, .admin-scene-zoom button, .admin-scene-pause {
+  display: grid;
+  place-items: center;
+  min-width: 35px;
+  min-height: 35px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  color: #d7e0f0;
+  background: transparent;
+  white-space: nowrap;
+  transition: background .2s, color .2s;
+}
+.admin-scene-modes button[aria-pressed="true"] { background: #243960; color: #f0f5ff; box-shadow: inset 0 1px #b6d5ff33; }
+.admin-scene :is(.admin-scene-modes, .admin-scene-zoom) button:not(:disabled):hover,
+.admin-scene-pause:not(:disabled):hover { background: #2d4674; color: white; }
+.admin-scene :is(.admin-scene-zoom button, .admin-scene-pause):disabled { opacity: .42; }
+.admin-scene-pause { min-width: 41px; border-radius: 8px; background: #0c1429e0; }
+.admin-scene-zoom {
+  position: absolute;
+  right: 17px;
+  bottom: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.admin-scene-zoom span { min-width: 35px; text-align: center; color: #bacbed; font-size: 11px; }
+.admin-scene-readout {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 13px;
+  min-width: 0;
+  min-height: 43px;
+  padding: 5px 16px;
+  border-top: 1px solid #8faff02c;
+  color: #bfcbde;
+  background: #0c1224;
+  font-size: 11px;
+}
+.admin-scene-readout select { min-height: 29px; padding: 2px 7px; border: 1px solid #8faef647; border-radius: 5px; background: #111c33; color: #e6efff; }
+.admin-scene-readout b { color: #edf2ff; font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 3px; }
+.admin-scene-readout [data-series]::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #87e9ff; vertical-align: 1px; }
+.admin-scene-readout [data-series="entries"]::before { background: #fbc078; }
+.admin-scene-pick-hint { margin-inline-start: auto; }
+@media (max-width: 760px) {
+  .admin-scene { border-left: 0; border-top: 1px solid #8faff033; }
+  .admin-scene-viewport { min-height: clamp(270px, 75vw, 347px); }
+  .admin-scene-topline { inset: 9px 9px auto; }
+  .admin-scene-zoom { right: 9px; bottom: 9px; }
+  .admin-scene-readout { padding-inline: 10px; }
+  .admin-scene-pick-hint { display: none; }
+}

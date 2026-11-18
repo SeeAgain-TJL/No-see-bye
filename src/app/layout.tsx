@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import { Providers } from "@/components/providers";
-import { themeInitScript } from "@/lib/themes";
+import { defaultTheme, themeInitScript } from "@/lib/themes";
 import "./globals.css";
 import "./journal.css";
 import "./comfort.css";
@@ -56,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className={display.variable} data-theme="dusk" suppressHydrationWarning>
+    <html lang="zh-CN" className={display.variable} data-theme={defaultTheme} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body>
         <a className="skip-link" href="#main">

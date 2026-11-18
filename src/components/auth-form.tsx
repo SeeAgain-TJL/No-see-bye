@@ -12,12 +12,6 @@ import { MemoryPortal } from "./memory-portal";
 import { ThemeSwitcher } from "./theme-provider";
 import { ImmersiveMotion } from "./immersive-motion";
 
-const archiveEditions = [
-  { theme: "dusk", title: <>万物有时，<em>记忆有枝。</em></> },
-  { theme: "sea", title: <>潮声往复，<em>念念有归。</em></> },
-  { theme: "film", title: <>光阴无声，<em>留影有迹。</em></> },
-  { theme: "night", title: <>人间一瞬，<em>星河长明。</em></> },
-] as const;
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const { refresh } = useApp();
@@ -83,7 +77,6 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   }
   return (
     <main id="main" className="auth-page studio-auth auth-editorial" data-auth-mode={register ? "register" : "login"}>
-      <ImmersiveMotion />
       <header className="auth-masthead">
         <Link className="auth-masthead-brand" href="/"><BrandMark />不说再见</Link>
         <div className="auth-masthead-actions"><ThemeSwitcher /><Link className="auth-back text-link" href={register ? "/login" : "/"}>
@@ -92,12 +85,8 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         </Link></div>
       </header>
       <div className="auth-card">
-        <section className="auth-story" aria-label="记忆的四季" data-camera-frame>
-          <MemoryPortal>
-            <div className="auth-story-copy">
-              {archiveEditions.map(edition => <h2 className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>{edition.title}</h2>)}
-            </div>
-          </MemoryPortal>
+        <section className="auth-story" aria-label="主题记忆短片">
+          <MemoryPortal />
         </section>
         <div className="auth-form-room">
         <form className="auth-form" onSubmit={submit}>
@@ -185,6 +174,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         </form>
         </div>
       </div>
+      <ImmersiveMotion />
       {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}
         onCancel={() => setRegistration(null)} onComplete={finish}
         onFormError={message => { setRegistration(null); setError(message); }} />}

@@ -76,15 +76,15 @@
 .ps-success { color: var(--accent); background: var(--accent-soft); }
 .ps-success a { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .postcard-studio button:focus-visible, .ps-success a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-:root[data-theme='dusk'] .ps-preview { background: linear-gradient(#7f8b6910 1px,transparent 1px) 0 0/25px 25px, linear-gradient(90deg,#7f8b6910 1px,transparent 1px) 0 0/25px 25px, #e9edde; }
-:root[data-theme='sea'] .ps-preview { background: repeating-radial-gradient(ellipse at 50% 120%,transparent 0 31px,#7fa3a51a 32px 33px,transparent 34px 62px), #e2efec; }
-:root[data-theme='sea'] .ps-card { border-radius: 9px 9px 29px 9px; }
-:root[data-theme='film'] .ps-preview { background: repeating-linear-gradient(90deg,transparent 0 6px,#8f714513 6px 7px), #e9d6b4; }
-:root[data-theme='film'] .ps-card { border-radius: 2px; border-color: #baa17c; }
-:root[data-theme='film'] .ps-back-eyebrow, :root[data-theme='film'] .ps-sign time { font-family: 'Courier New',monospace; }
-:root[data-theme='night'] .ps-preview { background: radial-gradient(circle at 15% 25%,#d9d6ad99 0 1px,transparent 2px) 0 0/147px 193px, radial-gradient(circle at 80% 70%,#d9d6ad66 0 1px,transparent 2px) 0 0/213px 165px, #263c31; }
-:root[data-theme='night'] .ps-card { border-color: #778b6c; }
-:root[data-theme='night'] .ps-error { color: #f0ba9e; }
+:root[data-theme='grassland'] .ps-preview { background: linear-gradient(#7f8b6910 1px,transparent 1px) 0 0/25px 25px, linear-gradient(90deg,#7f8b6910 1px,transparent 1px) 0 0/25px 25px, #e9edde; }
+:root[data-theme='ocean'] .ps-preview { background: repeating-radial-gradient(ellipse at 50% 120%,transparent 0 31px,#7fa3a51a 32px 33px,transparent 34px 62px), #e2efec; }
+:root[data-theme='ocean'] .ps-card { border-radius: 9px 9px 29px 9px; }
+:root[data-theme='rift'] .ps-preview { background: repeating-linear-gradient(90deg,transparent 0 6px,#8f714513 6px 7px), #e9d6b4; }
+:root[data-theme='rift'] .ps-card { border-radius: 2px; border-color: #baa17c; }
+:root[data-theme='rift'] .ps-back-eyebrow, :root[data-theme='rift'] .ps-sign time { font-family: 'Courier New',monospace; }
+:root[data-theme='forest'] .ps-preview { background: radial-gradient(circle at 15% 25%,#d9d6ad99 0 1px,transparent 2px) 0 0/147px 193px, radial-gradient(circle at 80% 70%,#d9d6ad66 0 1px,transparent 2px) 0 0/213px 165px, #263c31; }
+:root[data-theme='forest'] .ps-card { border-color: #778b6c; }
+:root[data-theme='forest'] .ps-error { color: #f0ba9e; }
 @keyframes ps-open { from { opacity: 0; transform: translateY(45px) scale(.95); } to { opacity: 1; transform: none; } }
 @keyframes ps-envelope { from { transform: translateY(25px) rotate(0); opacity: 0; } to { transform: rotate(-7deg); opacity: 1; } }
 @keyframes ps-letter-rise { from { transform: translateY(95px) rotate(8deg) scale(.82); opacity: 0; } to { transform: none; opacity: 1; } }

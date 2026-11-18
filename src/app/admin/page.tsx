@@ -104,9 +104,10 @@ function ServiceStatus({ overview }: { overview: Overview }) {
 function AdminDashboard() {
   const [revision, setRevision] = useState(0);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [sceneFocused, setSceneFocused] = useState(false);
   const [accessLost, setAccessLost] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUserTarget | null>(null);
+  const [activityPeriod, setActivityPeriod] = useState<7 | 30>(30);
+  const [activityDate, setActivityDate] = useState("");
   const refresh = useCallback(() => setRevision(value => value + 1), []);
   const onDenied = useCallback(() => setAccessLost(true), []);
   const overviewState = useAdminLiveData<Overview>(accessLost ? null : "/api/admin/overview", revision, autoRefresh);
@@ -115,24 +116,34 @@ function AdminDashboard() {
   const refreshStatus = error ? "同步中断" : !autoRefresh ? "自动更新已暂停" : overview ? "自动更新中" : "正在连接";
   const synced = overviewState?.updated ?? 0;
   const sampled = overview?.sampledAt && Number.isFinite(Date.parse(overview.sampledAt)) ? Date.parse(overview.sampledAt) : synced;
+  const periodDays = overview?.daily.slice(-activityPeriod);
+  const currentDate = (periodDays?.find(day => day.date === activityDate) ?? periodDays?.findLast(day => day.users || day.entries) ?? periodDays?.at(-1))?.date ?? "";
+
+  function changeActivityPeriod(period: 7 | 30) {
+    setActivityPeriod(period);
+    if (!overview?.daily.slice(-period).some(day => day.date === activityDate)) setActivityDate("");
+  }
+
+  function selectSceneDate(date: string) {
+    if (!periodDays?.some(day => day.date === date)) setActivityPeriod(30);
+    setActivityDate(date);
+  }
 
   if (accessLost || overviewState?.denied) return <div className="admin-page"><div className="empty-state"><Icon name="lock" size={28} /><h1>管理权限已失效</h1><Link className="button" href="/login">重新登录<Icon name="arrow" size={16} /></Link></div></div>;
 
   return <div className="admin-page admin-observatory">
-    <header className="admin-monitor" data-focus={sceneFocused}>
+    <header className="admin-monitor">
       <div className="admin-monitor-stage">
-        <AdminParticleField synced={synced} paused={!autoRefresh} focused={sceneFocused} />
         <div className="admin-monitor-title">
           <p className="admin-live-state" role="status" data-state={error ? "error" : autoRefresh && overview ? "live" : "idle"}><i aria-hidden="true" />{refreshStatus}</p>
-          <h1>站点观测<span aria-hidden="true">.</span></h1>
+          <h1>站点观测</h1>
           <div className="admin-monitor-count">
             <strong>{overview ? count(overview.summary.activeUsers15m) : "—"}</strong>
-            <span>近 15 分钟活跃<small>按账号最近访问统计</small></span>
+            <span>近 15 分钟活跃</span>
           </div>
+          <button type="button" className="admin-monitor-jump" onClick={() => jumpTo("admin-trends-title")} disabled={!overview}>查看活动明细<Icon name="arrow" size={16} /></button>
         </div>
-        <button type="button" className="admin-scene-focus admin-control" aria-pressed={sceneFocused} onClick={() => setSceneFocused(value => !value)}>
-          <Icon name="expand" size={17} /><span>镜头聚焦</span>
-        </button>
+        <AdminParticleField synced={synced} active={overview?.summary.activeUsers15m ?? 0} days={overview?.daily} selectedDate={currentDate} onDateChange={selectSceneDate} />
       </div>
       <div className="admin-monitor-footer">
         <div className="admin-monitor-sync">
@@ -152,8 +163,12 @@ function AdminDashboard() {
       <CurrentMetrics summary={overview.summary} />
       <AdminActivity
         daily={overview.daily}
+        period={activityPeriod}
+        selectedDate={currentDate}
         revision={revision}
         autoRefresh={autoRefresh}
+        onPeriodChange={changeActivityPeriod}
+        onDateChange={setActivityDate}
         onDenied={onDenied}
         onSelectUser={person => setSelectedUser(previous => ({ id: person.id, username: person.username, request: (previous?.request ?? 0) + 1 }))}
       />

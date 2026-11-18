@@ -9,11 +9,16 @@ Bundled locally and cropped/compressed for the decorative memory scene. These ar
 
 The sunset/frame brand symbol and layout are original vector/CSS artwork. No runtime connection to Unsplash is needed.
 
-## Cinematic opening backgrounds
+## Five theme photographs
 
-`opening-{dusk,sea,film,night}.webp` and their `-preview` variants are photographs published by the creators listed below. The site bundles locally cropped 1720 × 800 WebP backgrounds and 350 × 163 theme previews under the [Unsplash License](https://unsplash.com/license).
+The `scene-*.webp` landscapes are cropped from real photographs and bundled under the [Unsplash License](https://unsplash.com/license). Each has a 2880 × 1512 wide image, a 1440 × 756 compact image and a 420 × 221 preview.
 
-- Paper (`dusk`) uses a San Francisco greenhouse photographed on Kodak Gold 200 by Sasha Matveeva. [Original photograph](https://unsplash.com/photos/a-greenhouse-filled-with-lots-of-green-plants-RiQfTa7koCg)
-- Sea (`sea`) uses the Cliffs of Moher in mist, photographed by Andrej A. [Original photograph](https://unsplash.com/photos/a-person-standing-on-the-edge-of-a-cliff-overlooking-the-ocean-VF6STp3LMNQ)
-- Film (`film`) uses a vintage cinema auditorium photographed by Peter Herrmann. [Original photograph](https://unsplash.com/photos/empty-vintage-theater-with-rows-of-seats-j7-T7aAliSg)
-- Night (`night`) uses the moon setting over the Bernese Alps, photographed by Thierry Lemaitre. [Original photograph](https://unsplash.com/photos/moon-visible-in-the-twilight-sky-over-silhouetted-trees-PYkzZFieU-8/)
+- Forest uses Chris Linnett’s photograph of fog settling among the evergreens in Bergün, Switzerland. [Original photograph](https://unsplash.com/photos/dark-evergreen-forest-shrouded-in-thick-fog-BoezF2tPJbI)
+- Iceberg uses Filippo Salvioni’s photograph of an arched iceberg near Ilulissat, Greenland. [Original photograph](https://unsplash.com/photos/a-massive-arch-shaped-iceberg-floats-in-the-cold-ocean-aiADDysGH7M)
+- Grassland uses Ollie Singleton’s photograph of rolling fields near Gubbio, Italy. [Original photograph](https://unsplash.com/photos/rolling-green-hills-with-trees-and-distant-mountains-thtjda3CDRY)
+- Rift uses Nick Da Fonseca’s aerial photograph of orange rock and a dry riverbed in Utah’s Valley of the Gods. [Original photograph](https://unsplash.com/photos/an-aerial-view-of-a-canyon-in-the-desert-vosVDyzZJC0)
+- Ocean uses Iain’s aerial photograph of waves breaking over a submerged reef. [Original photograph](https://unsplash.com/photos/ocean-waves-crashing-against-dark-rocks-naVr1Z6xM3E)
+
+## Animated sign-in scenes
+
+The five `auth-*.webp` backgrounds are original illustrations revised with the built-in ImageGen editor. The brief used matte gouache, a visible paper grain, and lighting tied to each scene. The 1120 × 1400 images depict a forest railway archive, a reading room cut into glacial ice, a country post office, a canyon footbridge, and a submerged observatory. Animation, input, and lighting are rendered by the site.
