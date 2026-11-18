@@ -46,15 +46,17 @@ function ActivityPeople<T extends Person>({
   </section>;
 }
 
-export function AdminActivity({ daily, revision, autoRefresh, onDenied, onSelectUser }: {
+export function AdminActivity({ daily, period, selectedDate, revision, autoRefresh, onPeriodChange, onDateChange, onDenied, onSelectUser }: {
   daily: ActivityDay[];
+  period: 7 | 30;
+  selectedDate: string;
   revision: number;
   autoRefresh: boolean;
+  onPeriodChange: (period: 7 | 30) => void;
+  onDateChange: (date: string) => void;
   onDenied: () => void;
   onSelectUser: (person: Person) => void;
 }) {
-  const [period, setPeriod] = useState<7 | 30>(30);
-  const [selectedDate, setSelectedDate] = useState("");
   const [pages, setPages] = useState<PageSelection | null>(null);
   const [retry, setRetry] = useState(0);
   const rail = useRef<HTMLDivElement>(null);
@@ -76,7 +78,7 @@ export function AdminActivity({ daily, revision, autoRefresh, onDenied, onSelect
   function selectDay(index: number, focus = false) {
     const day = days[index];
     if (!day) return;
-    setSelectedDate(day.date);
+    onDateChange(day.date);
     setPages(null);
     if (focus) rail.current?.querySelector<HTMLButtonElement>(`[data-day-index="${index}"]`)?.focus();
   }
@@ -90,7 +92,7 @@ export function AdminActivity({ daily, revision, autoRefresh, onDenied, onSelect
     <div className="admin-panel-heading">
       <div><h2 id="admin-trends-title" tabIndex={-1}>新增趋势</h2><p>选择日期，查看谁注册、谁写了日常</p></div>
       <div className="admin-segments" role="group" aria-label="趋势统计周期">
-        {([7, 30] as const).map(value => <button type="button" key={value} aria-pressed={period === value} onClick={() => setPeriod(value)}>{value} 天</button>)}
+        {([7, 30] as const).map(value => <button type="button" key={value} aria-pressed={period === value} onClick={() => onPeriodChange(value)}>{value} 天</button>)}
       </div>
     </div>
     {active && <div className="admin-trend-body">

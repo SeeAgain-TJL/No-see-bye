@@ -1,190 +1,285 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { drawGlassScene, readGlassLight } from "./admin-glass-renderer";
-import "./admin-glass-scene.css";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { Icon } from "./icons";
+import type { ActivityDay } from "./admin-activity";
+import { createObservatoryRenderer, pickActivityDay, type ObservatoryRenderer } from "./admin-observatory-renderer";
+import "./admin-observatory-scene.css";
 
-type SceneControls = { synced: number; paused: boolean; focused?: boolean };
+type Mode = "orbit" | "activity";
+type Pose = { yaw: number; pitch: number; zoom: number };
+type Input = { synced: number; active: number; days: ActivityDay[]; mode: Mode; playing: boolean; selectedIndex: number };
 
-export function AdminParticleField(props: SceneControls) {
-  const { synced, paused, focused } = props;
-  const artwork = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const update = useRef<((settings: SceneControls) => void) | null>(null);
+const defaultPose: Pose = { yaw: -0.21, pitch: 0.72, zoom: 1 };
+const historyPose: Pose = { yaw: -0.82, pitch: 0.70, zoom: 0.94 };
+const minZoom = .65;
+const maxZoom = 1.55;
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const dateLabel = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric", day: "numeric" });
+const noDays: ActivityDay[] = [];
+
+export function AdminParticleField({ synced, active, days = noDays, selectedDate, onDateChange }: Pick<Input, "synced" | "active"> & {
+  days?: ActivityDay[];
+  selectedDate: string;
+  onDateChange: (date: string) => void;
+}) {
+  const [ready, setReady] = useState<"pending" | "available" | "unavailable">("pending");
+  const [mode, setMode] = useState<Mode>("orbit");
+  const [playing, setPlaying] = useState(true);
+  const [zoom, setZoom] = useState(defaultPose.zoom);
+  const scene = useRef<HTMLDivElement>(null);
+  const surface = useRef<HTMLCanvasElement>(null);
+  const aim = useRef<Pose>({ ...defaultPose });
+  const drag = useRef<{ id: number; x: number; y: number; distance: number } | null>(null);
+  const setRenderInput = useRef<(input: Input) => void>(() => {});
+  const invalidate = useRef<() => void>(() => {});
+  const findDay = useRef<(x: number, y: number) => number>(() => -1);
+  const displayedDays = days.slice(-30);
+  const selected = displayedDays.find(day => day.date === selectedDate) ?? displayedDays.findLast(day => day.users || day.entries) ?? displayedDays.at(-1);
+  const selectedIndex = selected ? displayedDays.indexOf(selected) : -1;
+  const available = ready === "available";
 
   useEffect(() => {
-    const scene = artwork.current;
-    const target = canvas.current;
-    const context = target?.getContext("2d");
-    const stage = scene?.closest<HTMLElement>(".admin-monitor-stage");
-    if (!scene || !target || !context || !stage) return;
+    const viewport = scene.current;
+    const canvas = surface.current;
+    if (!viewport || !canvas) return;
 
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    let settings: SceneControls = { synced: 0, paused: true };
-    let light = readGlassLight(getComputedStyle(scene));
-    let inView = true;
-    let drawable = true;
-    let width = 0;
-    let height = 0;
-    let aim = { x: 0, y: 0 };
-    let camera = { x: 0, y: 0 };
-    let zoom = 0;
-    let frame = 0;
-    let lastDraw = 0;
+    let renderer: ObservatoryRenderer | undefined;
+    let frameId = 0;
+    let previousFrame = 0;
+    let lastSync = 0;
+    let burst = -Infinity;
     let elapsed = 0;
-    let pulseStart = -Infinity;
-    let releaseAt = 0;
+    let morph = 0;
+    let density = 1;
+    let visible = true;
+    let pose = { ...defaultPose };
+    let input: Input = { synced: 0, active: 0, days: noDays, mode: "orbit", playing: true, selectedIndex: -1 };
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
 
-    function visible() {
-      return drawable && inView && !document.hidden;
+    function schedule() {
+      if (!frameId && renderer && visible && !document.hidden) frameId = requestAnimationFrame(draw);
     }
 
-    function requestDraw() {
-      if (!frame && visible()) frame = requestAnimationFrame(render);
-    }
-
-    function render(now: number) {
-      frame = 0;
-      if (!visible() || !context || !scene || !width || !height) return;
-      const delta = lastDraw ? Math.min(64, now - lastDraw) : 34;
-      const reduced = motion.matches;
-      const hasPulse = !reduced && now - pulseStart < 1400;
-      const running = !reduced && !settings.paused;
-      const focus = settings.focused ? 1 : 0;
-      const blend = reduced ? 1 : 1 - Math.exp(-delta / 116);
-
-      if (running && delta < 30) {
-        requestDraw();
-        return;
-      }
-      if (releaseAt && now >= releaseAt) {
-        aim = { x: 0, y: 0 };
-        releaseAt = 0;
-      }
-      if (running) elapsed += delta / 1000;
-      lastDraw = now;
-      camera = {
-        x: camera.x + ((reduced ? 0 : aim.x) - camera.x) * blend,
-        y: camera.y + ((reduced ? 0 : aim.y) - camera.y) * blend,
+    function draw(now: number) {
+      frameId = 0;
+      if (!renderer || !visible || document.hidden) return;
+      const delta = previousFrame ? Math.min(50, now - previousFrame) : 16;
+      previousFrame = now;
+      const movingOnItsOwn = !motion.matches && input.playing;
+      const blend = motion.matches ? 1 : 1 - Math.exp(-delta / 117);
+      if (movingOnItsOwn && input.mode === "orbit") elapsed += delta / 1000;
+      const target = aim.current;
+      pose = {
+        yaw: pose.yaw + (target.yaw - pose.yaw) * blend,
+        pitch: pose.pitch + (target.pitch - pose.pitch) * blend,
+        zoom: pose.zoom + (target.zoom - pose.zoom) * blend,
       };
-      zoom += (focus - zoom) * blend;
-      drawGlassScene(context, {
-        width, height, time: elapsed, pointer: camera, focus: zoom,
-        pulse: hasPulse ? (1 - (now - pulseStart) / 1400) ** 2 : 0,
-        light,
+      const targetMorph = Number(input.mode === "activity");
+      morph += (targetMorph - morph) * blend;
+      const pulse = movingOnItsOwn ? Math.max(0, 1 - (now - burst) / 1450) : 0;
+      renderer.draw({
+        time: elapsed, ...pose, morph, pulse, selectedDay: input.selectedIndex, density,
+        active: clamp(Math.log1p(input.active) / 4, 0, 1),
       });
-      if (!scene.dataset.ready) scene.dataset.ready = "true";
-
-      const moving = Math.abs(zoom - focus) + Math.abs(camera.x - aim.x) + Math.abs(camera.y - aim.y) > .002;
-      if (!reduced && (running || moving || hasPulse || releaseAt)) requestDraw();
-      else lastDraw = 0;
+      const settling = Math.abs(pose.yaw - target.yaw) + Math.abs(pose.pitch - target.pitch)
+        + Math.abs(pose.zoom - target.zoom) + Math.abs(morph - targetMorph) > .002;
+      if ((movingOnItsOwn && input.mode === "orbit") || settling || pulse) schedule();
+      else previousFrame = 0;
     }
 
-    function resize() {
-      if (!target || !context || !scene) return;
-      width = scene.clientWidth;
-      height = scene.clientHeight;
-      const density = Math.min(1.6, devicePixelRatio || 1);
-      target.width = Math.max(1, Math.round(width * density));
-      target.height = Math.max(1, Math.round(height * density));
-      context.setTransform(density, 0, 0, density, 0, 0);
-      requestDraw();
+    function sizeCanvas() {
+      if (!viewport || !canvas) return;
+      const { clientWidth: width, clientHeight: height } = viewport;
+      density = Math.min(devicePixelRatio || 1, 1.55, Math.sqrt(1_650_000 / Math.max(1, width * height)));
+      canvas.width = Math.max(1, Math.round(width * density));
+      canvas.height = Math.max(1, Math.round(height * density));
+      schedule();
     }
 
-    function pauseInvisible() {
-      if (visible()) requestDraw();
+    function manageVisibility() {
+      if (visible && !document.hidden) schedule();
       else {
-        cancelAnimationFrame(frame);
-        frame = 0;
-        lastDraw = 0;
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+        previousFrame = 0;
       }
     }
 
-    function contextLost() {
-      drawable = false;
-      if (scene) delete scene.dataset.ready;
-      pauseInvisible();
-    }
-
-    function contextRestored() {
-      drawable = true;
-      resize();
-    }
-
-    function move(event: PointerEvent) {
-      if (motion.matches || !scene) return;
-      const bounds = scene.getBoundingClientRect();
-      if (!bounds.width || !bounds.height) return;
-      const clamp = (value: number) => Math.max(-1, Math.min(1, value));
-      aim = {
-        x: clamp((event.clientX - bounds.left) / bounds.width * 2 - 1),
-        y: clamp((event.clientY - bounds.top) / bounds.height * 2 - 1),
-      };
-      releaseAt = 0;
-      requestDraw();
-    }
-
-    function reset(event: PointerEvent) {
-      if (event.type === "pointerup" && event.pointerType === "mouse") return;
-      if (event.type === "pointerleave" && releaseAt) return;
-      if (event.type === "pointerup" && !motion.matches) releaseAt = performance.now() + 330;
-      else {
-        aim = { x: 0, y: 0 };
-        releaseAt = 0;
+    function initialize() {
+      try {
+        const context = canvas?.getContext("webgl", { alpha: false, antialias: false, depth: false, powerPreference: "low-power" });
+        if (!context) {
+          setReady("unavailable");
+          return;
+        }
+        renderer = createObservatoryRenderer(context);
+        renderer.updateHistory(input.days);
+        sizeCanvas();
+        setReady("available");
+      } catch {
+        renderer?.dispose();
+        renderer = undefined;
+        setReady("unavailable");
       }
-      requestDraw();
     }
 
-    update.current = next => {
-      if (settings.synced && settings.synced !== next.synced && next.synced) pulseStart = performance.now();
-      settings = next;
-      requestDraw();
+    function onContextLost(event: Event) {
+      event.preventDefault();
+      renderer = undefined;
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      previousFrame = 0;
+      setReady("unavailable");
+    }
+
+    setRenderInput.current = next => {
+      if (lastSync && next.synced && lastSync !== next.synced) burst = performance.now();
+      if (next.synced) lastSync = next.synced;
+      if (next.days !== input.days) renderer?.updateHistory(next.days);
+      input = next;
+      schedule();
     };
-    const resizeObserver = new ResizeObserver(resize);
-    const viewObserver = new IntersectionObserver(([entry]) => {
-      inView = entry.isIntersecting;
-      pauseInvisible();
+    invalidate.current = schedule;
+    findDay.current = (x, y) => morph > .98
+      ? pickActivityDay(input.days.slice(-30), pose, x, y, viewport.clientWidth, viewport.clientHeight)
+      : -1;
+    const resize = new ResizeObserver(sizeCanvas);
+    resize.observe(viewport);
+    const intersection = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      manageVisibility();
     });
-    const themeObserver = new MutationObserver(() => {
-      light = readGlassLight(getComputedStyle(scene));
-      requestDraw();
-    });
-    resizeObserver.observe(scene);
-    viewObserver.observe(scene);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    document.addEventListener("visibilitychange", pauseInvisible);
-    motion.addEventListener("change", requestDraw);
-    target.addEventListener("contextlost", contextLost);
-    target.addEventListener("contextrestored", contextRestored);
-    stage.addEventListener("pointermove", move, { passive: true });
-    stage.addEventListener("pointerdown", move, { passive: true });
-    stage.addEventListener("pointerleave", reset);
-    stage.addEventListener("pointerup", reset);
-    stage.addEventListener("pointercancel", reset);
-    resize();
-
+    intersection.observe(viewport);
+    document.addEventListener("visibilitychange", manageVisibility);
+    motion.addEventListener("change", schedule);
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", initialize);
+    const initializeId = requestAnimationFrame(initialize);
     return () => {
-      update.current = null;
-      cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
-      viewObserver.disconnect();
-      themeObserver.disconnect();
-      document.removeEventListener("visibilitychange", pauseInvisible);
-      motion.removeEventListener("change", requestDraw);
-      target.removeEventListener("contextlost", contextLost);
-      target.removeEventListener("contextrestored", contextRestored);
-      stage.removeEventListener("pointermove", move);
-      stage.removeEventListener("pointerdown", move);
-      stage.removeEventListener("pointerleave", reset);
-      stage.removeEventListener("pointerup", reset);
-      stage.removeEventListener("pointercancel", reset);
+      cancelAnimationFrame(initializeId);
+      cancelAnimationFrame(frameId);
+      resize.disconnect();
+      intersection.disconnect();
+      document.removeEventListener("visibilitychange", manageVisibility);
+      motion.removeEventListener("change", schedule);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", initialize);
+      renderer?.dispose();
+      setRenderInput.current = () => {};
+      invalidate.current = () => {};
+      findDay.current = () => -1;
     };
   }, []);
 
-  useEffect(() => { update.current?.({ synced, paused, focused }); }, [synced, paused, focused]);
+  useEffect(() => {
+    setRenderInput.current({ synced, active, days, mode, playing, selectedIndex });
+  }, [synced, active, days, mode, playing, selectedIndex]);
 
-  return <div ref={artwork} className="admin-glass-scene" aria-hidden="true">
-    <div className="admin-glass-fallback"><i /><i /><i /></div>
-    <canvas ref={canvas} />
-  </div>;
+  function reset(view: Mode = mode) {
+    aim.current = { ...(view === "orbit" ? defaultPose : historyPose) };
+    setZoom(aim.current.zoom);
+    invalidate.current();
+  }
+
+  function changeMode(next: Mode) {
+    if (next === mode) return;
+    reset(next);
+    setMode(next);
+  }
+
+  function magnify(step: number) {
+    aim.current.zoom = clamp(aim.current.zoom + step, minZoom, maxZoom);
+    setZoom(aim.current.zoom);
+    invalidate.current();
+  }
+
+  function orbit(dx: number, dy: number) {
+    aim.current.yaw += dx;
+    aim.current.pitch = clamp(aim.current.pitch + dy, -.13, 1.47);
+    invalidate.current();
+  }
+
+  function startDrag(event: PointerEvent<HTMLCanvasElement>) {
+    if (!available || event.button !== 0 || drag.current) return;
+    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, distance: 0 };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function continueDrag(event: PointerEvent<HTMLCanvasElement>) {
+    const start = drag.current;
+    if (!start || event.pointerId !== start.id) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    start.distance += Math.hypot(dx, dy);
+    if (start.distance >= 5) orbit(dx * .0098, dy * .0075);
+    start.x = event.clientX;
+    start.y = event.clientY;
+  }
+
+  function stopDrag(event: PointerEvent<HTMLCanvasElement>) {
+    if (drag.current?.id === event.pointerId) drag.current = null;
+  }
+
+  function finishDrag(event: PointerEvent<HTMLCanvasElement>) {
+    const gesture = drag.current;
+    stopDrag(event);
+    if (mode !== "activity" || gesture?.id !== event.pointerId || gesture.distance >= 5) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const day = displayedDays[findDay.current(event.clientX - bounds.left, event.clientY - bounds.top)];
+    if (day) onDateChange(day.date);
+  }
+
+  function navigate(event: KeyboardEvent<HTMLCanvasElement>) {
+    switch (event.key) {
+      case "ArrowLeft": orbit(-.16, 0); break;
+      case "ArrowRight": orbit(.16, 0); break;
+      case "ArrowUp": orbit(0, -.12); break;
+      case "ArrowDown": orbit(0, .12); break;
+      case "+": case "=": magnify(.12); break;
+      case "-": magnify(-.12); break;
+      case "Home": reset(); break;
+      default: return;
+    }
+    event.preventDefault();
+  }
+
+  return <section className="admin-scene" aria-label="实时观测图">
+    <div className="admin-scene-viewport" ref={scene} data-ready={available} data-mode={mode}>
+      <div className="admin-scene-fallback" aria-hidden="true"><i /><i /><i /></div>
+      <canvas ref={surface} className="admin-scene-canvas" role="img" tabIndex={available ? 0 : -1}
+        aria-hidden={!available}
+        aria-label={mode === "orbit" ? "三维粒子场" : "围绕中心排列的近 30 天站点活动"}
+        aria-describedby={available ? "admin-scene-instructions" : undefined}
+        onPointerDown={startDrag} onPointerMove={continueDrag} onPointerUp={finishDrag}
+        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={navigate} />
+      <div className="admin-scene-topline">
+        <div className="admin-scene-modes" role="group" aria-label="观测视图">
+          <button type="button" aria-pressed={mode === "orbit"} onClick={() => changeMode("orbit")}>粒子场</button>
+          <button type="button" aria-pressed={mode === "activity"} onClick={() => changeMode("activity")}>30 天活动</button>
+        </div>
+        <button type="button" className="admin-scene-pause" disabled={!available || mode !== "orbit"}
+          aria-label={playing ? "暂停粒子运动" : "继续粒子运动"} title={playing ? "暂停粒子运动" : "继续粒子运动"} onClick={() => setPlaying(value => !value)}><Icon name={playing ? "pause" : "play"} size={15} /></button>
+      </div>
+      <div className="admin-scene-zoom" role="group" aria-label="镜头控制">
+        <button type="button" aria-label="缩小镜头" disabled={!available || zoom <= minZoom} onClick={() => magnify(-.12)}>−</button>
+        <span aria-label={`缩放 ${Math.round(zoom * 100)}%`}>{Math.round(zoom * 100)}%</span>
+        <button type="button" aria-label="放大镜头" disabled={!available || zoom >= maxZoom} onClick={() => magnify(.12)}>+</button>
+        <button type="button" aria-label="重置镜头" title="重置镜头" disabled={!available} onClick={() => reset()}><Icon name="restore" size={15} /></button>
+      </div>
+    </div>
+    <div className="admin-scene-readout" id="admin-scene-instructions">
+      {mode === "activity" ? selected ? <>
+        <label><span className="sr-only">选择活动日期</span><select value={selected.date} onChange={event => onDateChange(event.target.value)}>
+          {displayedDays.map(day => <option key={day.date} value={day.date}>{dateLabel.format(new Date(`${day.date}T12:00:00+08:00`))}</option>)}
+        </select></label>
+        <span data-series="users">新增用户 <b>{selected.users}</b></span>
+        <span data-series="entries">新增日常 <b>{selected.entries}</b></span>
+        {available && <span className="admin-scene-pick-hint">点选刻度查看当日</span>}
+      </> : <span>等待活动数据</span> : available && "拖动旋转 · 方向键也可操作"}
+      {ready === "unavailable" && <span>3D 渲染不可用</span>}
+      {ready === "pending" && <span>正在初始化粒子场</span>}
+      {available && <span className="sr-only">拖动或按方向键旋转，加号和减号缩放，Home 键重置镜头。</span>}
+    </div>
+  </section>;
 }
