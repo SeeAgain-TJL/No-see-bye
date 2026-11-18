@@ -137,7 +137,7 @@
 .auth-projection-actions :is(a, button):focus-visible { outline: 2px solid #fff9e1; outline-offset: 3px; }
 
 @media (max-width: 760px) {
-  .auth-projection { min-height: clamp(240px, 62vw, 365px); }
+  .auth-projection { min-height: clamp(214px, 56vw, 300px); }
   .auth-projection-content { padding: 22px 24px 26px; }
   .auth-projection-actions { margin-top: 12px; gap: 6px; }
   .auth-projection-actions :is(a, button) { min-height: 40px; padding-inline: 9px; font-size: 11px; }
