@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { themes, type ThemeName } from "@/lib/themes";
 import { Icon } from "./icons";
-import { paintMemoryAtmosphere } from "./memory-scene-effects";
+import { paintMemoryAtmosphere, type ScenePlateBounds } from "./memory-scene-effects";
 import { useActiveTheme } from "./theme-provider";
 
 const memories = {
@@ -37,6 +37,7 @@ const memories = {
 
 type Playback = "idle" | "playing" | "complete";
 const playbackDuration = 5200;
+const artworkAspect = 4 / 5;
 
 export function MemoryPortal() {
   const theme = useActiveTheme();
@@ -46,6 +47,7 @@ export function MemoryPortal() {
 function MemoryPlayer({ theme }: { theme: ThemeName }) {
   const [playback, setPlayback] = useState<Playback>("idle");
   const scene = useRef<HTMLDivElement>(null);
+  const artwork = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const target = useRef({ x: 0, y: 0 });
   const camera = useRef({ x: 0, y: 0, ambience: 0 });
@@ -53,13 +55,15 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
 
   useEffect(() => {
     const frame = scene.current;
+    const image = artwork.current;
     const surface = canvas.current;
-    if (!frame || !surface) return;
+    if (!frame || !image || !surface) return;
 
     const ctx = surface.getContext("2d");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let width = 1;
     let height = 1;
+    let plate: ScenePlateBounds = { left: 0, top: 0, width: 1, height: 1 };
     let inView = true;
     let animation = 0;
     let lastFrame = 0;
@@ -71,13 +75,15 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
       if (!frame) return;
       const progress = playback === "playing" ? Math.min(1, elapsed / playbackDuration) : playback === "complete" ? 1 : 0;
       const push = progress * progress * (3 - 2 * progress);
+      const exposure = Math.sin(progress * Math.PI) ** 2;
       motion.x += (target.current.x - motion.x) * .095;
       motion.y += (target.current.y - motion.y) * .095;
-      frame.style.setProperty("--auth-pan-x", (motion.x * 16).toFixed(2) + "px");
-      frame.style.setProperty("--auth-pan-y", (motion.y * 13).toFixed(2) + "px");
+      frame.style.setProperty("--auth-pan-x", (motion.x * 12).toFixed(2) + "px");
+      frame.style.setProperty("--auth-pan-y", (motion.y * 9).toFixed(2) + "px");
       frame.style.setProperty("--auth-scene-progress", String(push));
+      frame.style.setProperty("--auth-exposure-cue", String(exposure));
       frame.style.setProperty("--auth-playhead", String(progress));
-      if (ctx) paintMemoryAtmosphere(ctx, theme, width, height, motion.ambience / 1000, progress, motion.x, motion.y, reduced.matches);
+      if (ctx) paintMemoryAtmosphere(ctx, theme, width, height, motion.ambience / 1000, progress, motion.x, motion.y, reduced.matches, plate);
     }
 
     function tick(now: number) {
@@ -111,6 +117,16 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
     const bounds = new ResizeObserver(() => {
       width = Math.max(1, frame.clientWidth);
       height = Math.max(1, frame.clientHeight);
+      // Use the covered image's crop so objects stay anchored to the artwork on phones.
+      const style = getComputedStyle(image);
+      const coverWidth = Math.max(image.offsetWidth, image.offsetHeight * artworkAspect);
+      const coverHeight = coverWidth / artworkAspect;
+      plate = {
+        left: image.offsetLeft + (image.offsetWidth - coverWidth) * Number.parseFloat(style.backgroundPositionX) / 100,
+        top: image.offsetTop + (image.offsetHeight - coverHeight) * Number.parseFloat(style.backgroundPositionY) / 100,
+        width: coverWidth,
+        height: coverHeight,
+      };
       const ratio = Math.min(devicePixelRatio || 1, 1.5);
       surface.width = Math.round(width * ratio);
       surface.height = Math.round(height * ratio);
@@ -145,7 +161,8 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
   }
 
   function startDrag(event: PointerEvent<HTMLDivElement>) {
-    if (event.button !== 0 || (event.target instanceof Element && event.target.closest("button, a"))) return;
+    if (event.button !== 0 || (event.target instanceof Element && event.target.closest("button, a"))
+      || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     move(event);
   }
@@ -161,10 +178,10 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
   }
 
   return <div className="auth-projection" ref={scene} data-playing={playback}
-    onPointerDown={startDrag} onPointerMove={move} onPointerLeave={resetLook} onPointerUp={resetLook} onPointerCancel={resetLook}>
+    onPointerDown={startDrag} onPointerMove={move} onPointerLeave={resetLook} onPointerUp={resetLook}
+    onPointerCancel={resetLook} onLostPointerCapture={resetLook}>
     <div className="auth-projection-planes" aria-hidden="true">
-      <div className="auth-projection-image" />
-      <div className="auth-projection-reflection" />
+      <div className="auth-projection-image" ref={artwork} />
       <div className="auth-projection-optics" />
       <canvas className="auth-scene-field" ref={canvas} />
     </div>

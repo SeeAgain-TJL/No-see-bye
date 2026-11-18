@@ -252,4 +252,12 @@
   :root[data-theme] .auth-editorial.studio-auth .auth-form h1 { font-size: 38px; }
   .auth-editorial.studio-auth .auth-form > p.muted { margin-bottom: 20px; }
   .auth-editorial .auth-masthead .theme-menu { right: -90px; width: min(310px, calc(100vw - 24px)); }
+  .auth-editorial .immersive-motion-root {
+    display: flex;
+    justify-content: flex-end;
+    align-self: center;
+    width: min(100%, 590px);
+    margin-top: 12px;
+  }
+  :root[data-theme] .auth-editorial .world-toggle { position: static; }
 }

@@ -77,7 +77,6 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   }
   return (
     <main id="main" className="auth-page studio-auth auth-editorial" data-auth-mode={register ? "register" : "login"}>
-      <ImmersiveMotion />
       <header className="auth-masthead">
         <Link className="auth-masthead-brand" href="/"><BrandMark />不说再见</Link>
         <div className="auth-masthead-actions"><ThemeSwitcher /><Link className="auth-back text-link" href={register ? "/login" : "/"}>
@@ -175,6 +174,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         </form>
         </div>
       </div>
+      <ImmersiveMotion />
       {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}
         onCancel={() => setRegistration(null)} onComplete={finish}
         onFormError={message => { setRegistration(null); setError(message); }} />}
