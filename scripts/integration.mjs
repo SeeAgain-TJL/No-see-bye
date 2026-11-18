@@ -622,6 +622,77 @@ try {
   );
   await call("/api/memories?month=invalid", { cookie: a.cookie, status: 400 });
   await call("/api/memories?cursor=invalid", { cookie: a.cookie, status: 400 });
+  // The month navigator counts the full archive, independently of the current
+  // 12-record page and filters, without disclosing other users' private months.
+  await call("/api/memories/index", { status: 401 });
+  await call("/api/memories/index?scope=trash", { cookie: a.cookie, status: 400 });
+  const ownIndex = await call("/api/memories/index", { cookie: a.cookie });
+  assert.equal(ownIndex.res.headers.get("cache-control"), "private, no-store");
+  assert.equal(ownIndex.data.scope, "mine");
+  assert.equal(ownIndex.data.timeZone, "Asia/Shanghai");
+  assert.equal(ownIndex.data.total, 16);
+  assert.equal(ownIndex.data.total > first.items.length, true);
+  assert.deepEqual(ownIndex.data.months, [{ month: "2026-11", count: 16, photos: 1, videos: 0, texts: 15 }]);
+  const filteredIndex = await call("/api/memories/index?scope=mine&type=photo&q=missing&month=invalid&day=invalid&pinned=1&cursor=invalid", { cookie: a.cookie });
+  assert.deepEqual(filteredIndex.data, ownIndex.data);
+  const emptyIndex = (await call("/api/memories/index?scope=mine&userId=" + memory.userId, { cookie: b.cookie })).data;
+  assert.equal(emptyIndex.total, 0);
+  assert.deepEqual(emptyIndex.months, []);
+  assert.deepEqual(emptyIndex.availableYears, []);
+  const publicIndex = await call("/api/memories/index?scope=public");
+  assert.equal(publicIndex.res.headers.get("cache-control"), "private, no-store");
+  assert.equal(publicIndex.data.total, 1);
+  assert.deepEqual((await call("/api/memories/index?scope=public", { cookie: a.cookie })).data, publicIndex.data);
+  const navigationDb = new DatabaseSync(env.DATABASE_URL.slice(5));
+  navigationDb.exec("PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000");
+  try {
+    const otherOwner = navigationDb.prepare("SELECT id FROM User WHERE username='person_b'").get().id;
+    const row = navigationDb.prepare("INSERT INTO Entry(id,userId,title,content,visibility,happenedAt,deletedAt,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?)");
+    const now = Date.now();
+    row.run("journal-index-before", memory.userId, "Private old month", "Never disclose this body", "private", "2024-12-31 15:59:59", null, now, now);
+    row.run("journal-index-edge", memory.userId, "Mixed media midnight", "", "private", Date.parse("2024-12-31T16:00:00Z"), null, now, now);
+    row.run("journal-index-public", otherOwner, "Public text month", "", "public", "2024-12-31T16:00:00.000Z", null, now, now);
+    row.run("journal-index-trash", memory.userId, "Deleted archive", "", "public", Date.parse("2023-06-01T12:00:00Z"), now, now, now);
+    row.run("journal-index-foreign", otherOwner, "Other private archive", "Never disclose another user's month", "private", Date.parse("2022-01-01T12:00:00Z"), null, now, now);
+    const media = navigationDb.prepare("INSERT INTO Asset(id,ownerId,driver,key,mime,sizeBytes,status) VALUES (?,?,?,?,?,1,'ready')");
+    const attach = navigationDb.prepare("INSERT INTO EntryAsset(entryId,assetId,position) VALUES (?,?,?)");
+    for (let i = 0; i < 3; i++) {
+      const id = "journal-index-media-" + i;
+      media.run(id, memory.userId, "local", id, i === 2 ? "video/webm" : "image/png");
+      attach.run("journal-index-edge", id, i);
+    }
+    const completeIndex = (await call("/api/memories/index?scope=mine", { cookie: a.cookie })).data;
+    assert.deepEqual(completeIndex.months, [
+      { month: "2026-11", count: 16, photos: 1, videos: 0, texts: 15 },
+      { month: "2025-01", count: 1, photos: 1, videos: 1, texts: 0 },
+      { month: "2024-12", count: 1, photos: 0, videos: 0, texts: 1 },
+    ]);
+    assert.deepEqual(completeIndex.availableYears, [2026, 2025, 2024]);
+    assert.equal(completeIndex.total, 18);
+    assert.equal(completeIndex.photos, 2, "Photo counts describe records rather than attachments");
+    assert.equal(completeIndex.videos, 1);
+    assert.equal(completeIndex.texts, 16);
+    const sharedIndex = (await call("/api/memories/index?scope=public&userId=" + memory.userId + "&type=photo&month=2026-11")).data;
+    assert.equal(sharedIndex.total, 2);
+    assert.deepEqual(sharedIndex.months, [
+      { month: "2026-11", count: 1, photos: 1, videos: 0, texts: 0 },
+      { month: "2025-01", count: 1, photos: 0, videos: 0, texts: 1 },
+    ]);
+    assert.equal(JSON.stringify(sharedIndex).includes("Private"), false);
+    const otherIndex = (await call("/api/memories/index?scope=mine&userId=" + memory.userId, { cookie: b.cookie })).data;
+    assert.equal(otherIndex.total, 2);
+    assert.deepEqual(otherIndex.availableYears, [2025, 2022]);
+    const migrated = spawnSync(runtime, ["scripts/init-db.mjs"], { cwd: workspace, env, encoding: "utf8" });
+    assert.equal(migrated.status, 0, migrated.stderr);
+    const legacyMonth = (await call("/api/memories?month=2024-12", { cookie: a.cookie })).data;
+    assert.deepEqual(legacyMonth.items.map(item => item.id), ["journal-index-before"]);
+    const publicMonth = (await call("/api/memories?scope=public&month=2025-01")).data;
+    assert.deepEqual(publicMonth.items.map(item => item.id), ["journal-index-public"]);
+  } finally {
+    navigationDb.exec("DELETE FROM EntryAsset WHERE entryId LIKE 'journal-index-%'; DELETE FROM Entry WHERE id LIKE 'journal-index-%'; DELETE FROM Asset WHERE id LIKE 'journal-index-media-%'");
+    navigationDb.close();
+  }
+  assert.deepEqual((await call("/api/memories/index", { cookie: a.cookie })).data, ownIndex.data);
   // Reservations must prevent two overlapping uploads from exceeding one user's quota.
   const c = await call("/api/auth/register", {
     method: "POST",
