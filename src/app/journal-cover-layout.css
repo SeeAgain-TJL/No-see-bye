@@ -149,7 +149,7 @@
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion:no-preference) {
-    .journal-living-cover .jls-canvas {
+    .journal-living-cover .jls-view-window {
       animation: jl-scene-depart linear both;
       animation-timeline: view();
       animation-range: exit 0% exit 100%;

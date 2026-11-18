@@ -10,14 +10,13 @@ import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
 import { MemoryPortal } from "./memory-portal";
 import { ThemeSwitcher } from "./theme-provider";
-import { ThemeMotif } from "./theme-motif";
 import { ImmersiveMotion } from "./immersive-motion";
 
 const archiveEditions = [
-  { theme: "dusk", title: <>万物有时，<br /><em>记忆有枝。</em></>, eyebrow: "THE GARDEN OF DAYS", note: "一页光阴，一枚叶脉。让细小的事物，慢慢长成自己的宇宙。" },
-  { theme: "sea", title: <>潮声往复，<br /><em>念念有归。</em></>, eyebrow: "LETTERS BEYOND THE TIDE", note: "岸会记得每一次潮汐，就像我们记得，那些微不足道的永远。" },
-  { theme: "film", title: <>光阴无声，<br /><em>留影有迹。</em></>, eyebrow: "A STUDY IN PASSING LIGHT", note: "时间从指间经过，光留下它的形状。每一帧，都是未完的长信。" },
-  { theme: "night", title: <>人间一瞬，<br /><em>星河长明。</em></>, eyebrow: "AN ATLAS OF INNER STARS", note: "散落的片刻，终会连成星座。那些被记住的，仍在远处发光。" },
+  { theme: "dusk", title: <>万物有时，<em>记忆有枝。</em></> },
+  { theme: "sea", title: <>潮声往复，<em>念念有归。</em></> },
+  { theme: "film", title: <>光阴无声，<em>留影有迹。</em></> },
+  { theme: "night", title: <>人间一瞬，<em>星河长明。</em></> },
 ] as const;
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
@@ -86,33 +85,28 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     <main id="main" className="auth-page studio-auth auth-editorial" data-auth-mode={register ? "register" : "login"}>
       <ImmersiveMotion />
       <header className="auth-masthead">
-        <span className="auth-masthead-edition"><span>NO SEE BYE</span><span>THE PRIVATE ATELIER</span></span>
+        <Link className="auth-masthead-brand" href="/"><BrandMark />不说再见</Link>
         <div className="auth-masthead-actions"><ThemeSwitcher /><Link className="auth-back text-link" href={register ? "/login" : "/"}>
           <Icon name="back" size={17} />
           {register ? "返回登录" : "返回首页"}
         </Link></div>
       </header>
       <div className="auth-card">
-        <section className="auth-story" aria-label="记忆的四季">
-          <Link className="auth-logo" href="/"><BrandMark />不说再见</Link>
-          <div className="auth-story-stage">
-            <div className="auth-story-copy">{archiveEditions.map(edition => <div className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>
-              <span className="section-eyebrow">{edition.eyebrow}</span><h2>{edition.title}</h2><p>{edition.note}</p>
-            </div>)}</div>
-            <MemoryPortal />
-          </div>
-          <div className="auth-story-colophon"><ThemeMotif /><div><span lang="en">A moment kept.<br />A world within.</span><small>此心所系，皆可成册。</small></div><Link href="/memories?scope=public" aria-label="浏览公开日常">借阅人间<Icon name="arrow" size={18} /></Link></div>
+        <section className="auth-story" aria-label="记忆的四季" data-camera-frame>
+          <MemoryPortal>
+            <div className="auth-story-copy">
+              {archiveEditions.map(edition => <h2 className="auth-theme-prologue" data-auth-theme={edition.theme} key={edition.theme}>{edition.title}</h2>)}
+            </div>
+          </MemoryPortal>
         </section>
         <div className="auth-form-room">
-        <div className="auth-room-edition"><span>YOUR OWN LITTLE UNIVERSE</span><Icon name="spark" size={19} /></div>
         <form className="auth-form" onSubmit={submit}>
           <nav className="auth-mode-tabs" aria-label="账号入口"><Link href="/login" aria-current={!register ? "page" : undefined}>登录</Link><Link href="/register" aria-current={register ? "page" : undefined}>注册</Link></nav>
-          <span className="auth-form-kicker"><Icon name="spark" size={18} />{register ? "BEGIN A PRIVATE CHAPTER" : "ENTER YOUR MEMORY ARCHIVE"}</span>
           <h1>{register ? "从此，留痕。" : "久别，重逢。"}</h1>
           <p className="muted">
             {register
-              ? "为流逝的日子，写下第一行。"
-              : "旧页未远，新章待续。"}
+              ? "创建账号，留下第一篇日常。"
+              : "登录你的记忆档案。"}
           </p>
           {register ? (
               <label>
@@ -178,12 +172,6 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             {busy ? register ? "正在准备验证…" : "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
           </button>
-          <p className="auth-switch">
-            {register ? "已有一册旧日？" : "尚无自己的篇章？"}
-            <Link href={register ? "/login" : "/register"}>
-              {register ? "返回登录" : "创建账号"}
-            </Link>
-          </p>
           {socialProviders.length > 0 && (
             <div className="auth-social">
               <div className="auth-social-divider"><span>或使用其他方式继续</span></div>
@@ -193,9 +181,8 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               </div>
             </div>
           )}
-          <div className="auth-form-colophon"><Icon name="lock" size={13} /><span>私密珍藏 · 随心公开</span><span lang="en">YOUR DAYS, YOURS.</span></div>
+          <div className="auth-form-colophon"><Icon name="lock" size={14} /><span>记录的可见范围由你决定</span></div>
         </form>
-        <div className="auth-room-footer"><span>不说再见</span><span>EST. 2026</span></div>
         </div>
       </div>
       {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}

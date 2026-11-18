@@ -4,9 +4,9 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { AmbientScene } from "./ambient-scene";
 
-const surfaces = ".keepsake-entry, .memory-card, .wall-item, .motion-surface";
+const surfaces = ".projection-contact-card, .keepsake-entry, .memory-card, .wall-item, .motion-surface";
 const scenicFrames = '.cinematic-opening, .journal-living-cover, .living-gallery, .auth-story';
-const scenicArtwork = '.cinematic-opening-art, .jl-cover-art, .photo-gallery-viewport, .anime-scene';
+const scenicArtwork = '.cinematic-opening-art, .jl-cover-art, .photo-gallery-viewport, .auth-projection-image';
 const scenicCopy = '.cinematic-opening-copy, .jl-cover-copy, .gallery-heading, .auth-story-copy';
 const arrivals = `${surfaces}, ${scenicFrames}, .home-welcome, .stats-strip, .motion-reveal, .auth-form, .editor-paper, .detail-article, .settings-card`;
 const magneticControls = '.home-small-actions button, .gallery-control, .auth-submit, .studio-button, .journal-cover-write, .world-toggle';

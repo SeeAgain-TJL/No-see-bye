@@ -11,11 +11,9 @@ The sunset/frame brand symbol and layout are original vector/CSS artwork. No run
 
 ## Cinematic opening backgrounds
 
-`opening-{dusk,sea,film,night}.webp` and their `-preview` variants are original artwork generated with the built-in ImageGen tool. The full scenes are encoded at 1720 pixels wide and the theme previews at 350 pixels wide.
+`opening-{dusk,sea,film,night}.webp` and their `-preview` variants are photographs published by the creators listed below. The site bundles locally cropped 1720 × 800 WebP backgrounds and 350 × 163 theme previews under the [Unsplash License](https://unsplash.com/license).
 
-The shared prompt requested a cinematic anime background painting for an intimate memory journal, with hand-painted feature-film lighting, restrained film grain, layered foreground and distant air. It reserved the left 42% as title-safe negative space, framed the primary subject between 55% and 90% for a 2.15:1 crop, and excluded type, lettering, UI, frames, logos and recognizable IP.
-
-- Paper: sheltered botanical glasshouse after rain, ivy, wild grass and pale butterflies around a warm greenhouse lamp. Olive green, deep forest and straw light.
-- Sea: sea-facing railway platform above a fishing harbor, a signless shelter and glass railing reflecting the low sun. Navy and cyan sea with warm horizon light.
-- Film: weathered neighborhood cinema with a warm doorway, wet stone and film reels seen through glass. Restrained wine red, umber and charcoal.
-- Night: mountain observatory through pine branches, a silver crescent, sparse stars and warm windows on the far ridge. Indigo, plum blue, silver and gold.
+- Paper (`dusk`) uses a San Francisco greenhouse photographed on Kodak Gold 200 by Sasha Matveeva. [Original photograph](https://unsplash.com/photos/a-greenhouse-filled-with-lots-of-green-plants-RiQfTa7koCg)
+- Sea (`sea`) uses the Cliffs of Moher in mist, photographed by Andrej A. [Original photograph](https://unsplash.com/photos/a-person-standing-on-the-edge-of-a-cliff-overlooking-the-ocean-VF6STp3LMNQ)
+- Film (`film`) uses a vintage cinema auditorium photographed by Peter Herrmann. [Original photograph](https://unsplash.com/photos/empty-vintage-theater-with-rows-of-seats-j7-T7aAliSg)
+- Night (`night`) uses the moon setting over the Bernese Alps, photographed by Thierry Lemaitre. [Original photograph](https://unsplash.com/photos/moon-visible-in-the-twilight-sky-over-silhouetted-trees-PYkzZFieU-8/)
