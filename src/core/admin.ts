@@ -13,9 +13,12 @@ export async function requireAdmin(req: NextRequest) {
 }
 
 export async function adminOverview() {
-  const week = new Date(Date.now() - 7 * 86400_000);
-  const [users, activeUsers7d, entries, publicEntries, privateEntries, trashedEntries, assets, storage, photos, videos, userDays, entryDays] = await Promise.all([
+  const now = Date.now();
+  const week = new Date(now - 7 * 86400_000);
+  const quarterHour = new Date(now - 15 * 60_000);
+  const [users, activeUsers7d, activeUsers15m, entries, publicEntries, privateEntries, trashedEntries, assets, storage, photos, videos, userDays, entryDays] = await Promise.all([
     prisma.user.count(), prisma.user.count({ where: { lastSeenAt: { gte: week } } }),
+    prisma.user.count({ where: { lastSeenAt: { gte: quarterHour } } }),
     prisma.entry.count({ where: { deletedAt: null } }),
     prisma.entry.count({ where: { deletedAt: null, visibility: "public" } }),
     prisma.entry.count({ where: { deletedAt: null, visibility: "private" } }),
@@ -32,7 +35,7 @@ export async function adminOverview() {
     const date = new Date(Date.now() + 8 * 3600_000 - (29 - index) * 86400_000).toISOString().slice(0, 10);
     return { date, users: userMap.get(date) || 0, entries: entryMap.get(date) || 0 };
   });
-  return { summary: { users, activeUsers7d, entries, publicEntries, privateEntries, trashedEntries, assets, storageBytes: storage._sum.sizeBytes || 0, photos, videos },
+  return { sampledAt: new Date(now).toISOString(), summary: { users, activeUsers7d, activeUsers15m, entries, publicEntries, privateEntries, trashedEntries, assets, storageBytes: storage._sum.sizeBytes || 0, photos, videos },
     registration: { enabled: process.env.ALLOW_REGISTRATION !== "false" }, daily };
 }
 

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { avatarKey: true } });
     key = `avatars/${session.userId}/${randomUUID()}.webp`;
     await storage.put(key, Readable.from(image));
-    const changed = await prisma.user.updateMany({ where: { id: session.userId, avatarKey: user.avatarKey }, data: { avatarKey: key } });
+    const changed = await prisma.user.updateMany({ where: { id: session.userId, sessionVersion: session.sessionVersion, avatarKey: user.avatarKey }, data: { avatarKey: key } });
     if (!changed.count) throw new HttpError(409, "头像刚刚已更新，请刷新后重试");
     saved = true;
     if (user.avatarKey?.startsWith(`avatars/${session.userId}/`)) await storage.delete(user.avatarKey).catch(() => {});

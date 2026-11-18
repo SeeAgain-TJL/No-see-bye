@@ -31,6 +31,10 @@ import './uniform-memory-cards.css';
 import './admin-studio.css';
 import './theme-refinement.css';
 import './anime-portal.css';
+import './journal-living-cover.css';
+import './journal-cover-layout.css';
+import './admin-user-actions.css';
+import './cinematic-motion.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

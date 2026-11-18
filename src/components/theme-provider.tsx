@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 import { isTheme, themes, themeNames, THEME_STORAGE_KEY, type ThemeName } from "@/lib/themes";
 import { ThemeMotif } from "./theme-motif";
 
@@ -25,6 +26,7 @@ export function ThemeSwitcher() {
   const menuRef = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const transition = useRef<ViewTransition | null>(null);
+  const selection = useRef(0);
   const menuId = useId();
   useEffect(() => {
     if (!open) return;
@@ -38,54 +40,67 @@ export function ThemeSwitcher() {
 
   function switchTheme(name: ThemeName) {
     setOpen(false);
-    trigger.current?.focus();
-    if (name === current) {
-      try { localStorage.setItem(THEME_STORAGE_KEY, name); } catch { /* In-memory choice still works. */ }
-      return;
-    }
+    trigger.current?.focus({ preventScroll: true });
+    const root = document.documentElement;
+    const request = ++selection.current;
+    transition.current?.skipTransition();
+    transition.current = null;
+    root.removeAttribute('data-cinematic-theme');
+
     const apply = () => {
-      document.documentElement.dataset.theme = name;
-      try { localStorage.setItem(THEME_STORAGE_KEY, name); } catch { /* In-memory choice still works. */ }
+      if (request !== selection.current) return;
+      root.setAttribute('data-theme', name);
+      try { localStorage.setItem(THEME_STORAGE_KEY, name); } catch { /* This tab keeps its choice. */ }
       window.dispatchEvent(new Event("nsb:theme"));
     };
-    transition.current?.skipTransition();
-    if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); return; }
-    const rect = trigger.current?.getBoundingClientRect();
-    const x = rect ? rect.left + rect.width / 2 : innerWidth / 2;
-    const y = rect ? rect.top + rect.height / 2 : 0;
-    const root = document.documentElement;
-    root.style.setProperty("--theme-x", `${x}px`);
-    root.style.setProperty("--theme-y", `${y}px`);
-    root.style.setProperty("--theme-radius", `${Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
-    root.setAttribute("data-theme-transition", "true");
-    const next = document.startViewTransition(apply);
-    transition.current = next;
-    void next.ready.catch(() => {});
-    void next.finished.catch(() => {}).finally(() => {
-      if (transition.current === next) { root.removeAttribute("data-theme-transition"); transition.current = null; }
-    });
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    if (name === activeTheme() || !document.startViewTransition || reduceMotion.matches || document.hidden) {
+      apply();
+      return;
+    }
+
+    root.setAttribute('data-cinematic-theme', name);
+    try {
+      const next = document.startViewTransition(() => flushSync(apply));
+      transition.current = next;
+      const skip = () => { if (reduceMotion.matches || document.hidden) next.skipTransition(); };
+      reduceMotion.addEventListener('change', skip);
+      document.addEventListener('visibilitychange', skip);
+      void next.ready.catch(() => {});
+      void next.finished.catch(() => {}).finally(() => {
+        reduceMotion.removeEventListener('change', skip);
+        document.removeEventListener('visibilitychange', skip);
+        if (transition.current === next) {
+          root.removeAttribute('data-cinematic-theme');
+          transition.current = null;
+        }
+      });
+    } catch {
+      root.removeAttribute('data-cinematic-theme');
+      apply();
+    }
   }
 
   return <div className="theme-switcher" ref={menuRef}
     onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}
     onKeyDown={event => {
       if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); event.stopPropagation(); }
-      if (!open || !["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      const offsets: Record<string, number> = { ArrowDown: 2, ArrowUp: -2, ArrowRight: 1, ArrowLeft: -1 };
+      if (!open || (!(event.key in offsets) && event.key !== "Home" && event.key !== "End")) return;
       event.preventDefault();
       const options = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') || []);
       const index = options.findIndex(option => option === document.activeElement);
-      const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+      const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (index + offsets[event.key] + options.length) % options.length;
       options[next]?.focus();
     }}>
     <button ref={trigger} type="button" className="theme-trigger" onClick={() => setOpen(!open)} aria-label="切换主题" aria-haspopup="menu" aria-controls={open ? menuId : undefined} aria-expanded={open}
       onKeyDown={event => { if (event.key === "ArrowDown" && !open) { event.preventDefault(); setOpen(true); } }}>
       <span className="theme-current-swatch" aria-hidden="true"><ThemeMotif theme={current} /></span><span className="theme-trigger-label">主题</span>
     </button>
-    {open && <div id={menuId} className="theme-menu" role="menu" aria-label="选择主题">
-      <p><span>选一处，安放回忆</span><small>四种风景，四种心情</small></p>
+    {open && <div id={menuId} className="theme-menu theme-scene-menu" role="menu" aria-label="选择主题">
       {themeNames.map(name => <button key={name} type="button" role="menuitemradio" aria-checked={current === name} data-theme-choice={name} onClick={() => switchTheme(name)}>
-        <span className="theme-swatch" data-theme-preview={name} aria-hidden="true"><ThemeMotif theme={name} /><i /></span>
-        <span><strong>{themes[name].label}</strong><small>{themes[name].description}</small></span>
+        <span className="theme-swatch" data-theme-preview={name} aria-hidden="true"><ThemeMotif theme={name} /></span>
+        <span className="theme-scene-label"><strong>{themes[name].label}</strong><small>{themes[name].description}</small></span>
         <span className="theme-check" aria-hidden="true">{current === name ? "✓" : ""}</span>
       </button>)}
     </div>}

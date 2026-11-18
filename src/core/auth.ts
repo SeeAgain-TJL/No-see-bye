@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import type { Prisma } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/core/prisma";
@@ -57,6 +58,16 @@ export async function getUserFromRequest(req: NextRequest): Promise<TokenPayload
   const user = await optionalUser(req);
   if (!user) throw new HttpError(401, "请先登录，或重新登录后继续");
   return user;
+}
+/** Checks a session again at the commit boundary for operations that create user data. */
+export async function assertCurrentSession(tx: Prisma.TransactionClient, session: TokenPayload) {
+  const user = await tx.user.findUnique({
+    where: { id: session.userId },
+    select: { sessionVersion: true },
+  });
+  if (!user || user.sessionVersion !== session.sessionVersion) {
+    throw new HttpError(401, "请先登录，或重新登录后继续");
+  }
 }
 export function withSession(response: NextResponse, token: string) {
   response.cookies.set("memory_session", token, {

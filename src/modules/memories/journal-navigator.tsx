@@ -25,7 +25,7 @@ export function JournalNavigator({ id, expanded, onClose, publicScope, ownerId, 
     if (!expanded) return;
     const abort = new AbortController();
     api<JournalIndex>(`/api/memories/index?scope=${scope}`, { signal: abort.signal })
-      .then(data => setResult({ key, data }))
+      .then(data => { if (!abort.signal.aborted) setResult({ key, data }); })
       .catch(error => { if (!abort.signal.aborted) setResult({ key, error: error.message }); });
     return () => abort.abort();
   }, [expanded, key, scope]);
