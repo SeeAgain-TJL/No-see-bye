@@ -130,14 +130,17 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
     }
 
     const bounds = new ResizeObserver(() => {
+      if (!frame.isConnected || !image.isConnected) return;
       width = Math.max(1, frame.clientWidth);
       height = Math.max(1, frame.clientHeight);
       // Use the covered image's crop so objects stay anchored to the artwork on phones.
       const style = getComputedStyle(image);
       const imageWidth = image.offsetWidth;
       const imageHeight = image.offsetHeight;
-      const positionX = parseFloat(style.backgroundPositionX) / 100;
-      const positionY = parseFloat(style.backgroundPositionY) / 100;
+      const cropX = parseFloat(style.backgroundPositionX);
+      const cropY = parseFloat(style.backgroundPositionY);
+      const positionX = Number.isFinite(cropX) ? cropX / 100 : .5;
+      const positionY = Number.isFinite(cropY) ? cropY / 100 : .5;
       const coverWidth = Math.max(imageWidth, imageHeight * artworkAspect);
       const coverHeight = coverWidth / artworkAspect;
       plate = {
@@ -147,7 +150,7 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
         height: coverHeight,
       };
       pivot = { x: image.offsetLeft + imageWidth * positionX, y: image.offsetTop + imageHeight * positionY };
-      dolly = { x: parseFloat(style.getPropertyValue("--auth-dolly-x")), y: parseFloat(style.getPropertyValue("--auth-dolly-y")) };
+      dolly = { x: parseFloat(style.getPropertyValue("--auth-dolly-x")) || 0, y: parseFloat(style.getPropertyValue("--auth-dolly-y")) || 0 };
       const ratio = Math.min(devicePixelRatio || 1, 1.5);
       surface.width = Math.round(width * ratio);
       surface.height = Math.round(height * ratio);

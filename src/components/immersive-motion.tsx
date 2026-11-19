@@ -8,7 +8,7 @@ const surfaces = ".projection-contact-card, .keepsake-entry, .memory-card, .wall
 const scenicFrames = '.cinematic-opening, .journal-living-cover, .living-gallery, .auth-story';
 const scenicArtwork = '.cinematic-opening-art, .jl-cover-art, .photo-gallery-viewport, .auth-projection-image';
 const scenicCopy = '.cinematic-opening-copy, .jl-cover-copy, .gallery-heading, .auth-story-copy';
-const arrivals = `${surfaces}, ${scenicFrames}, .home-welcome, .stats-strip, .motion-reveal, .auth-form, .editor-paper, .detail-article, .settings-card`;
+const arrivals = `${surfaces}, ${scenicFrames}, .home-welcome, .stats-strip, .motion-reveal, .editor-paper, .detail-article, .settings-card`;
 const magneticControls = '.home-small-actions button, .gallery-control, .auth-submit, .studio-button, .journal-cover-write, .world-toggle';
 const worldSubscribers = new Set<() => void>();
 let currentAwake: boolean | undefined;
@@ -30,7 +30,8 @@ function toggleScene() {
 export function ImmersiveMotion() {
   const anchor = useRef<HTMLDivElement>(null);
   const awake = useSyncExternalStore(subscribeWorld, readWorld, () => false);
-  const path = usePathname();
+  const pathname = usePathname();
+  const path = pathname === "/register" ? "/login" : pathname;
   useEffect(() => {
     const host = anchor.current?.closest<HTMLElement>('.app-shell, .studio-auth');
     if (!host) return;

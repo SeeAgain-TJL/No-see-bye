@@ -101,6 +101,15 @@
     linear-gradient(148deg, var(--surface), color-mix(in srgb, var(--surface) 78%, var(--surface-dim)));
   box-shadow: inset 1px 0 color-mix(in srgb, var(--cinema-edge) 26%, var(--line));
 }
+.auth-form-stack {
+  --auth-field-height: 77px;
+  --auth-field-spacing: 12px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  max-width: 455px;
+}
 :root[data-theme] .auth-editorial.studio-auth .auth-form {
   display: flex;
   flex-direction: column;
@@ -146,21 +155,53 @@
   background: var(--surface);
 }
 .auth-editorial .auth-mode-tabs a::after { display: none; }
+:root[data-theme] .auth-editorial .auth-mode-tabs a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
 :root[data-theme] .auth-editorial.studio-auth .auth-form h1 {
   margin: 0 0 8px;
   color: var(--ink);
   font: 400 clamp(35px, 3.35vw, 54px)/1.16 "Songti SC", "STSong", "SimSun", serif;
   letter-spacing: -.06em;
 }
-.auth-editorial.studio-auth .auth-form > p.muted { font-size: 13px; line-height: 1.6; margin: 0 0 24px; }
-.auth-editorial.studio-auth .auth-form > label {
-  display: flex;
-  flex-direction: column;
+.auth-form-feedback {
+  block-size: 3lh;
+  margin-bottom: 10px;
+  overflow: auto;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 19px;
+}
+.auth-form-feedback > p { margin: 0; }
+.auth-form-error { color: var(--error, var(--warm)); }
+.auth-form-feedback .origin-recovery {
+  display: inline-flex;
+  min-height: 28px;
+  margin-top: 2px;
+}
+.auth-form-credentials {
+  display: grid;
+  grid-auto-rows: minmax(var(--auth-field-height), auto);
+  gap: var(--auth-field-spacing);
+  margin-bottom: 16px;
+}
+.auth-editorial[data-auth-mode="login"] .auth-form::after {
+  /* Match the registration form's extra field below the actions. */
+  content: "";
+  display: block;
+  block-size: calc(var(--auth-field-height) + var(--auth-field-spacing));
+}
+.auth-editorial.studio-auth .auth-form-credentials > label {
+  display: grid;
+  grid-template-rows: 18px 51px;
   gap: 8px;
-  margin: 0 0 15px;
+  margin: 0;
   color: var(--ink);
   font-size: 12px;
+  line-height: 18px;
 }
+.auth-editorial.studio-auth .auth-form-credentials > label > input { padding-inline: 14px; }
 :root[data-theme] .auth-editorial.studio-auth .auth-form input:not([type='checkbox']):not([type='radio']),
 :root[data-theme] .auth-editorial.studio-auth .auth-form .password-field {
   width: 100%;
@@ -179,7 +220,7 @@
   border: 0;
   background: transparent;
 }
-:root[data-theme] .auth-editorial.studio-auth .auth-form > label > input:focus,
+:root[data-theme] .auth-editorial.studio-auth .auth-form-credentials > label > input:focus,
 :root[data-theme] .auth-editorial.studio-auth .auth-form .password-field:focus-within {
   border-color: var(--accent);
   background: var(--surface);
@@ -218,6 +259,8 @@
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface) 54%, transparent);
   font-size: 11px;
+  line-height: 1.25;
+  white-space: normal;
 }
 .auth-editorial.studio-auth .auth-social-button svg { flex-shrink: 0; }
 .auth-editorial.studio-auth .auth-form-colophon {
@@ -231,7 +274,6 @@
   color: var(--ink-muted);
   font-size: 11px;
 }
-.auth-editorial.studio-auth .auth-form .notice { font-size: 12px; line-height: 1.65; margin: 0 0 15px; }
 
 @media (max-width: 760px) {
   :root[data-theme] .studio-auth.auth-editorial { padding: 0 11px 20px; }
@@ -249,8 +291,7 @@
   }
   .auth-form-room { padding: 23px 22px 26px; box-shadow: inset 0 1px var(--line); }
   :root[data-theme] .auth-editorial .auth-mode-tabs { margin-bottom: 20px; }
-  :root[data-theme] .auth-editorial.studio-auth .auth-form h1 { font-size: 38px; }
-  .auth-editorial.studio-auth .auth-form > p.muted { margin-bottom: 20px; }
+  :root[data-theme] .auth-editorial.studio-auth .auth-form h1 { font-size: clamp(29px, 11vw, 38px); }
   .auth-editorial .auth-masthead .theme-menu { right: -90px; width: min(310px, calc(100vw - 24px)); }
   .auth-editorial .immersive-motion-root {
     display: flex;

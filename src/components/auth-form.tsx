@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { OAuthProvider } from "@/core/oauth";
 import { useApp } from "./providers";
 import { api, ApiError } from "@/lib/client";
 import { registrationCredentials, type RegistrationCredentials, type RegistrationChallenge } from "@/lib/registration";
@@ -12,74 +13,29 @@ import { MemoryPortal } from "./memory-portal";
 import { ThemeSwitcher } from "./theme-provider";
 import { ImmersiveMotion } from "./immersive-motion";
 
-export function AuthForm({ register = false }: { register?: boolean }) {
-  const router = useRouter();
-  const { refresh } = useApp();
-  const [error, setError] = useState("");
-  const [siteOrigin, setSiteOrigin] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [registration, setRegistration] = useState<{ credentials: RegistrationCredentials; challenge: RegistrationChallenge } | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [socialProviders, setSocialProviders] = useState<Array<"qq" | "github">>([]);
-  useEffect(() => {
-    fetch("/api/auth/providers").then((response) => response.json()).then((data: unknown) => {
-      const providers = data && typeof data === "object" && "providers" in data && Array.isArray(data.providers)
-        ? data.providers.filter((item): item is "qq" | "github" => item === "qq" || item === "github")
-        : [];
-      setSocialProviders(providers);
-    }).catch(() => {});
-    if (new URLSearchParams(window.location.search).get("error"))
-      window.setTimeout(() => setError("第三方登录没有完成，请重新尝试"), 0);
-  }, []);
-  function handleError(err: unknown) {
-    setError(err instanceof Error ? err.message : "暂时无法完成，请稍后重试");
-    if (err instanceof ApiError && err.status === 403 && err.siteOrigin) {
-      try {
-        const site = new URL(err.siteOrigin);
-        if (["http:", "https:"].includes(site.protocol)) setSiteOrigin(site.origin);
-      } catch { /* Keep the original error if configuration is unavailable. */ }
-    }
+type AuthPath = "/login" | "/register";
+
+export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[] }) {
+  const register = usePathname() === "/register";
+  const searchParams = useSearchParams();
+  const oauthError = Boolean(searchParams.get("error"));
+  const query = new URLSearchParams(searchParams.toString());
+  query.delete("error");
+  const search = query.toString();
+  const modeHref = (path: AuthPath) => search ? `${path}?${search}` : path;
+
+  function switchMode(path: AuthPath, event: { preventDefault(): void }) {
+    event.preventDefault();
+    // These pages use the same shell. Keep the picture and player mounted across the URL change.
+    if (window.location.pathname !== path) window.history.pushState(null, "", modeHref(path));
   }
-  async function finish(target = "/") {
-    setRegistration(null);
-    await refresh().catch(() => {});
-    router.replace(target);
-    router.refresh();
-  }
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (busy || registration) return;
-    const fields = Object.fromEntries(new FormData(e.currentTarget));
-    setError("");
-    setSiteOrigin(null);
-    if (register) {
-      const result = registrationCredentials.safeParse(fields);
-      if (!result.success) {
-        setError(result.error.issues[0]?.message || "请检查注册信息");
-        const field = result.error.issues[0]?.path[0];
-        if (typeof field === "string") (e.currentTarget.elements.namedItem(field) as HTMLInputElement | null)?.focus();
-        return;
-      }
-      setBusy(true);
-      try {
-        const challenge = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(result.data) });
-        setRegistration({ credentials: result.data, challenge });
-      } catch (err) { handleError(err); }
-      finally { setBusy(false); }
-      return;
-    }
-    setBusy(true);
-    try {
-      const result = await api<{ user: { role: string } }>("/api/auth/login", { method: "POST", body: JSON.stringify(fields) });
-      await finish(result.user.role === "admin" ? "/admin" : "/");
-    } catch (err) { handleError(err); }
-    finally { setBusy(false); }
-  }
+
   return (
     <main id="main" className="auth-page studio-auth auth-editorial" data-auth-mode={register ? "register" : "login"}>
       <header className="auth-masthead">
         <Link className="auth-masthead-brand" href="/"><BrandMark />不说再见</Link>
-        <div className="auth-masthead-actions"><ThemeSwitcher /><Link className="auth-back text-link" href={register ? "/login" : "/"}>
+        <div className="auth-masthead-actions"><ThemeSwitcher /><Link className="auth-back text-link" href={register ? modeHref("/login") : "/"}
+          onNavigate={register ? event => switchMode("/login", event) : undefined}>
           <Icon name="back" size={17} />
           {register ? "返回登录" : "返回首页"}
         </Link></div>
@@ -89,14 +45,89 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           <MemoryPortal />
         </section>
         <div className="auth-form-room">
+          <div className="auth-form-stack">
+            <nav className="auth-mode-tabs" aria-label="账号入口">
+              <Link href={modeHref("/login")} prefetch={false} aria-current={!register ? "page" : undefined} onNavigate={event => switchMode("/login", event)}>登录</Link>
+              <Link href={modeHref("/register")} prefetch={false} aria-current={register ? "page" : undefined} onNavigate={event => switchMode("/register", event)}>注册</Link>
+            </nav>
+            <AuthFields key={`${register}-${oauthError}`} register={register} oauthError={oauthError} socialProviders={socialProviders} />
+          </div>
+        </div>
+      </div>
+      <ImmersiveMotion />
+    </main>
+  );
+}
+
+function AuthFields({ register, oauthError, socialProviders }: { register: boolean; oauthError: boolean; socialProviders: OAuthProvider[] }) {
+  const router = useRouter();
+  const { refresh } = useApp();
+  const [error, setError] = useState(oauthError ? "第三方登录没有完成，请重新尝试" : "");
+  const [siteOrigin, setSiteOrigin] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [registration, setRegistration] = useState<{ credentials: RegistrationCredentials; challenge: RegistrationChallenge } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const pendingRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => pendingRequest.current?.abort(), []);
+  function handleError(err: unknown) {
+    setError(err instanceof Error ? err.message : "暂时无法完成，请稍后重试");
+    if (err instanceof ApiError && err.status === 403 && err.siteOrigin) {
+      try {
+        const site = new URL(err.siteOrigin);
+        if (["http:", "https:"].includes(site.protocol)) setSiteOrigin(site.origin);
+      } catch { /* Keep the original error if configuration is unavailable. */ }
+    }
+  }
+  async function finish(target: string, signal: AbortSignal) {
+    await refresh().catch(() => {});
+    if (signal.aborted || window.location.pathname !== (register ? "/register" : "/login")) return;
+    setRegistration(null);
+    router.replace(target);
+    router.refresh();
+  }
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pendingRequest.current || registration) return;
+    const fields = Object.fromEntries(new FormData(e.currentTarget));
+    setError("");
+    setSiteOrigin(null);
+    const credentials = register ? registrationCredentials.safeParse(fields) : null;
+    if (credentials && !credentials.success) {
+      setError(credentials.error.issues[0]?.message || "请检查注册信息");
+      const field = credentials.error.issues[0]?.path[0];
+      if (typeof field === "string") (e.currentTarget.elements.namedItem(field) as HTMLInputElement | null)?.focus();
+      return;
+    }
+    const request = new AbortController();
+    const { signal } = request;
+    pendingRequest.current = request;
+    setBusy(true);
+    try {
+      if (credentials) {
+        const challenge = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(credentials.data), signal });
+        if (!signal.aborted && window.location.pathname === "/register") setRegistration({ credentials: credentials.data, challenge });
+      } else {
+        const result = await api<{ user: { role: string } }>("/api/auth/login", { method: "POST", body: JSON.stringify(fields), signal });
+        if (!signal.aborted) await finish(result.user.role === "admin" ? "/admin" : "/", signal);
+      }
+    } catch (err) {
+      if (!signal.aborted) handleError(err);
+    } finally {
+      pendingRequest.current = null;
+      if (!signal.aborted) setBusy(false);
+    }
+  }
+  return (
+    <>
         <form className="auth-form" onSubmit={submit}>
-          <nav className="auth-mode-tabs" aria-label="账号入口"><Link href="/login" aria-current={!register ? "page" : undefined}>登录</Link><Link href="/register" aria-current={register ? "page" : undefined}>注册</Link></nav>
           <h1>{register ? "从此，留痕。" : "久别，重逢。"}</h1>
-          <p className="muted">
-            {register
-              ? "创建账号，留下第一篇日常。"
-              : "登录你的记忆档案。"}
-          </p>
+          <div className="auth-form-feedback">
+            {error ? <div className="auth-form-error" role="alert">
+              {error}
+              {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
+            </div> : <p>{register ? "创建账号，留下第一篇日常。" : "登录你的记忆档案。"}</p>}
+          </div>
+          <div className="auth-form-credentials">
           {register ? (
               <label>
                 用户名
@@ -151,12 +182,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               <input name="confirmPassword" type={showPassword ? "text" : "password"} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="再次输入密码" />
             </div>
           </label>}
-          {error && (
-            <div className="notice error" role="alert">
-              {error}
-              {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
-            </div>
-          )}
+          </div>
           <button className="button wide auth-submit" disabled={busy || registration !== null}>
             {busy ? register ? "正在准备验证…" : "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
@@ -172,19 +198,16 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           )}
           <div className="auth-form-colophon"><Icon name="lock" size={14} /><span>记录的可见范围由你决定</span></div>
         </form>
-        </div>
-      </div>
-      <ImmersiveMotion />
       {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}
-        onCancel={() => setRegistration(null)} onComplete={finish}
+        onCancel={() => setRegistration(null)} onComplete={signal => finish("/", signal)}
         onFormError={message => { setRegistration(null); setError(message); }} />}
-    </main>
+    </>
   );
 }
 
 function RegistrationVerification({ credentials, initialChallenge, onCancel, onComplete, onFormError }: {
   credentials: RegistrationCredentials; initialChallenge: RegistrationChallenge;
-  onCancel: () => void; onComplete: () => Promise<void>; onFormError: (message: string) => void;
+  onCancel: () => void; onComplete: (signal: AbortSignal) => Promise<void>; onFormError: (message: string) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -194,40 +217,58 @@ function RegistrationVerification({ credentials, initialChallenge, onCancel, onC
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageReady, setImageReady] = useState(false);
-  const pending = useRef(false);
+  const pending = useRef<AbortController | null>(null);
   useEffect(() => {
     const overflow = document.body.style.overflow;
+    const element = dialog.current;
     document.body.style.overflow = "hidden";
-    dialog.current?.showModal();
-    return () => { document.body.style.overflow = overflow; };
+    element?.showModal();
+    return () => {
+      pending.current?.abort();
+      element?.close();
+      document.body.style.overflow = overflow;
+    };
   }, []);
   async function anotherQuestion(note = "") {
     if (pending.current) return;
-    pending.current = true;
+    const request = new AbortController();
+    const { signal } = request;
+    pending.current = request;
     setLoading(true); setImageReady(false); setAnswer(""); setChallenge(null); setError("");
     try {
-      const next = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(credentials) });
-      setChallenge(next); setError(note);
+      const next = await api<RegistrationChallenge>("/api/auth/challenge", { method: "POST", body: JSON.stringify(credentials), signal });
+      if (!signal.aborted) { setChallenge(next); setError(note); }
     } catch (err) {
+      if (signal.aborted) return;
       if (err instanceof ApiError && err.status === 409) onFormError(err.message);
       else setError((err as Error).message);
-    } finally { setLoading(false); pending.current = false; }
+    } finally {
+      pending.current = null;
+      if (!signal.aborted) setLoading(false);
+    }
   }
   async function verify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (pending.current || !challenge || !imageReady) return;
     if (challenge.expiresAt <= Date.now()) { await anotherQuestion("题目已过期，已为你换一道新题"); return; }
-    pending.current = true; setBusy(true); setError("");
+    const request = new AbortController();
+    const { signal } = request;
+    pending.current = request;
+    setBusy(true); setError("");
     try {
-      await api("/api/auth/register", { method: "POST", body: JSON.stringify({ ...credentials, challengeId: challenge.id, answer }) });
-      await onComplete();
+      await api("/api/auth/register", { method: "POST", body: JSON.stringify({ ...credentials, challengeId: challenge.id, answer }), signal });
+      if (!signal.aborted) await onComplete(signal);
     } catch (err) {
+      if (signal.aborted) return;
       if (err instanceof ApiError && err.status === 409) onFormError(err.message);
       else if (err instanceof ApiError && err.status === 410) {
-        pending.current = false;
+        pending.current = null;
         await anotherQuestion("验证已失效，已为你换一道新题");
       } else { setError((err as Error).message); setAnswer(""); input.current?.focus({ preventScroll: true }); }
-    } finally { setBusy(false); pending.current = false; }
+    } finally {
+      if (pending.current === request) pending.current = null;
+      if (!signal.aborted) setBusy(false);
+    }
   }
   return <dialog ref={dialog} className="registration-dialog" aria-labelledby="registration-verify-title" aria-describedby="registration-verify-description"
     onCancel={e => { e.preventDefault(); if (!busy && !loading) onCancel(); }}>
