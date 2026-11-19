@@ -70,11 +70,8 @@
 }
 .projection-home .cinematic-opening::after { inset: 8px; border-radius: 9px; border-color: #eaf3de35; }
 .projection-home .cinematic-opening-art { inset-inline: -80px; }
-.projection-home .cinematic-opening[data-shot-dragging] .cinematic-opening-art { transition: transform .13s ease-out; }
-@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .projection-home .cinematic-opening { cursor: grab; }
-  .projection-home .cinematic-opening[data-shot-dragging] { cursor: grabbing; user-select: none; }
-}
+.projection-home .cinematic-opening:has([data-cover-dragging]) .cinematic-opening-art { transition: transform .13s ease-out; }
+
 .projection-home .cinematic-opening-brand { color: #f6f1e7; letter-spacing: .122em; font-size: 12px; gap: 10px; }
 .projection-home .cinematic-opening-brand .brand-symbol { width: 27px; height: 27px; box-shadow: 0 0 0 1px #c7d7ce4e; border-radius: 7px; }
 .projection-home .cinematic-opening h1 { margin: 19px 0 12px; font-size: clamp(34px, 4.8vw, 76px); letter-spacing: -.048em; }
@@ -83,23 +80,43 @@
 .projection-home .cinematic-opening-actions a { box-shadow: 0 12px 24px -11px #030708bc; }
 .projection-home .cinematic-opening-actions .cinematic-opening-primary { color: var(--cinema-matte); background: #f3efdf; border-color: #f3efdf; }
 .projection-home .cinematic-opening-actions .cinematic-opening-primary:hover { background: var(--cinema-light); }
-.opening-photo-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 36px;
-  padding: 6px 9px;
-  border: 1px solid var(--projection-rule);
-  border-radius: 7px;
-  background: #101e23b3;
-  color: var(--projection-ink);
-  font-size: 11px;
-  white-space: nowrap;
-  transition: background .23s, border-color .23s;
+.opening-photo-surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+  pointer-events: auto;
+  touch-action: pan-y;
 }
-.opening-photo-label:hover { border-color: var(--cinema-light); background: #101b20; }
-.opening-photo-label { position: absolute; right: 23px; bottom: 32px; z-index: 3; backdrop-filter: blur(10px); }
+.opening-photo-surface[data-cover-dragging] { cursor: grabbing; user-select: none; }
+.projection-home .cinematic-opening-copy { pointer-events: none; }
+.projection-home .cinematic-opening-copy a { pointer-events: auto; }
+.projection-home .opening-photo-surface:focus-visible { outline-offset: -13px; }
+
+.cover-photo-viewer .immersive-dismiss { opacity: 1; pointer-events: auto; }
+.cover-photo-viewer .immersive-stage:not(.is-zoomed) { cursor: zoom-in; }
+.immersive-zoom-controls {
+  position: absolute;
+  z-index: 3;
+  top: max(22px, env(safe-area-inset-top));
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid #ffffff31;
+  border-radius: 999px;
+  background: #151c24e8;
+  color: #f5f6fa;
+}
+.immersive-zoom-controls button { min-width: 44px; min-height: 44px; border-radius: 50%; font-size: 20px; }
+.immersive-zoom-controls button:not(:disabled):hover { background: #ffffff22; }
+.immersive-zoom-controls button:disabled { opacity: .32; }
+.immersive-zoom-controls span { min-width: 44px; text-align: center; font: 12px/1.3 var(--font-body), sans-serif; font-variant-numeric: tabular-nums; }
 .immersive-photo-credit {
   position: absolute;
   right: max(18px, env(safe-area-inset-right));
@@ -213,7 +230,6 @@
   .projection-home .cinematic-opening::before { background: linear-gradient(0deg, var(--cinema-matte), color-mix(in srgb, var(--cinema-matte) 82%, transparent) 36%, #0910185a 67%, transparent 93%); }
   .projection-home .cinematic-opening h1 { margin-block: 13px 9px; font-size: clamp(27px, 8.35vw, 58px); }
   .projection-home .cinematic-opening-brand { font-size: 11px; }
-  .opening-photo-label { left: 18px; right: auto; bottom: 20px; min-height: 34px; }
   .projection-home .home-welcome { gap: 13px; padding: 18px 15px; }
   .projection-home .home-welcome h1 { font-size: clamp(28px, 7.5vw, 42px); }
   .projection-home .home-small-actions { gap: 5px; }
@@ -230,4 +246,8 @@
 @media (prefers-reduced-motion: reduce) {
   .projection-home :is(a, button, .projection-contact-card, .projection-contact-expand) { transition: none; }
   .projection-home .cinematic-opening-art { transform: none; }
+}
+@media (max-width: 360px) {
+  .projection-home .home-welcome { gap: 8px; padding-inline: 13px; }
+  .projection-home .home-welcome h1 { font-size: 24px; }
 }

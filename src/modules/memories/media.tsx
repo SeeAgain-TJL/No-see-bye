@@ -4,7 +4,7 @@ import type { MediaAsset } from './types';
 import { Icon } from '@/components/icons';
 import { DecodedImage } from '@/components/decoded-image';
 
-type ViewerAsset = Pick<MediaAsset, 'id' | 'mime' | 'url' | 'thumbnailUrl'> & {
+export type ViewerAsset = Pick<MediaAsset, 'id' | 'mime' | 'url' | 'thumbnailUrl'> & {
   fullUrl?: string;
   alt?: string;
   credit?: { name: string; url: string };
@@ -38,12 +38,13 @@ export function MediaGrid({ assets, compact = false }: { assets: MediaAsset[]; c
 type Transform = { scale: number; x: number; y: number };
 type Point = { x: number; y: number };
 const resting = { scale: 1, x: 0, y: 0 };
-export function MediaViewer({ assets, initial, close }: { assets: ViewerAsset[]; initial: number; close: () => void }) {
+export function MediaViewer({ assets, initial, close, zoomControls = false }: { assets: ViewerAsset[]; initial: number; close: () => void; zoomControls?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, Point>());
   const gesture = useRef<{ start: Point; last: Point; time: number; transform: Transform; moved: boolean; pinched: boolean } | null>(null);
   const pinch = useRef<{ distance: number; center: Point; transform: Transform } | null>(null);
+  const lastTap = useRef<(Point & { time: number }) | null>(null);
   const transformRef = useRef<Transform>(resting);
   const [transform, setTransform] = useState<Transform>(resting);
   const [index, setIndex] = useState(initial);
@@ -71,7 +72,7 @@ export function MediaViewer({ assets, initial, close }: { assets: ViewerAsset[];
   function choose(next: number) {
     const target = (next + assets.length) % assets.length; if (target === index) return;
     setIndex(target); update(resting); setReady(false); setPreviewReady(false); setFailed(false); setAttempt(0); setBuffering(false);
-    pointers.current.clear(); gesture.current = null; pinch.current = null;
+    pointers.current.clear(); gesture.current = null; pinch.current = null; lastTap.current = null;
   }
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -104,18 +105,23 @@ export function MediaViewer({ assets, initial, close }: { assets: ViewerAsset[];
     return { distance: Math.hypot(b.x - a.x, b.y - a.y), center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
   }
   const source = displayUrl(asset);
-  return <dialog ref={dialog} className='immersive-viewer' aria-label='媒体预览，照片可双指缩放、拖动，轻点关闭' onClose={close} onKeyDown={e => {
+  return <dialog ref={dialog} className={'immersive-viewer' + (zoomControls ? ' cover-photo-viewer' : '')} aria-label={zoomControls ? '封面照片，支持滚轮或双指缩放' : '媒体预览，照片可双指缩放、拖动，轻点关闭'} onClose={close} onKeyDown={e => {
     if ((e.target as HTMLElement).tagName === 'VIDEO') return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); choose(index + (e.key === 'ArrowLeft' ? -1 : 1)); }
     if (!isVideo && ['+', '=', '-', '0'].includes(e.key)) { e.preventDefault(); update(e.key === '0' ? resting : { ...transformRef.current, scale: transformRef.current.scale * (e.key === '-' ? .8 : 1.25) }); }
   }}>
     <button type='button' className={'immersive-dismiss' + (isVideo ? ' for-video' : '')} aria-label='关闭预览' onClick={() => dialog.current?.close()}><Icon name='close' size={22} /></button>
+    {zoomControls && !isVideo && <div className='immersive-zoom-controls' role='group' aria-label='照片缩放'>
+      <button type='button' disabled={transform.scale <= 1} aria-label='缩小照片' onClick={() => update({ ...transformRef.current, scale: transformRef.current.scale / 1.25 })}>−</button>
+      <span aria-live='polite'>{Math.round(transform.scale * 100)}%</span>
+      <button type='button' disabled={transform.scale >= 5} aria-label='放大照片' onClick={() => update({ ...transformRef.current, scale: transformRef.current.scale * 1.25 })}>+</button>
+    </div>}
     <div ref={stage} className={'immersive-stage' + (transform.scale > 1 ? ' is-zoomed' : '') + (isVideo ? ' is-video' : '')} data-preview-ready={previewReady} style={{ touchAction: isVideo ? 'auto' : 'none' }}
       onPointerDown={e => {
         if ((e.target as HTMLElement).closest('button, video, a') || e.button !== 0) return;
         pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); e.currentTarget.setPointerCapture(e.pointerId);
         if (pointers.current.size === 1) gesture.current = { start: { x: e.clientX, y: e.clientY }, last: { x: e.clientX, y: e.clientY }, time: performance.now(), transform: transformRef.current, moved: false, pinched: false };
-        if (pointers.current.size >= 2) { const p = pinchPoints(); pinch.current = { ...p, transform: transformRef.current }; if (gesture.current) gesture.current.pinched = true; }
+        if (pointers.current.size >= 2) { const p = pinchPoints(); pinch.current = { ...p, transform: transformRef.current }; lastTap.current = null; if (gesture.current) gesture.current.pinched = true; }
       }}
       onPointerMove={e => {
         if (!pointers.current.has(e.pointerId)) return;
@@ -134,10 +140,22 @@ export function MediaViewer({ assets, initial, close }: { assets: ViewerAsset[];
         if (pointers.current.size) { const remaining = [...pointers.current.values()][0]; gesture.current = { start: remaining, last: remaining, time: performance.now(), transform: transformRef.current, moved: true, pinched: true }; pinch.current = null; return; }
         gesture.current = null; pinch.current = null; if (!g || g.pinched) return;
         const dx = e.clientX - g.start.x, dy = e.clientY - g.start.y;
-        if (!g.moved && Math.hypot(dx, dy) < 8 && performance.now() - g.time < 350) dialog.current?.close();
-        else if (transformRef.current.scale === 1 && Math.abs(dx) > 55 && Math.abs(dy) < 75) choose(index + (dx < 0 ? 1 : -1));
+        if (!g.moved && Math.hypot(dx, dy) < 8 && performance.now() - g.time < 350) {
+          if (!zoomControls) { dialog.current?.close(); return; }
+          const time = performance.now();
+          const previous = lastTap.current;
+          if (previous && time - previous.time < 330 && Math.hypot(e.clientX - previous.x, e.clientY - previous.y) < 34) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const scale = transformRef.current.scale;
+            update(scale > 1 ? resting : { scale: 2, x: rect.left + rect.width * .5 - e.clientX, y: rect.top + rect.height * .5 - e.clientY });
+            lastTap.current = null;
+          } else lastTap.current = { x: e.clientX, y: e.clientY, time };
+        } else {
+          lastTap.current = null;
+          if (transformRef.current.scale === 1 && Math.abs(dx) > 55 && Math.abs(dy) < 75) choose(index + (dx < 0 ? 1 : -1));
+        }
       }}
-      onPointerCancel={e => { pointers.current.delete(e.pointerId); gesture.current = null; pinch.current = null; }}
+      onPointerCancel={e => { pointers.current.delete(e.pointerId); gesture.current = null; pinch.current = null; lastTap.current = null; }}
       onDragStart={e => e.preventDefault()}>
       {!isVideo && !ready && <DecodedImage key={asset.id + ':preview'} className='immersive-preview' src={previewUrl(asset)} alt='' aria-hidden='true' fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => setPreviewReady(true)} />}
       {isVideo ? <video key={asset.id + ':' + attempt} src={asset.url} poster={asset.thumbnailUrl || undefined} controls autoPlay playsInline preload='auto' onWaiting={() => setBuffering(true)} onPlaying={() => setBuffering(false)} onCanPlay={() => setBuffering(false)} onError={() => { setFailed(true); setBuffering(false); }} />

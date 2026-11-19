@@ -251,7 +251,6 @@
 :root[data-theme] .journal-discovery .journal-living-cover .jl-cover-art { width: 77%; }
 :root[data-theme] .journal-experience .jl-primary-action, :root[data-theme] .journal-experience .jl-secondary-action { min-height: 44px; font-size: 12px; }
 .journal-experience .jl-scope-link { width: 48px; min-height: 38px; }
-.journal-experience .jl-cover-art :is(.jls-touchmark, .jls-touchmark > svg) { transition-duration: .35s; }
 
 :root[data-theme] .journal-experience .stats-strip {
   display: grid;
@@ -419,5 +418,5 @@
   .settings-grid .settings-avatar.avatar { width: 48px; height: 48px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(.journal-experience, .detail-page, .settings-grid) :is(.date-filter-trigger > svg, .jl-cover-art .jls-touchmark, .jn-months > button, .wall-caption > svg) { transition: none; }
+  :is(.journal-experience, .detail-page, .settings-grid) :is(.date-filter-trigger > svg, .jn-months > button, .wall-caption > svg) { transition: none; }
 }
