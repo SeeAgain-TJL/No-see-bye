@@ -102,7 +102,7 @@ jobs:
         shell: bash
         run: |
           if ! curl --fail --silent --show-error --connect-timeout 5 --max-time 15 \
-            --retry 2 --retry-delay 3 --retry-all-errors https://tingjieli.shop/api/health; then
+            --retry 2 --retry-delay 3 --retry-all-errors https://life.tingjieli.shop/api/health; then
             echo '::warning::Runner Internet probe failed. The deployed application and local Nginx HTTPS checks passed; check external routing separately.'
           fi
       - name: Remove deployment credentials

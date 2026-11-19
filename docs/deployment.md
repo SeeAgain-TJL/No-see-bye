@@ -1,6 +1,6 @@
 # root 用户直接部署
 
-发布包已包含 Node 运行时。直接解压到 /root/no-see-bye，配置后用 systemd 启动，通过 https://tingjieli.shop 访问。以下命令用 root 执行。
+发布包已包含 Node 运行时。直接解压到 /root/no-see-bye，配置后用 systemd 启动，通过 https://life.tingjieli.shop 访问。以下命令用 root 执行。
 
 ## GitHub 合并后自动上线
 
@@ -25,7 +25,7 @@ chmod +x runtime/node
 
 ## 2. 生成配置
 
-域名和证书已经配置为 `tingjieli.shop`。密钥自动随机生成，数据库和上传目录首次启动自动创建。
+域名和证书已经配置为 `life.tingjieli.shop`。密钥自动随机生成，数据库和上传目录首次启动自动创建。
 
 ```bash
 cat > config.env <<EOF
@@ -35,11 +35,11 @@ STORAGE_LOCAL_DIR=/root/no-see-bye/data/uploads
 JWT_SECRET=$(./runtime/node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")
 USER_QUOTA_MB=0
 ALLOW_REGISTRATION=true
-APP_ORIGIN=https://tingjieli.shop
+APP_ORIGIN=https://life.tingjieli.shop
 COOKIE_SECURE=true
 # GITHUB_CLIENT_ID=your-client-id
 # GITHUB_CLIENT_SECRET=your-client-secret
-# GITHUB_REDIRECT_URI=https://tingjieli.shop/api/auth/github
+# GITHUB_REDIRECT_URI=https://life.tingjieli.shop/api/auth/github
 EOF
 chmod 600 config.env
 ```
@@ -54,7 +54,7 @@ systemctl daemon-reload
 systemctl enable --now no-see-bye
 ```
 
-安装并启用 Nginx，让 80/443 反代到本机 3000：`yum install -y nginx`，复制 `deploy/nginx.conf` 到 `/etc/nginx/conf.d/no-see-bye.conf`，执行 `nginx -t && systemctl enable --now nginx`。证书已放在 `/root/certificate`。Nginx 使用 `tingjieli.shop_fullchain.pem`（站点证书在前，中间证书在后）和 `tingjieli.shop.key`；当前服务器已补齐证书链，更换证书时也需同步更新 fullchain 文件。在阿里云 ECS 安全组和服务器防火墙放行 **TCP 80、443**；应用本身仍只监听本机 3000，不需要公网放行 3000。访问 `https://tingjieli.shop` 或 `http://tingjieli.shop` 均可；HTTP 会以明文传输，账号密码和记录内容可能被旁路观察或篡改，建议优先使用 HTTPS。
+安装并启用 Nginx，复制 `deploy/nginx.conf` 到 `/etc/nginx/conf.d/no-see-bye.conf`，执行 `nginx -t && systemctl enable --now nginx`。Nginx 按 `life.tingjieli.shop` 分流，HTTP 跳转 HTTPS，HTTPS 反向代理到本机 10000。证书路径为 `/root/certificate/life.tingjie.shop/fullchain.pem` 和同目录的 `life.tingjieli.shop.key`，完整证书链需要包含站点证书和中间证书。当前证书由用户手动提供，续期时须更新完整证书链和私钥并重新加载 Nginx。公网放行 TCP 80、443，10000 仅监听本机。主域名保留给独立首页。GitHub 等第三方登录还须在供应商后台更新回调地址。
 
 ```bash
 systemctl status no-see-bye
@@ -76,8 +76,8 @@ Type=simple
 User=root
 WorkingDirectory=/root/no-see-bye
 Environment=NODE_ENV=production
-Environment=HOSTNAME=0.0.0.0
-Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=10000
 EnvironmentFile=/root/no-see-bye/config.env
 ExecStartPre=/root/no-see-bye/runtime/node /root/no-see-bye/scripts/check-runtime.mjs
 ExecStartPre=/root/no-see-bye/runtime/node /root/no-see-bye/scripts/init-db.mjs
@@ -105,7 +105,7 @@ systemctl enable --now no-see-bye-cleanup.timer
 
 若启用了清理定时器，备份/更新前一起停止 no-see-bye-cleanup.timer、no-see-bye-cleanup.service，完成后重新启动 timer。
 
-Linux x64 包同时携带 Debian/Ubuntu 和 RHEL/Alibaba Cloud Linux 所需的 OpenSSL 1.1/3.0 Prisma 引擎，已在 Alibaba Cloud Linux 3 + OpenSSL 1.1 实机验证数据库连接。其他架构需要对应构建产物。当前部署使用 `https://tingjieli.shop` 和 `/root/certificate` 下的证书；80 和 443 均可访问；HTTP 为明文，建议使用 HTTPS。
+Linux x64 包同时携带 Debian/Ubuntu 和 RHEL/Alibaba Cloud Linux 所需的 OpenSSL 1.1/3.0 Prisma 引擎，已在 Alibaba Cloud Linux 3 + OpenSSL 1.1 实机验证数据库连接。其他架构需要对应构建产物。当前部署使用 `https://life.tingjieli.shop` 和 `/root/certificate` 下的证书。公网访问取决于域名备案及接入状态。
 
 ## 本地注册与验证
 

@@ -80,7 +80,7 @@ mv "$next" "$app"
 systemctl start no-see-bye
 healthy=false
 for attempt in {1..45}; do
-  if curl --fail --silent --show-error --max-time 3 http://127.0.0.1:3000/api/health 2>/dev/null | grep -q '"status":"ok"'; then healthy=true; break; fi
+  if curl --fail --silent --show-error --max-time 3 http://127.0.0.1:10000/api/health 2>/dev/null | grep -q '"status":"ok"'; then healthy=true; break; fi
   sleep 1
 done
 [[ $healthy == true ]] || { echo 'Health check failed' >&2; exit 1; }
@@ -88,7 +88,7 @@ systemctl is-active --quiet no-see-bye
 # Verify the real HTTPS virtual host and certificate through the local Nginx.
 # The separate runner probe reports Internet routing problems independently.
 curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
-  --resolve tingjieli.shop:443:127.0.0.1 https://tingjieli.shop/api/health | grep -q '"status":"ok"'
+  --resolve life.tingjieli.shop:443:127.0.0.1 https://life.tingjieli.shop/api/health | grep -q '"status":"ok"'
 success=true
 echo "DEPLOYED $commit"
 echo "BACKUP $backup"
