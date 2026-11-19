@@ -18,7 +18,7 @@
 .jls-view-window { inset: 0; overflow: hidden; }
 .jls-photo-plane {
   inset: -22px;
-  background: var(--journal-photo, var(--opening-image)) var(--opening-position) 50% / cover no-repeat;
+  background: var(--opening-image) var(--opening-position) 50% / cover no-repeat;
   transform: translate(calc(var(--camera-x, 0px) * .84), calc(var(--camera-y, 0px) * .67)) scale(1.035);
   transform-origin: var(--opening-position) 51%;
   transition: transform .92s var(--cinema-ease), filter .65s;
@@ -36,6 +36,7 @@
 @media (max-width:760px) {
   .jls-photo-plane { background-position: var(--opening-position) center; }
 }
+:root[data-theme='iceberg'] .journal-living-scene > .jls-view-window > .jls-photo-plane { background-position-y: 76%; }
 @media (prefers-reduced-motion:reduce) {
   .jls-photo-plane, .jls-lens-plane { transition: none; }
 }

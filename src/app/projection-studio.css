@@ -204,11 +204,21 @@
 }
 .projection-contact-card[data-motion-hover='true']::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: radial-gradient(ellipse at var(--surface-x) var(--surface-y), #f0e8d127, transparent 46%); }
 .projection-contact-card:focus-within, .projection-contact-card:hover { border-color: var(--accent); box-shadow: 0 15px 29px -18px var(--album-shadow); }
-.projection-contact-photo { display: block; position: relative; width: 100%; padding: 0; aspect-ratio: 1.6; overflow: hidden; background: radial-gradient(ellipse at 48% 45%, var(--cinema-fill), transparent 77%), var(--cinema-matte); cursor: zoom-in; }
-.projection-contact-reflection { position: absolute; inset: -16px; pointer-events: none; background-position: center; background-size: cover; filter: blur(clamp(9px, 1.1vw, 19px)) saturate(.89); opacity: .72; }
-.projection-contact-photo:has(.decoded-image[data-state='ready']) .projection-contact-reflection { background-image: linear-gradient(135deg, #07121224, #050a154f), var(--contact-image); }
-.projection-contact-photo .decoded-image { position: absolute; inset: 0; display: block; height: 100%; background: transparent; }
-.projection-contact-photo img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.projection-contact-photo {
+  --contact-matte: clamp(7px, 1vw, 14px);
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  aspect-ratio: 1.6;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 48% 45%, var(--cinema-fill), transparent 77%), var(--cinema-matte);
+  cursor: zoom-in;
+}
+.projection-contact-reflection { position: absolute; inset: -17px; pointer-events: none; background-position: center; background-size: cover; filter: blur(clamp(9px, 1.05vw, 18px)) saturate(.84); opacity: .86; }
+.projection-contact-photo:has(.decoded-image[data-state='ready']) .projection-contact-reflection { background-image: linear-gradient(160deg, #111a251b, #07151b47), var(--contact-image); }
+.projection-contact-photo .decoded-image { position: absolute; inset: var(--contact-matte); display: block; background: transparent; }
+.projection-contact-photo img { width: 100%; height: 100%; display: block; object-fit: contain; filter: drop-shadow(0 2px 6px #0d1a2c3d); }
 .projection-contact-photo:focus-visible { outline: 2px solid var(--cinema-light); outline-offset: -4px; }
 .projection-contact-expand { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 37px; height: 37px; border: 1px solid #e6fbe34d; border-radius: 8px; background: #0b171cd4; color: #f5f4e4; translate: 0 5px; opacity: 0; transition: translate .35s var(--cinema-ease), opacity .24s; pointer-events: none; }
 .projection-contact-photo:is(:hover,:focus-visible) .projection-contact-expand { opacity: 1; translate: none; }
