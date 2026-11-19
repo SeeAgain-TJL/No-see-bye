@@ -12,28 +12,33 @@ const memories = {
     title: "森林记得风。",
     fragment: "那些以为散去的声音，仍留在树的年轮里。",
     play: "点亮叶脉",
+    cue: "窗灯亮了，萤火沿着铁轨飞起。",
   },
   iceberg: {
     title: "冰下有回声。",
     fragment: "时间把旧日封在冰里，光经过时，它又清晰了一次。",
     play: "唤醒冰层",
+    cue: "一道折光滑过冰缝。",
   },
   grassland: {
     title: "风会把信带回。",
     fragment: "草叶朝旧日伏下，像一封信终于找到了收件人。",
     play: "送出明信片",
+    cue: "折信迎着风，从邮筒飞向草坡。",
   },
   rift: {
     title: "灯火记得归路。",
     fragment: "为一个人留一盏灯，相遇就还能抵达我们。",
     play: "放飞记忆灯",
+    cue: "纸灯从石桥上一盏盏升起。",
   },
   ocean: {
     title: "潮汐带回昨日。",
     fragment: "沉进去的光没有熄灭，只是在等下一次涨潮。",
     play: "拨动潮声",
+    cue: "水纹掠过穹顶，气泡随潮而上。",
   },
-} satisfies Record<ThemeName, { title: string; fragment: string; play: string }>;
+} satisfies Record<ThemeName, { title: string; fragment: string; play: string; cue: string }>;
 
 type Playback = "idle" | "playing" | "complete";
 const playbackDuration = 5200;
@@ -64,6 +69,8 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
     let width = 1;
     let height = 1;
     let plate: ScenePlateBounds = { left: 0, top: 0, width: 1, height: 1 };
+    let pivot = { x: 0, y: 0 };
+    let dolly = { x: 0, y: 0 };
     let inView = true;
     let animation = 0;
     let lastFrame = 0;
@@ -74,16 +81,24 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
     function update() {
       if (!frame) return;
       const progress = playback === "playing" ? Math.min(1, elapsed / playbackDuration) : playback === "complete" ? 1 : 0;
-      const push = progress * progress * (3 - 2 * progress);
-      const exposure = Math.sin(progress * Math.PI) ** 2;
+      const push = 1 - (1 - progress) ** 2;
+      const exposure = Math.min(progress * 14, 1, (1 - progress) * 2.8);
       motion.x += (target.current.x - motion.x) * .095;
       motion.y += (target.current.y - motion.y) * .095;
-      frame.style.setProperty("--auth-pan-x", (motion.x * 12).toFixed(2) + "px");
-      frame.style.setProperty("--auth-pan-y", (motion.y * 9).toFixed(2) + "px");
-      frame.style.setProperty("--auth-scene-progress", String(push));
+      const x = motion.x * 12 + dolly.x * push;
+      const y = motion.y * 9 + dolly.y * push;
+      const scale = 1.012 + .09 * push;
+      frame.style.setProperty("--auth-pan-x", `${x}px`);
+      frame.style.setProperty("--auth-pan-y", `${y}px`);
+      frame.style.setProperty("--auth-zoom", String(scale));
       frame.style.setProperty("--auth-exposure-cue", String(exposure));
       frame.style.setProperty("--auth-playhead", String(progress));
-      if (ctx) paintMemoryAtmosphere(ctx, theme, width, height, motion.ambience / 1000, progress, motion.x, motion.y, reduced.matches, plate);
+      if (ctx) paintMemoryAtmosphere(ctx, theme, width, height, motion.ambience / 1000, progress, motion.x, motion.y, reduced.matches, {
+        left: pivot.x + (plate.left - pivot.x) * scale + x,
+        top: pivot.y + (plate.top - pivot.y) * scale + y,
+        width: plate.width * scale,
+        height: plate.height * scale,
+      });
     }
 
     function tick(now: number) {
@@ -119,14 +134,20 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
       height = Math.max(1, frame.clientHeight);
       // Use the covered image's crop so objects stay anchored to the artwork on phones.
       const style = getComputedStyle(image);
-      const coverWidth = Math.max(image.offsetWidth, image.offsetHeight * artworkAspect);
+      const imageWidth = image.offsetWidth;
+      const imageHeight = image.offsetHeight;
+      const positionX = parseFloat(style.backgroundPositionX) / 100;
+      const positionY = parseFloat(style.backgroundPositionY) / 100;
+      const coverWidth = Math.max(imageWidth, imageHeight * artworkAspect);
       const coverHeight = coverWidth / artworkAspect;
       plate = {
-        left: image.offsetLeft + (image.offsetWidth - coverWidth) * Number.parseFloat(style.backgroundPositionX) / 100,
-        top: image.offsetTop + (image.offsetHeight - coverHeight) * Number.parseFloat(style.backgroundPositionY) / 100,
+        left: image.offsetLeft + (imageWidth - coverWidth) * positionX,
+        top: image.offsetTop + (imageHeight - coverHeight) * positionY,
         width: coverWidth,
         height: coverHeight,
       };
+      pivot = { x: image.offsetLeft + imageWidth * positionX, y: image.offsetTop + imageHeight * positionY };
+      dolly = { x: parseFloat(style.getPropertyValue("--auth-dolly-x")), y: parseFloat(style.getPropertyValue("--auth-dolly-y")) };
       const ratio = Math.min(devicePixelRatio || 1, 1.5);
       surface.width = Math.round(width * ratio);
       surface.height = Math.round(height * ratio);
@@ -174,7 +195,10 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
   function play() {
     if (playback === "playing" || matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setPlayback("complete");
-    } else setPlayback("playing");
+    } else {
+      scene.current?.style.setProperty("--auth-playhead", "0");
+      setPlayback("playing");
+    }
   }
 
   return <div className="auth-projection" ref={scene} data-playing={playback}
@@ -185,15 +209,14 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
       <div className="auth-projection-optics" />
       <canvas className="auth-scene-field" ref={canvas} />
     </div>
-    <div className="auth-projection-frame" aria-hidden="true"><span /><span /><span /><span /></div>
-    <span className="auth-scene-meter" aria-hidden="true"><span /></span>
     <div className="auth-projection-content">
       <h2 className="auth-scene-title">{memory.title}</h2>
       <div className="auth-memory-caption" aria-live="polite">
-        {playback === "complete" ? <p>{memory.fragment}</p> : <span>{themes[theme].label} · 记忆短片</span>}
+        {playback === "idle" ? <span>{themes[theme].label} · 记忆短片</span> : <p>{playback === "playing" ? memory.cue : memory.fragment}</p>}
       </div>
       <div className="auth-projection-actions">
         <button className="auth-scene-play" type="button" onClick={play}>
+          <span className="auth-scene-meter" aria-hidden="true" />
           <Icon name={playback === "playing" ? "pause" : playback === "complete" ? "restore" : "play"} size={15} />
           {playback === "playing" ? "结束播放" : playback === "complete" ? "重放短片" : memory.play}
         </button>

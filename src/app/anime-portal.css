@@ -1,8 +1,8 @@
 .auth-projection {
   --auth-shot-position: 50%;
   --auth-shot-vertical: 44%;
-  --auth-dolly-x: 12px;
-  --auth-dolly-y: 6px;
+  --auth-dolly-x: -16px;
+  --auth-dolly-y: 8px;
   --auth-memory-light: #f1e7be;
   --auth-beam: radial-gradient(ellipse at 73% 37%, #e7c88f33, transparent 40%);
   --auth-scene-art: url("/visuals/auth-grassland.webp");
@@ -18,29 +18,29 @@
 }
 :root[data-theme="forest"] .auth-projection {
   --auth-scene-art: url("/visuals/auth-forest.webp");
-  --auth-dolly-x: -7px;
-  --auth-dolly-y: 13px;
+  --auth-dolly-x: 10px;
+  --auth-dolly-y: 15px;
   --auth-memory-light: #e3f2ad;
   --auth-beam: radial-gradient(ellipse at 34% 35%, #e4bc752c, transparent 29%);
 }
 :root[data-theme="iceberg"] .auth-projection {
   --auth-scene-art: url("/visuals/auth-iceberg.webp");
-  --auth-dolly-x: 17px;
-  --auth-dolly-y: 5px;
+  --auth-dolly-x: 22px;
+  --auth-dolly-y: 9px;
   --auth-memory-light: #bdf3ff;
   --auth-beam: conic-gradient(from 171deg at 53% -10%, transparent, #cfe8ed3b 16deg, transparent 31deg);
 }
 :root[data-theme="rift"] .auth-projection {
   --auth-scene-art: url("/visuals/auth-rift.webp");
-  --auth-dolly-x: 6px;
-  --auth-dolly-y: 14px;
+  --auth-dolly-x: -3px;
+  --auth-dolly-y: 23px;
   --auth-memory-light: #ffd29b;
   --auth-beam: radial-gradient(ellipse at 58% 34%, #d09b6825, transparent 31%);
 }
 :root[data-theme="ocean"] .auth-projection {
   --auth-scene-art: url("/visuals/auth-ocean.webp");
-  --auth-dolly-x: -13px;
-  --auth-dolly-y: -13px;
+  --auth-dolly-x: -14px;
+  --auth-dolly-y: -20px;
   --auth-memory-light: #a9f5e7;
   --auth-beam: conic-gradient(from 148deg at 42% -10%, transparent, #8ac6ba36 10deg, transparent 25deg, #80aeb729 36deg, transparent 51deg);
 }
@@ -56,28 +56,20 @@
 
 .auth-projection-planes { z-index: -2; }
 .auth-projection-image {
-  --auth-zoom: calc(1.012 + var(--auth-scene-progress, 0) * .055);
   inset: -20px;
   background: var(--auth-scene-art) var(--auth-shot-position) var(--auth-shot-vertical) / cover no-repeat;
-  transform: translate3d(
-    calc(var(--auth-pan-x, 0px) + var(--auth-dolly-x) * var(--auth-scene-progress, 0)),
-    calc(var(--auth-pan-y, 0px) + var(--auth-dolly-y) * var(--auth-scene-progress, 0)),
-    0
-  ) scale(var(--auth-zoom));
+  transform: translate3d(var(--auth-pan-x, 0px), var(--auth-pan-y, 0px), 0) scale(var(--auth-zoom, 1.012));
   transform-origin: var(--auth-shot-position) var(--auth-shot-vertical);
 }
 .auth-projection-optics {
   inset: -20px;
-  opacity: calc(.25 + var(--auth-exposure-cue, 0) * .46);
+  opacity: calc(.25 + var(--auth-exposure-cue, 0) * .62);
   background: var(--auth-beam);
   mask-image: linear-gradient(180deg, #000 32%, transparent 70%);
   mix-blend-mode: screen;
-  transform: translate(
-    calc(var(--auth-pan-x, 0px) * .78 + var(--auth-dolly-x) * var(--auth-scene-progress, 0)),
-    calc(var(--auth-pan-y, 0px) * .78 + var(--auth-dolly-y) * var(--auth-scene-progress, 0))
-  );
+  transform: translate(calc(var(--auth-pan-x, 0px) * .78), calc(var(--auth-pan-y, 0px) * .78));
 }
-.auth-scene-field { width: 100%; height: 100%; mask-image: linear-gradient(#000 47%, #0009 63%, transparent 80%); }
+.auth-scene-field { width: 100%; height: 100%; mask-image: linear-gradient(#000 51%, #000b 67%, transparent 82%); }
 .auth-projection::after {
   content: "";
   position: absolute;
@@ -89,44 +81,17 @@
     linear-gradient(128deg, #070f1849, transparent 51%);
 }
 
-.auth-projection-frame {
-  position: absolute;
-  inset: 14px;
-  border: 1px solid #f8ffef2b;
-  border-radius: 12px;
-  pointer-events: none;
-}
-.auth-projection-frame span {
-  position: absolute;
-  width: 25px;
-  height: 17px;
-  color: #fff9e2ab;
-  border: 0 solid;
-  transition: color .32s;
-}
-.auth-projection-frame span:nth-child(1) { top: 7px; left: 7px; border-width: 1px 0 0 1px; }
-.auth-projection-frame span:nth-child(2) { top: 7px; right: 7px; border-width: 1px 1px 0 0; }
-.auth-projection-frame span:nth-child(3) { bottom: 7px; left: 7px; border-width: 0 0 1px 1px; }
-.auth-projection-frame span:nth-child(4) { bottom: 7px; right: 7px; border-width: 0 1px 1px 0; }
-.auth-projection[data-playing]:not([data-playing="idle"]) .auth-projection-frame span { color: var(--auth-memory-light); }
-
 .auth-scene-meter {
   display: none;
   position: absolute;
-  inset: auto 23px 22px;
-  height: 1px;
+  inset: auto 0 0;
+  height: 3px;
   pointer-events: none;
-  background: #f6f8e64f;
-}
-.auth-projection[data-playing="playing"] .auth-scene-meter { display: block; }
-.auth-scene-meter span {
-  display: block;
-  width: 100%;
-  height: 100%;
   transform: scaleX(var(--auth-playhead, 0));
   transform-origin: left;
-  background: var(--auth-memory-light);
+  background: color-mix(in srgb, var(--auth-memory-light) 36%, #102021);
 }
+.auth-projection[data-playing="playing"] .auth-scene-meter { display: block; }
 
 .auth-projection-content {
   width: 100%;
@@ -142,7 +107,7 @@
   text-shadow: 0 2px 21px #050b13e3;
 }
 .auth-memory-caption {
-  min-height: 3.25em;
+  min-height: calc(3em + 8px);
   padding-top: 8px;
   color: var(--auth-memory-light);
   font-size: clamp(12px, 1vw, 14px);
@@ -179,12 +144,20 @@
   transition: transform .3s var(--cinema-ease), background-color .27s, color .27s, border-color .27s;
 }
 .auth-projection-actions button {
+  position: relative;
+  overflow: clip;
   border-color: #e3f4eb67;
   background: #182833bd;
   backdrop-filter: blur(12px);
   box-shadow: inset 0 1px #f3fff82b;
 }
 .auth-projection-actions button > svg { color: var(--auth-memory-light); }
+.auth-projection[data-playing="playing"] .auth-scene-play {
+  border-color: var(--auth-memory-light);
+  background: var(--auth-memory-light);
+  color: #142120;
+}
+.auth-projection[data-playing="playing"] .auth-scene-play > svg { color: currentColor; }
 .auth-projection-actions a { background: #141d264d; }
 .auth-projection-actions :is(a, button):hover { border-color: var(--auth-memory-light); transform: translateY(-2px); }
 .auth-projection-actions :is(a, button):focus-visible { outline: 2px solid #fff9e1; outline-offset: 3px; }
@@ -193,12 +166,9 @@
   .auth-projection { --auth-shot-vertical: 38%; min-height: clamp(238px, 61vw, 320px); }
   .auth-projection-content { padding: 24px 22px 24px; }
   :root[data-theme] .auth-editorial .auth-scene-title { font-size: clamp(27px, 6.6vw, 39px); }
-  .auth-memory-caption { min-height: 2.95em; padding-top: 4px; }
+  .auth-memory-caption { min-height: calc(3em + 4px); padding-top: 4px; }
   .auth-projection-actions { margin-top: 4px; gap: 6px; }
   .auth-projection-actions :is(a, button) { min-height: 40px; padding-inline: 9px; font-size: 11px; }
-  .auth-projection-frame { inset: 8px; border-radius: 8px; }
-  .auth-projection-frame span { width: 16px; height: 11px; }
-  .auth-scene-meter { inset: auto 16px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
