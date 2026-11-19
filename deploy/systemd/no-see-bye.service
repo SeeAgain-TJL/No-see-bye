@@ -8,8 +8,8 @@ User=root
 WorkingDirectory=/root/no-see-bye
 Environment=NODE_ENV=production
 Environment=NEXT_TELEMETRY_DISABLED=1
-Environment=HOSTNAME=0.0.0.0
-Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=10000
 EnvironmentFile=/root/no-see-bye/config.env
 ExecStartPre=/root/no-see-bye/runtime/node /root/no-see-bye/scripts/check-runtime.mjs
 ExecStartPre=/root/no-see-bye/runtime/node /root/no-see-bye/scripts/init-db.mjs

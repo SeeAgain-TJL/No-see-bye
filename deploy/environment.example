@@ -5,12 +5,12 @@ STORAGE_LOCAL_DIR=/root/no-see-bye/data/uploads
 JWT_SECRET=replace-with-a-random-secret-at-least-32-characters
 USER_QUOTA_MB=0
 ALLOW_REGISTRATION=true
-APP_ORIGIN=https://tingjieli.shop
+APP_ORIGIN=https://life.tingjieli.shop
 COOKIE_SECURE=true
 # Optional OAuth providers. Buttons appear only when both values are set.
 # GITHUB_CLIENT_ID=your-github-oauth-client-id
 # GITHUB_CLIENT_SECRET=your-github-oauth-client-secret
-# GITHUB_REDIRECT_URI=https://tingjieli.shop/api/auth/github
+# GITHUB_REDIRECT_URI=https://life.tingjieli.shop/api/auth/github
 # QQ_APP_ID=your-qq-app-id
 # QQ_APP_KEY=your-qq-app-key
-# QQ_REDIRECT_URI=https://tingjieli.shop/api/auth/qq
+# QQ_REDIRECT_URI=https://life.tingjieli.shop/api/auth/qq
