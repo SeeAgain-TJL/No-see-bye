@@ -97,7 +97,7 @@ export function AdminActivity({ daily, period, selectedDate, revision, autoRefre
     </div>
     {active && <div className="admin-trend-body">
       <div className="admin-trend-main">
-        <div className="admin-chart-legend"><span>新增用户</span><span>新增日常</span><small>北京时间</small></div>
+        <div className="admin-chart-legend"><span>新增用户 <b>{active.users}</b></span><span>新增日常 <b>{active.entries}</b></span><small><time dateTime={active.date}>{active.date.slice(5)}</time> · 北京时间</small></div>
         <div className="admin-activity-chart">
           <div className="admin-chart-axis" aria-hidden="true">{[4, 3, 2, 1, 0].map(mark => <span key={mark}>{mark * step}</span>)}</div>
           <div className="admin-chart-plot">

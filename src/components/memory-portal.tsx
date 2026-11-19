@@ -184,6 +184,10 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
     };
   }
 
+  function drag(event: PointerEvent<HTMLDivElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) move(event);
+  }
+
   function startDrag(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0 || (event.target instanceof Element && event.target.closest("button, a"))
       || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -205,7 +209,7 @@ function MemoryPlayer({ theme }: { theme: ThemeName }) {
   }
 
   return <div className="auth-projection" ref={scene} data-playing={playback}
-    onPointerDown={startDrag} onPointerMove={move} onPointerLeave={resetLook} onPointerUp={resetLook}
+    onPointerDown={startDrag} onPointerMove={drag} onPointerLeave={resetLook} onPointerUp={resetLook}
     onPointerCancel={resetLook} onLostPointerCapture={resetLook}>
     <div className="auth-projection-planes" aria-hidden="true">
       <div className="auth-projection-image" ref={artwork} />

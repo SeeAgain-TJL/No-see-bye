@@ -64,8 +64,6 @@ export function ImmersiveMotion() {
       activeSurface.style.removeProperty("--surface-y");
       activeSurface.style.removeProperty("--tilt-x");
       activeSurface.style.removeProperty("--tilt-y");
-      activeSurface.style.removeProperty("--camera-x");
-      activeSurface.style.removeProperty("--camera-y");
       activeSurface = null;
     };
     const ease = 'cubic-bezier(.2,.72,.24,1)';
@@ -82,11 +80,8 @@ export function ImmersiveMotion() {
       if (element.matches(scenicFrames)) {
         const art = element.querySelector<HTMLElement>(scenicArtwork);
         const copy = element.querySelector<HTMLElement>(scenicCopy);
-        // Keep the frame and controls in place. Only the artwork travels into focus.
-        if (art) play(art, [
-          { opacity: .5, scale: '1.045', translate: '0 8px' },
-          { opacity: 1, scale: '1', translate: '0 0' },
-        ], 760);
+        // Reveal the scene without shifting its horizon or controls.
+        if (art) play(art, [{ opacity: .76 }, { opacity: 1 }], 460);
         if (copy) play(copy, [{ opacity: .82 }, { opacity: 1 }], 380, 50);
         return;
       }
@@ -134,11 +129,6 @@ export function ImmersiveMotion() {
       const py = Math.max(0, Math.min(1, (y - bounds.top) / bounds.height));
       element.style.setProperty("--surface-x", `${px * 100}%`);
       element.style.setProperty("--surface-y", `${py * 100}%`);
-      if (element.hasAttribute("data-camera-frame")) {
-        element.style.setProperty("--camera-x", `${(px - .5) * 36}px`);
-        element.style.setProperty("--camera-y", `${(py - .5) * 22}px`);
-        return;
-      }
       element.style.setProperty("--tilt-x", `${(0.5 - py) * 1.5}deg`);
       element.style.setProperty("--tilt-y", `${(px - 0.5) * 2}deg`);
       element.dataset.motionHover = "true";
@@ -153,8 +143,8 @@ export function ImmersiveMotion() {
         control.style.setProperty('--magnet-x', `${Math.max(-3,Math.min(3,(event.clientX - bounds.left - bounds.width / 2) * .10))}px`);
         control.style.setProperty('--magnet-y', `${Math.max(-3,Math.min(3,(event.clientY - bounds.top - bounds.height / 2) * .14))}px`);
       }
-      const element = target?.closest<HTMLElement>("[data-motion-surface], [data-camera-frame]");
-      if (!element || (element.matches(scenicFrames) && !element.hasAttribute("data-camera-frame")) || target?.closest("dialog") || !content.contains(element)) { resetSurface(); return; }
+      const element = target?.closest<HTMLElement>("[data-motion-surface]");
+      if (!element || element.matches(scenicFrames) || target?.closest("dialog") || !content.contains(element)) { resetSurface(); return; }
       if (activeSurface !== element) { resetSurface(); activeSurface = element; }
       pointer = { element, x: event.clientX, y: event.clientY };
       if (!pointerFrame) pointerFrame = requestAnimationFrame(paintPointer);

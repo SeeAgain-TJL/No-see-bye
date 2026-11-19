@@ -1,138 +1,24 @@
-/* Full-page scenery sits above the content without intercepting input. */
-:root, :root[data-theme='grassland'] { --world-petal: #98aa64; --world-soft: #d1dca3; --world-ink: #3a593e; --world-shine: #f8efc6; }
-:root[data-theme='ocean'] { --world-petal: #5fa6a3; --world-soft: #c6e1d6; --world-ink: #2c6976; --world-shine: #fff4d3; }
-:root[data-theme='rift'] { --world-petal: #b98058; --world-soft: #e1b680; --world-ink: #563b2e; --world-shine: #fff0c9; }
-:root[data-theme='forest'] { --world-petal: #dfc994; --world-soft: #879d9b; --world-ink: #3e5c52; --world-shine: #fff1c5; }
-:root[data-theme='iceberg'] { --world-petal: #82b4d1; --world-soft: #b3e5fa; --world-ink: #427bb2; --world-shine: #e8faff; }
 .studio-auth { position: relative; isolation: isolate; }
-.world-atmosphere, .world-choreography { position: fixed; pointer-events: none; inset: var(--environment-top, 0px) 0 0 var(--environment-left, 0px); overflow: hidden; }
-.world-atmosphere { z-index: -1; color: var(--accent); }
-.world-ground, .world-scene { display: none; position: absolute; inset: 0; }
-:root[data-theme='grassland'] [data-world-theme='grassland'], :root[data-theme='ocean'] [data-world-theme='ocean'], :root[data-theme='rift'] [data-world-theme='rift'], :root[data-theme='forest'] [data-world-theme='forest'], :root[data-theme='iceberg'] [data-world-theme='iceberg'] { display: block; }
-.world-ground { opacity: .24; transition: opacity 1s ease; transform: translateY(var(--world-scroll, 0px)); }
-.world-ground > span { position: absolute; display: block; }
-.world-ground-grassland > span { width: 90px; height: 290px; border-left: 1px solid currentColor; border-radius: 50%; opacity: .16; rotate: 12deg; }
-.world-ground-grassland > span:nth-child(1) { left: -70px; bottom: -35px; }
-.world-ground-grassland > span:nth-child(2) { right: -70px; top: 14%; rotate: -14deg; }
-.world-ground-grassland > span:nth-child(3) { display: none; }
-.world-ground-ocean > span { width: 260px; height: 75px; border-top: 1px solid currentColor; border-radius: 50%; opacity: .13; right: -150px; bottom: -52px; rotate: -8deg; }
-.world-ground-ocean > span:nth-child(2) { bottom: -45px; right: -130px; }
-.world-ground-ocean > span:nth-child(3) { bottom: -38px; right: -110px; }
-.world-ground-rift > span { top: 0; bottom: 0; width: 1px; background: currentColor; opacity: .08; }
-.world-ground-rift > span:first-child { left: 11px; }
-.world-ground-rift > span:nth-child(2) { right: 11px; }
-.world-ground-rift > span:nth-child(3) { display: none; }
-.world-ground-forest > span { width: 2px; height: 2px; border-radius: 50%; background: var(--warm); opacity: .3; }
-.world-ground-forest > span:nth-child(1) { top: 23%; right: 18px; }
-.world-ground-forest > span:nth-child(2) { bottom: 19%; left: 22px; }
-.world-ground-forest > span:nth-child(3) { top: 11%; left: 13px; }
-[data-world-awake='true'] .world-ground { opacity: .65; }
-.world-choreography { z-index: 22; container-type: size; }
-.studio-auth .world-choreography { z-index: 24; }
-.world-scene { color: var(--accent); animation: world-scene-arrive .65s ease both; }
-.world-mark { display: block; width: 100%; height: 100%; overflow: visible; }
-
-/* Paper: rising butterfly paths over a low, swaying botanical foreground. */
-.world-paper-grove { position: absolute; width: clamp(260px, 34cqw, 510px); bottom: -58px; left: -48px; opacity: .55; }
-.world-paper-stems { transform-box: view-box; transform-origin: 14% 100%; animation: world-paper-stems 11s ease-in-out infinite; }
-.world-paper-stems-back { opacity: .67; animation-duration: 16s; animation-delay: -5s; }
-.world-paper-air { opacity: .42; animation: world-paper-air 22s linear infinite; }
-.world-wing { transform-box: view-box; transform-origin: 50% 49%; animation: world-wingbeat 1.2s cubic-bezier(.45,.04,.25,1) infinite; }
-.world-wing-right { animation-delay: -.08s; }
-.world-paper-lift, .world-paper-glide { position: absolute; display: block; aspect-ratio: 8 / 7; opacity: 0; }
-.world-paper-lift-main { width: clamp(52px, 7.3cqw, 102px); bottom: 62px; right: 2cqw; animation: world-paper-lift-main 5.6s .04s cubic-bezier(.35,.1,.2,1) both; }
-.world-paper-lift-echo { width: clamp(30px, 4cqw, 63px); bottom: 68px; right: 6cqw; animation: world-paper-lift-echo 5.8s .48s ease-in-out both; }
-.world-paper-lift-echo .world-wing { animation-duration: 1.49s; }
-.world-paper-glide-close { width: clamp(32px, 4.2cqw, 58px); bottom: 14%; left: 10%; animation: world-paper-glide 10s 1s ease-in-out infinite; }
-.world-paper-glide-far { width: clamp(23px, 3cqw, 45px); top: 23%; right: 10%; animation: world-paper-hover 14s 2s ease-in-out infinite; }
-.world-paper-pollen { position: absolute; width: min(32cqw, 320px); height: min(39cqh, 270px); bottom: 4%; left: 2%; }
-.world-paper-pollen i { position: absolute; top: 75%; left: 15%; width: 3px; height: 3px; border-radius: 50%; background: var(--world-petal); animation: world-paper-pollen 8s -1s ease-in-out infinite; }
-.world-paper-pollen i:nth-child(2) { left: 36%; top: 64%; animation-delay: -3s; }
-.world-paper-pollen i:nth-child(3) { left: 66%; top: 82%; animation-delay: -4.6s; }
-.world-paper-pollen i:nth-child(4) { left: 88%; top: 42%; animation-delay: -6.8s; }
-
-/* Sea: a foreground shoal swims across the current with independent tail beats. */
-.world-sea-water { position: absolute; width: 112%; left: -6%; bottom: 0; height: clamp(86px, 24cqh, 210px); opacity: .72; }
-.world-swell { animation: world-water-swell 10s ease-in-out infinite; }
-.world-swell-deep { animation-duration: 16s; animation-delay: -6s; }
-.world-current-lines { opacity: .42; animation: world-current 12s ease-in-out infinite; }
-.world-sea-light { position: absolute; inset: auto -15% 0; height: min(31cqh, 230px); opacity: .64; background: radial-gradient(ellipse at 20% 81%, color-mix(in srgb, var(--world-soft) 61%, transparent), transparent 51%), radial-gradient(ellipse at 76% 68%, color-mix(in srgb, var(--world-petal) 23%, transparent), transparent 60%); animation: world-caustic 14s ease-in-out infinite; }
-.world-fish-tail { transform-box: view-box; transform-origin: 71% 50%; animation: world-tail .86s ease-in-out infinite; }
-.world-shoal { position: absolute; right: 1.8cqw; bottom: 14%; width: clamp(120px, 17cqw, 215px); height: 84px; opacity: 0; animation: world-shoal-crossing 7.5s .06s linear both; }
-.world-shoal > span { position: absolute; display: block; aspect-ratio: 3 / 2; }
-.world-shoal-lead { width: 55%; top: 23%; left: 0; }
-.world-shoal-upper { width: 33%; top: 0; left: 50%; opacity: .74; }
-.world-shoal-lower { width: 32%; top: 59%; left: 63%; opacity: .75; }
-.world-shoal-upper .world-fish-tail { animation-delay: -.28s; }
-.world-shoal-lower .world-fish-tail { animation-delay: -.46s; }
-.world-shoal i { position: absolute; top: 54%; left: 88%; width: 5px; height: 5px; border: 1px solid var(--world-petal); border-radius: 50%; animation: world-sea-bubble 2.6s ease-out infinite; }
-.world-shoal i:nth-of-type(2) { left: 83%; top: 56%; width: 3px; height: 3px; animation-delay: -.56s; }
-.world-shoal i:nth-of-type(3) { left: 94%; top: 62%; width: 3px; height: 3px; animation-delay: -1.4s; }
-.world-swim { position: absolute; display: block; aspect-ratio: 3 / 2; right: 0; width: clamp(34px, 6cqw, 82px); opacity: 0; animation: world-swim 19s 5.3s linear infinite; }
-.world-swim-near { bottom: 18%; }
-.world-swim-far { bottom: 25%; width: clamp(25px, 4cqw, 55px); animation-duration: 23s; animation-delay: 8s; }
-.world-swim-deep { bottom: 9%; width: clamp(31px, 4.9cqw, 65px); animation-duration: 21s; animation-delay: 11.4s; }
-
-/* Lanterns rise in staggered currents; ice falls from above and refracts as it turns. */
-.world-lanterns, .world-icefall { position: absolute; inset: 0; }
-.world-lanterns > span, .world-icefall > span {
-  position: absolute;
-  width: var(--width, 38px);
-  aspect-ratio: 1;
-  left: var(--left, 83%);
-  opacity: 0;
-  animation-delay: var(--delay, 0s);
+.world-choreography {
+  position: fixed;
+  z-index: 22;
+  pointer-events: none;
+  inset: auto 0 0 var(--environment-left, 0px);
+  height: clamp(145px, 25vh, 250px);
+  overflow: hidden;
 }
-.world-lanterns > span {
-  bottom: 6%;
-  filter: drop-shadow(0 0 9px var(--world-soft));
-  animation-name: world-lantern-rise;
-  animation-duration: 12s;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
+.world-landscape { display: block; width: 100%; height: 100%; }
+@media (min-width: 761px) {
+  .world-landscape { mask-image: linear-gradient(90deg, #0006, #0004 23%, #0006 55%, #000 86%); }
 }
-.world-icefall > span {
-  top: -8%;
-  filter: drop-shadow(0 0 4px var(--world-soft));
-  animation-name: world-ice-drift;
-  animation-duration: 10s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+.world-environment .world-toggle {
+  z-index: 55; min-height: 44px; padding: 5px 15px 5px 6px; border-radius: 24px;
+  color: #f3f5ec; background: var(--motion-deep); border-color: color-mix(in srgb, var(--cinema-light) 44%, transparent);
+  box-shadow: 0 7px 20px -10px #031319bb;
 }
-:is(.world-lanterns, .world-icefall) > span:nth-child(2) { --left: 69%; --width: 25px; --delay: .75s; }
-:is(.world-lanterns, .world-icefall) > span:nth-child(3) { --left: 91%; --width: 21px; --delay: 1.7s; }
-:is(.world-lanterns, .world-icefall) > span:nth-child(4) { --left: 60%; --width: 17px; --delay: 3.4s; }
-:is(.world-lanterns, .world-icefall) > span:nth-child(5) { --left: 48%; --width: 29px; --delay: 5.2s; }
-
-/* Forest: the lights cluster near the glade and disperse through low mist. */
-.world-forest-mist {
-  position: absolute;
-  inset: 49% -10% -6%;
-  background: radial-gradient(ellipse at 22% 86%, #b6d89f68, transparent 52%), radial-gradient(ellipse at 86% 59%, #bdd3a349, transparent 43%);
-  filter: blur(22px);
-  animation: world-forest-breathe 12s ease-in-out infinite;
-}
-.world-fireflies { position: absolute; bottom: 3%; left: 5%; width: 89%; height: 56%; }
-.world-fireflies i { position: absolute; border-radius: 50%; width: 5px; height: 5px; background: var(--world-shine); box-shadow: 0 0 8px 2px var(--world-petal); animation: world-firefly 7s ease-in-out infinite; left: 15%; top: 22%; }
-.world-fireflies i:nth-child(2) { left: 36%; top: 60%; animation-delay: -1.4s; }
-.world-fireflies i:nth-child(3) { left: 57%; top: 41%; animation-delay: -3s; width: 3px; height: 3px; }
-.world-fireflies i:nth-child(4) { left: 79%; top: 77%; animation-delay: -4.6s; width: 2px; height: 2px; }
-.world-fireflies i:nth-child(6) { left: 13%; top: 75%; animation-delay: -3.4s; }
-.world-fireflies i:nth-child(7) { left: 23%; top: 48%; animation-delay: -5s; width: 3px; height: 3px; }
-.world-fireflies i:nth-child(8) { left: 87%; top: 56%; animation-delay: -6.3s; }
-.world-fireflies i:nth-child(5) { left: 91%; top: 31%; animation-delay: -5.9s; width: 3px; height: 3px; }
-
-.world-toggle { z-index: 55; min-height: 44px; padding-inline: 9px 14px; border-radius: 24px; box-shadow: 0 4px 18px -12px var(--album-shadow); }
-.world-switch-mark { display: grid; place-items: center; width: 32px; height: 28px; flex: 0 0 32px; transition: rotate .6s ease, scale .6s ease; }
-.world-switch-mark > span { width: 32px; height: 28px; }
-.world-switch-mark .world-mark * { animation-play-state: paused; }
-.world-environment [data-world-invitation] { display: none; }
-:root[data-theme='grassland'] [data-world-invitation='grassland'], :root[data-theme='ocean'] [data-world-invitation='ocean'], :root[data-theme='rift'] [data-world-invitation='rift'], :root[data-theme='forest'] [data-world-invitation='forest'], :root[data-theme='iceberg'] [data-world-invitation='iceberg'] { display: inline-block; }
-.world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); border-color: var(--motion-deep); }
-.world-toggle[aria-pressed='true'] .world-switch-mark { --world-petal: var(--motion-pop); --world-soft: var(--motion-on-deep); }
-.world-toggle[aria-pressed='true'] .world-switch-mark .world-mark * { animation-play-state: running; }
-.world-toggle[aria-pressed='true'] > svg:last-child { opacity: .65; }
-[data-world-hidden='true'] :is(.world-ground, .world-choreography, .world-toggle) * { animation-play-state: paused !important; }
+.world-switch-mark { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: white;
+  background: linear-gradient(#08161551,#08161586), var(--opening-thumb) center / cover; transition: rotate .4s, scale .4s; }
+.world-toggle[aria-pressed='true'] .world-switch-mark { box-shadow: 0 0 0 1px var(--cinema-light); }
 :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 :is(.app-shell, .studio-auth) :is(input, textarea, select) { transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
 :is(.app-shell, .studio-auth) :is(input, textarea, select):focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent); }
@@ -152,102 +38,17 @@
   .app-shell :is(.entry-open, .wall-caption):hover > svg { translate: 3px 0; }
   :is(.app-shell, .studio-auth) :is(.studio-filters, .filter-tabs, .view-switch, .journal-directory-views, .auth-switch) button:hover { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 35%, transparent); }
 }
-@keyframes world-scene-arrive { from { opacity: 0; } to { opacity: 1; } }
-@keyframes world-wingbeat { 0%,100% { scale: 1 1; } 27% { scale: .47 1.04; } 54% { scale: .9 1; } 65% { scale: .68 1.02; } }
-@keyframes world-paper-lift-main {
-  0% { opacity: 0; transform: translate(2cqw, 26px) rotate(-19deg) scale(.45); }
-  18% { opacity: .97; transform: translate(-7cqw, -13cqh) rotate(-42deg) scale(.98); }
-  43% { opacity: .94; transform: translate(-24cqw, -21cqh) rotate(-72deg) scale(1.07); }
-  65% { opacity: .84; transform: translate(-35cqw, -36cqh) rotate(-22deg) scale(.75); }
-  85% { opacity: .5; transform: translate(-42cqw, -53cqh) rotate(-5deg) scale(.53); }
-  100% { opacity: 0; transform: translate(-51cqw, -67cqh) rotate(-25deg) scale(.33); }
-}
-@keyframes world-paper-lift-echo {
-  0% { opacity: 0; transform: translate(0, 16px) rotate(-16deg) scale(.6); }
-  23% { opacity: .77; transform: translate(-13cqw, -11cqh) rotate(-57deg) scale(1); }
-  56% { opacity: .65; transform: translate(-27cqw, -29cqh) rotate(-27deg) scale(.91); }
-  81% { opacity: .46; transform: translate(-34cqw, -46cqh) rotate(-31deg) scale(.67); }
-  100% { opacity: 0; transform: translate(-47cqw, -60cqh) rotate(-54deg) scale(.45); }
-}
-@keyframes world-paper-glide {
-  0%,100% { opacity: 0; transform: translate(-4cqw, 3cqh) rotate(20deg); }
-  25% { opacity: .62; transform: translate(3cqw, -9cqh) rotate(24deg); }
-  62% { opacity: .77; transform: translate(10cqw, -16cqh) rotate(37deg); }
-  84% { opacity: .5; transform: translate(16cqw, -13cqh) rotate(76deg); }
-}
-@keyframes world-paper-hover {
-  0%,100% { opacity: 0; transform: translate(4cqw, 10cqh) rotate(-45deg); }
-  30% { opacity: .45; transform: translate(-1cqw, 5cqh) rotate(-18deg); }
-  64% { opacity: .63; transform: translate(-7cqw, -1cqh) rotate(-68deg); }
-  85% { opacity: .32; transform: translate(-10cqw, -9cqh) rotate(-26deg); }
-}
-@keyframes world-paper-stems { 0%,100% { transform: rotate(-2deg); } 45% { transform: rotate(3.4deg); } 72% { transform: rotate(.4deg); } }
-@keyframes world-paper-air { to { stroke-dashoffset: -70; } }
-@keyframes world-paper-pollen { 0%,100% { opacity: .1; transform: translate(0, 8px); } 48% { opacity: .61; transform: translate(20px, -25px); } }
 
-@keyframes world-tail { 0%,100% { transform: scaleX(.64) rotate(-7deg); } 50% { transform: scaleX(1) rotate(7deg); } }
-@keyframes world-shoal-crossing {
-  0% { opacity: 0; transform: translate(7cqw, 10px) scale(.78); }
-  14% { opacity: .97; }
-  25% { transform: translate(-19cqw, -4px) rotate(3deg) scale(.99); }
-  50% { transform: translate(-46cqw, 5px) rotate(-2deg) scale(1.02); }
-  77% { opacity: .91; transform: translate(-75cqw, -6px) rotate(2deg) scale(.92); }
-  100% { opacity: 0; transform: translate(-109cqw, 2px) scale(.82); }
-}
-@keyframes world-swim {
-  0% { opacity: 0; transform: translate(calc(100% + 2cqw), -5px); }
-  11% { opacity: .63; }
-  35% { transform: translate(-37cqw, 4px) rotate(-3deg); }
-  65% { transform: translate(-69cqw, -7px) rotate(3deg); }
-  88% { opacity: .57; }
-  100% { opacity: 0; transform: translate(-111cqw, 4px); }
-}
-@keyframes world-water-swell { 0%,100% { transform: translate(0, 2px); } 50% { transform: translate(3cqw, -8px); } }
-@keyframes world-current { 0%,100% { transform: translate(-1cqw, 2px); } 50% { transform: translate(3cqw, -4px); } }
-@keyframes world-caustic { 0%,100% { transform: translateX(-5%); opacity: .43; } 50% { transform: translateX(6%); opacity: .74; } }
-@keyframes world-sea-bubble { 0%,100% { opacity: 0; transform: translate(0, 0) scale(.6); } 30% { opacity: .53; } 86% { opacity: .12; transform: translate(9px, -18px) scale(1.07); } }
-
-@keyframes world-lantern-rise {
-  0% { opacity: 0; transform: translate(8cqw, 11cqh) rotate(-8deg) scale(.64); }
-  20% { opacity: .93; transform: translate(2cqw, -9cqh) rotate(8deg) scale(1); }
-  48% { opacity: .72; transform: translate(-5cqw, -34cqh) rotate(-3deg) scale(.75); }
-  81% { opacity: .36; transform: translate(-15cqw, -60cqh) rotate(10deg) scale(.51); }
-  100% { opacity: 0; transform: translate(-19cqw, -82cqh) rotate(2deg) scale(.44); }
-}
-@keyframes world-ice-drift {
-  0% { opacity: 0; transform: translate(3cqw, 0) rotate(29deg) rotateY(22deg); }
-  19% { opacity: .88; }
-  44% { transform: translate(-10cqw, 46cqh) rotate(-19deg) rotateY(120deg); }
-  72% { opacity: .68; transform: translate(-15cqw, 76cqh) rotate(17deg) rotateY(223deg); }
-  100% { opacity: 0; transform: translate(-29cqw, 114cqh) rotate(57deg) rotateY(320deg); }
-}
-
-@keyframes world-forest-breathe { 0%,100% { opacity: .17; transform: translateX(-6%); } 50% { opacity: .46; transform: translateX(8%); } }
-@keyframes world-firefly { 0%,100% { opacity: .15; transform: translate(0, 7px); } 48% { opacity: .87; transform: translate(9px, -11px); } }
 @media (max-width: 760px) {
   .app-shell .mobile-nav { padding-left: 6px; padding-right: 66px; }
   :root[data-theme] .app-shell .mobile-nav a { min-width: 0; }
   :root[data-theme] .app-shell .mobile-nav .mobile-add { margin-inline: 4px; }
-  .app-shell .world-toggle, .studio-auth .world-toggle { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; }
-  :root[data-theme] .world-toggle > .world-switch-label, .world-toggle > svg:last-child { display: none; }
-  .app-shell .world-toggle { z-index: 55; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); background: var(--surface); border-color: var(--line); box-shadow: none; }
-  .app-shell .world-toggle[aria-pressed='true'] { background: var(--motion-deep); color: var(--motion-on-deep); }
-  .world-paper-grove { bottom: 16px; left: -70px; opacity: .51; }
-  .world-paper-lift-main { right: 10px; bottom: 74px; }
-  .world-paper-lift-echo { bottom: 80px; }
-  .world-sea-water { bottom: 45px; }
-  .world-shoal { bottom: 17%; height: 63px; }
-  .world-swim-deep, .world-paper-glide-far { display: none; }
-  .studio-auth .world-toggle { position: fixed; top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); right: 18px; }
-  .studio-auth .world-paper-grove { bottom: -44px; }
-  .studio-auth .world-sea-water { bottom: 0; }
+  .world-environment .world-toggle { width: 44px; height: 44px; padding: 0; justify-content: center; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); }
+  .world-switch-label { display: none; }
+  .app-shell .world-choreography { bottom: calc(58px + env(safe-area-inset-bottom)); }
+  .world-choreography { height: clamp(100px, 16vh, 148px); }
+  .studio-auth .world-toggle { top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); right: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .world-ground, .world-choreography *, .world-toggle, .world-toggle *, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
-  .world-paper-lift, .world-paper-glide-far, .world-swim { display: none; }
-  .world-ground { transform: none; }
-  .world-paper-glide-close { opacity: .58; }
-  .world-shoal { opacity: .67; }
-  .world-lanterns > span { opacity: .64; bottom: 23%; }
-  .world-icefall > span { opacity: .52; top: 28%; }
+  .world-toggle, .world-toggle *, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
 }

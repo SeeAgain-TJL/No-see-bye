@@ -9,7 +9,7 @@ import { JournalNavigator } from "./journal-navigator";
 import type { Memory } from "./types";
 
 export function JournalPrivateGate() {
-  return <section className="journal-living-cover journal-living-threshold" data-camera-frame="" data-scope="mine" aria-labelledby="private-journal-title">
+  return <section className="journal-living-cover journal-living-threshold" data-scope="mine" aria-labelledby="private-journal-title">
     <div className="jl-cover-copy"><span className="jl-cover-edition">我的日常</span><h1 id="private-journal-title">此心，私藏。</h1><div className="jl-cover-actions"><Link className="jl-primary-action" href="/login">登录<Icon name="arrow" size={16} /></Link><Link className="jl-secondary-action" href="/memories?scope=public">发现日常<Icon name="globe" size={16} /></Link></div></div>
     <div className="jl-cover-art"><JournalCoverScene /></div>
   </section>;
@@ -26,7 +26,7 @@ export function JournalAtmosphere({ title, items, publicScope, ownerId, month, t
   const router = useRouter();
   function close() { setExpanded(false); trigger.current?.focus({ preventScroll: true }); }
   return <>
-    <header className="journal-living-cover" data-camera-frame="" data-scope={publicScope ? "public" : "mine"} aria-label={title}>
+    <header className="journal-living-cover" data-scope={publicScope ? "public" : "mine"} aria-label={title}>
       <div className="jl-cover-copy">
         <span className="jl-cover-edition">{title}</span>
         <h1>{publicScope ? "借光远行。" : "岁月有迹。"}</h1>

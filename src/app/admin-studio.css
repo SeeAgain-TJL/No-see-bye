@@ -306,3 +306,13 @@
   .security-verification { gap: 8px; }
   .security-verification > button { padding: 11px 12px; }
 }
+
+/* A single calibrated surface for the two series: heights always start at zero. */
+.admin-trend-main { border: 1px solid var(--admin-stroke); border-radius: 14px; padding: clamp(10px, 1.4vw, 20px); background: radial-gradient(ellipse at 88% 0, var(--admin-halo), transparent 64%), var(--admin-scene-deep); box-shadow: inset 0 1px #e6f7ff20; }
+.admin-chart-legend { padding: 0 0 10px; border-bottom: 1px solid var(--admin-stroke); }
+.admin-chart-legend b { display: inline-block; margin-left: 3px; color: var(--admin-ink); font: 600 18px/1.2 ui-monospace, monospace; }
+.admin-chart-legend small { font-variant-numeric: tabular-nums; }
+.admin-trend .admin-chart-bars { background: linear-gradient(0deg, #101b232b, transparent 75%); border-bottom: 1px solid var(--admin-stroke); }
+.admin-chart-day .admin-chart-bar { --glass-tone: var(--admin-signal); position: relative; overflow: hidden; width: min(33%, 21px); border-radius: 3px 3px 0 0; background: linear-gradient(90deg,transparent,#ffffff82 16%,transparent 31%,#ffffff17 65%,#ffffff66 100%),linear-gradient(0deg, color-mix(in srgb, var(--glass-tone) 17%, transparent), color-mix(in srgb, var(--glass-tone) 77%, transparent)); box-shadow: inset 0 2px #e8ffffc9, inset 1px 0 var(--glass-tone), inset -1px 0 var(--glass-tone); }
+.admin-chart-day .admin-chart-bar + .admin-chart-bar { --glass-tone: var(--admin-gold); }
+.admin-chart-day[aria-pressed='true'] .admin-chart-bar { box-shadow: inset 0 2px white, inset 1px 0 var(--glass-tone), inset -1px 0 var(--glass-tone), 0 0 12px color-mix(in srgb, var(--glass-tone) 25%, transparent); }

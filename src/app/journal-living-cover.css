@@ -17,26 +17,14 @@
 .jls-view-window, .jls-photo-plane, .jls-lens-plane { position: absolute; display: block; pointer-events: none; }
 .jls-view-window { inset: 0; overflow: hidden; }
 .jls-photo-plane {
-  inset: -22px;
-  background: var(--opening-image) var(--opening-position) 50% / cover no-repeat;
-  transform: translate(calc(var(--camera-x, 0px) * .84), calc(var(--camera-y, 0px) * .67)) scale(1.035);
-  transform-origin: var(--opening-position) 51%;
-  transition: transform .92s var(--cinema-ease), filter .65s;
+  inset: 0;
+  background: var(--opening-image) var(--opening-position) var(--opening-vertical, 50%) / cover no-repeat;
 }
-.journal-living-scene[data-jls-scope='public'] .jls-photo-plane { background-position-y: 40%; }
+.journal-living-scene[data-jls-scope='public'] .jls-photo-plane { background-position-y: var(--opening-vertical, 40%); }
 .jls-lens-plane {
   inset: -15px;
   background: var(--opening-optics);
   mix-blend-mode: screen;
   opacity: .32;
   mask-image: linear-gradient(90deg, transparent 25%, #000 88%);
-  transform: translate(calc(var(--camera-x, 0px) * -1), calc(var(--camera-y, 0px) * -1));
-  transition: transform .82s var(--cinema-ease), opacity .55s;
-}
-@media (max-width:760px) {
-  .jls-photo-plane { background-position: var(--opening-position) center; }
-}
-:root[data-theme='iceberg'] .journal-living-scene > .jls-view-window > .jls-photo-plane { background-position-y: 76%; }
-@media (prefers-reduced-motion:reduce) {
-  .jls-photo-plane, .jls-lens-plane { transition: none; }
 }

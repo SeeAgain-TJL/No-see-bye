@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { DecodedImage } from "@/components/decoded-image";
 import { Icon } from "@/components/icons";
 import { dateText } from "@/lib/client";
@@ -14,7 +13,6 @@ export function CollectionCard({ photo, index, onOpen }: { photo: GalleryPhoto; 
   const date = dateText(memory.happenedAt, { year: "numeric", month: "long", day: "numeric" });
   return <article className="projection-contact-card" data-motion-surface="">
     <button className="projection-contact-photo" type="button" aria-label={`查看第 ${index + 1} 张照片，${memory.title || date}`} onClick={onOpen}>
-      <span className="projection-contact-reflection" aria-hidden="true" style={{ '--contact-image': `url(${JSON.stringify(image)})` } as CSSProperties} />
       <DecodedImage src={image} alt={memory.title || "日常照片"} width={asset.width || undefined} height={asset.height || undefined} loading="lazy" />
       <span className="projection-contact-expand" aria-hidden="true"><Icon name="expand" size={18} /></span>
     </button>
