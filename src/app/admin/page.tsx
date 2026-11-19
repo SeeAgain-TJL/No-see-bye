@@ -156,7 +156,7 @@ function AdminDashboard() {
     {overview && <CurrentMetrics summary={overview.summary} />}
 
     <div className="admin-overview-grid">
-      <AdminParticleField theme={theme} synced={synced} active={overview?.summary.activeUsers15m ?? 0} days={overview?.daily} selectedDate={currentDate} onDateChange={selectSceneDate} />
+      <AdminParticleField theme={theme} days={overview?.daily} selectedDate={currentDate} onDateChange={selectSceneDate} />
       <aside className="admin-status-panel" aria-label="站点实时状态">
         <div className="admin-monitor-count">
           <h2>近 15 分钟活跃</h2>

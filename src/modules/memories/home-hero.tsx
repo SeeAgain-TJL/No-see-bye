@@ -18,25 +18,17 @@ function GuestOpening() {
   const theme = useActiveTheme();
   const [view, setView] = useState<number | null>(null);
   const scene = themes[theme];
-  const gesture = useCoverGesture(() => setView(themeNames.indexOf(theme)), (event, dx) => {
-    const track = event.currentTarget.parentElement;
-    if (!track) return;
-    const previous = Number.parseFloat(track.style.getPropertyValue('--shot-offset')) || 0;
-    const offset = Math.max(-58, Math.min(58, previous + dx * .55));
-    track.style.setProperty('--shot-offset', offset + 'px');
-  });
+  const gesture = useCoverGesture(() => setView(themeNames.indexOf(theme)));
 
   return <>
-    <section key={theme} className='cinematic-opening' data-camera-frame='' aria-labelledby='hero-title'>
+    <section key={theme} className='cinematic-opening' aria-labelledby='hero-title'>
       <div className='cinematic-camera-track'>
         <div className='cinematic-opening-art' aria-hidden='true'><LivingPhoto theme={theme} paused={view !== null} /></div>
-        <div className='cinematic-opening-optics' aria-hidden='true' />
         <button type='button' className='opening-photo-surface' aria-label={`打开${scene.label}摄影，可缩放`} aria-haspopup='dialog' title='双击查看照片' {...gesture} />
       </div>
       <div className='cinematic-opening-copy'>
         <span className='cinematic-opening-brand'><BrandMark /><span>不说再见</span></span>
-        <h1 id='hero-title'>{scene.quote[0]}<span>{scene.quote[1]}</span></h1>
-        <p className='opening-film-credit'>《{scene.film}》</p>
+        <h1 id='hero-title'>死亡不是终点，<span>遗忘才是</span></h1>
         <div className='cinematic-opening-actions'>
           <Link href='/register' className='cinematic-opening-primary' aria-label='注册账户，开启自己的空间'>开启我的空间<Icon name='arrow' size={18} /></Link>
           <Link href='/memories?scope=public' className='cinematic-opening-secondary' aria-label='浏览公开日常'>借阅人间<Icon name='arrow' size={16} /></Link>

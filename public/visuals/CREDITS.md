@@ -22,3 +22,13 @@ The `scene-*.webp` landscapes are cropped from real photographs and bundled unde
 ## Animated sign-in scenes
 
 The five `auth-*.webp` backgrounds are original illustrations revised with the built-in ImageGen editor. The brief used matte gouache, a visible paper grain, and lighting tied to each scene. The 1120 × 1400 images depict a forest railway archive, a reading room cut into glacial ice, a country post office, a canyon footbridge, and a submerged observatory. Animation, input, and lighting are rendered by the site.
+
+## Living cover films
+
+All five films use 3840 × 2160 source footage. Each shot supplies its own 4K gallery still, posters, preview and silent H.264 loops. The panoramic loops are available in 3840 × 2160 and 1920 × 1080. The compact 1152 × 1080 loop and poster share a separately framed crop. All five themes share the same Chinese cover text.
+
+- forest — [雾过林冠](https://mixkit.co/free-stock-video/slow-aerial-tour-through-a-mist-covered-forest-28342/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
+- iceberg — [浮冰与蓝色冰拱](https://svs.gsfc.nasa.gov/11987/), NASA’s Goddard Space Flight Center, Greenland Icebergs.
+- grassland — [草甸上的长影](https://mixkit.co/free-stock-video/meadow-surrounded-by-trees-on-a-sunny-afternoon-40647/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
+- rift — [岩间叠瀑](https://mixkit.co/free-stock-video/majestic-waterfall-cascading-over-rocky-cliffs-100194/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
+- ocean — [海湾的白色浪线](https://mixkit.co/free-stock-video/sea-waves-in-a-little-bay-1954/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
