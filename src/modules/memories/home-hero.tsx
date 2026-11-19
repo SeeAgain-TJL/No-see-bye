@@ -28,7 +28,7 @@ function GuestOpening() {
       </div>
       <div className='cinematic-opening-copy'>
         <span className='cinematic-opening-brand'><BrandMark /><span>不说再见</span></span>
-        <h1 id='hero-title'>死亡不是终点，<span>遗忘才是</span></h1>
+        <h1 id='hero-title'>死亡不是终点<span>遗忘才是</span></h1>
         <div className='cinematic-opening-actions'>
           <Link href='/register' className='cinematic-opening-primary' aria-label='注册账户，开启自己的空间'>开启我的空间<Icon name='arrow' size={18} /></Link>
           <Link href='/memories?scope=public' className='cinematic-opening-secondary' aria-label='浏览公开日常'>借阅人间<Icon name='arrow' size={16} /></Link>
