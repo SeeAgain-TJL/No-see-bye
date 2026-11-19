@@ -24,10 +24,6 @@ export function JournalAtmosphere({ title, items, publicScope, ownerId, month, t
   const navigatorId = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const router = useRouter();
-  const cover = items
-    .filter(item => publicScope ? item.visibility === "public" : item.userId === ownerId)
-    .flatMap(item => item.assets)
-    .find(asset => asset.mime.startsWith("image/") && asset.width && asset.height && asset.width / asset.height >= 1.38);
   function close() { setExpanded(false); trigger.current?.focus({ preventScroll: true }); }
   return <>
     <header className="journal-living-cover" data-camera-frame="" data-scope={publicScope ? "public" : "mine"} aria-label={title}>
@@ -40,7 +36,7 @@ export function JournalAtmosphere({ title, items, publicScope, ownerId, month, t
           <button ref={trigger} type="button" className="jl-secondary-action jl-browse-trigger" aria-expanded={expanded} aria-controls={navigatorId} onClick={() => setExpanded(value => !value)}><Icon name="calendar" size={16} />按月寻迹<Icon name={expanded ? "close" : "arrow"} size={15} /></button>
         </div>
       </div>
-      <div className="jl-cover-art"><JournalCoverScene publicScope={publicScope} cover={cover} /></div>
+      <div className="jl-cover-art"><JournalCoverScene publicScope={publicScope} /></div>
       <Link className="jl-scope-link" href={publicScope ? "/memories" : "/memories?scope=public"} aria-label={publicScope ? "前往我的日常" : "前往发现日常"}><Icon name={publicScope ? "book" : "globe"} size={15} /><Icon name="arrow" size={13} /></Link>
     </header>
     <JournalNavigator id={navigatorId} expanded={expanded} onClose={close} publicScope={publicScope} ownerId={ownerId} revision={revision} items={items} month={month} type={type} activeFilters={activeFilters} onBrowse={onBrowse} />

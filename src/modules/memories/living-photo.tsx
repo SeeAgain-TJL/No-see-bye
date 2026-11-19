@@ -28,6 +28,20 @@ const fragment = `
   vec3 colorAt(vec2 uv) { return texture2D(uPhoto, clamp(uv, .001, .999)).rgb; }
   float interval(float v, float lo, float hi) { return smoothstep(lo, lo + .10, v) * (1. - smoothstep(hi, hi + .10, v)); }
 
+  float grain(vec2 p) {
+    vec3 v = fract(vec3(p.xyx) * .1031);
+    v += dot(v, v.yzx + 33.33);
+    return fract((v.x + v.y) * v.z);
+  }
+
+  float cloud(vec2 p) {
+    vec2 cell = floor(p);
+    vec2 edge = fract(p);
+    edge = edge * edge * (3. - 2. * edge);
+    return mix(mix(grain(cell), grain(cell + vec2(1., 0.)), edge.x),
+               mix(grain(cell + vec2(0., 1.)), grain(cell + vec2(1.)), edge.x), edge.y);
+  }
+
   void main() {
     vec2 uv = vScreen * uCrop.xy + uCrop.zw;
     vec3 photo = colorAt(uv);
@@ -41,24 +55,36 @@ const fragment = `
       float foam = smoothstep(.09, .40, photo.b);
       photo += vec3(.042, .064, .075) * foam * ripple;
     } else if (uScene == 1) {
-      float water = smoothstep(.62, .83, uv.y);
-      vec2 shift = vec2(sin(uv.y * 122. - time * 2.7) * .009, sin(uv.x * 21. + time * 2.1) * .006);
-      photo = mix(photo, colorAt(uv + shift), water * .87);
-      photo += vec3(.022, .036, .043) * water * sin(uv.y * 98. - uv.x * 12. - time * 2.4);
+      float water = smoothstep(.79, .87, uv.y);
+      float current = sin(uv.y * 82. - time * 2.9 + sin(uv.x * 21.) * 1.6);
+      vec2 shift = vec2(.021 * current, sin(uv.x * 24. + time * 2.2) * .011);
+      photo = mix(photo, colorAt(uv + shift), water);
+      float ripple = sin(uv.y * 103. - uv.x * 14. - time * 2.9) * .5 + .5;
+      photo += vec3(.070, .096, .11) * water * ripple * (1. - .51 * light(photo));
+      float sky = 1. - smoothstep(.13, .25, uv.y);
+      float drift = cloud(vec2(uv.x * 5. - time * .27, uv.y * 15.));
+      photo = mix(photo, vec3(.63, .76, .81), sky * smoothstep(.30, .88, drift) * .24);
     } else if (uScene == 2) {
-      float ribbon = .52 + uv.x * .10 + sin(uv.x * 12. - time * .47) * .054;
-      float mist = exp(-pow((uv.y - ribbon) * 13., 2.)) * (.52 + sin(uv.x * 15. - time * .38) * .46);
-      photo = mix(photo, vec3(.69, .77, .71), mist * .24 * (1. - light(photo) * .66));
+      vec2 wind = vec2(uv.x - time * .077, uv.y + time * .021);
+      float ribbon = .63 - uv.x * .10 + (cloud(wind * vec2(4., 7.)) - .5) * .24;
+      float layers = .64 * cloud(wind * vec2(9., 13.)) + .36 * cloud(wind * vec2(23., 24.));
+      float mist = exp(-pow((uv.y - ribbon) * 7.5, 2.)) * smoothstep(.23, .84, layers);
+      photo = mix(photo, vec3(.71, .79, .75), mist * .53 * (1. - light(photo) * .48));
     } else if (uScene == 3) {
-      float grass = smoothstep(.44, .70, uv.y);
-      float breeze = sin(uv.x * 39. + uv.y * 44. - time * 2.8 + sin(uv.y * 19. + time * .4));
-      vec3 swayed = colorAt(uv + vec2(breeze * .005, breeze * -.003));
-      photo = mix(photo, swayed + vec3(.055, .050, .028) * breeze, grass * .60);
+      float grass = smoothstep(.53, .79, uv.y);
+      vec2 wind = vec2(uv.x - time * .098, uv.y * 1.4 + time * .017);
+      float wake = cloud(wind * vec2(6., 11.)) * .67 + cloud(wind * vec2(17., 29.)) * .33;
+      float breeze = sin(uv.x * 38. + uv.y * 43. - time * 3.4 + wake * 4.);
+      vec3 swayed = colorAt(uv + vec2(breeze * .011, breeze * -.005));
+      float relief = smoothstep(.29, .82, wake) - .48;
+      photo = mix(photo, swayed * (1. + relief * .26) + vec3(.082, .066, .027) * wake, grass * .87);
     } else {
-      float sun = sin(uv.x * 6. + uv.y * 8. - time * .42);
-      float dust = interval(uv.y + uv.x * .22, .41, .60) * (.56 + sun * .44);
-      photo = mix(photo, vec3(.77, .59, .48), dust * .15);
-      photo += vec3(.041, .026, .015) * sun * smoothstep(-.04, .13, warmth) * light(photo);
+      vec2 wind = vec2(uv.x - time * .070, uv.y + time * .020);
+      float haze = cloud(wind * vec2(6., 21.)) * .69 + cloud(wind * vec2(18., 48.)) * .31;
+      float lift = interval(uv.y + uv.x * .24, .49, .73);
+      photo = mix(photo, vec3(.78, .65, .55), lift * smoothstep(.27, .84, haze) * .38);
+      float sun = cloud(vec2(uv.x * 4. - time * .21, uv.y * 7.));
+      photo *= 1. + (sun - .5) * .23 * smoothstep(-.06, .10, warmth) * smoothstep(.24, .46, uv.y);
     }
     gl_FragColor = vec4(photo, 1.);
   }
@@ -152,7 +178,7 @@ export function LivingPhoto({ theme, paused = false }: { theme: ThemeName; pause
       if (!previous || now - previous >= 28) {
         elapsed += previous ? Math.min(now - previous, 75) / 1000 : 0;
         previous = now;
-        renderer.draw(elapsed % 180, ...crop);
+        renderer.draw(elapsed, ...crop);
         if (!canvas!.hasAttribute("data-live")) canvas!.setAttribute("data-live", theme);
       }
       frame = requestAnimationFrame(draw);
