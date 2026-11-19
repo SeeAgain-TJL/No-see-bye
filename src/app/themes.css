@@ -101,7 +101,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-colo
 :root[data-theme] .studio-auth .auth-form .password-field input { background: transparent; color: var(--ink); }
 :root[data-theme] .studio-auth .auth-form input::placeholder { color: var(--ink-muted); }
 :root[data-theme] .studio-auth .auth-form input:-webkit-autofill { -webkit-text-fill-color: var(--ink); -webkit-box-shadow: 0 0 0 1000px var(--surface-dim) inset; }
-:root[data-theme] :is(.studio-auth .auth-form input:focus, .studio-auth .auth-form .password-field:focus-within, .search-dialog-input:focus-within) { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+:root[data-theme] :is(.studio-auth .auth-form input:focus, .studio-auth .auth-form .password-field:focus-within) { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
 :root[data-theme] :is(.studio-auth .auth-form .password-field button, .studio-auth .auth-social-button, .auth-mode-tabs a[aria-current="page"]) { background: var(--accent-soft); color: var(--accent); border-color: var(--line); }
 :root[data-theme] :is(.studio-auth .auth-back, .studio-auth .auth-switch a, .auth-mode-tabs a, .studio-auth .auth-social-button.github svg) { color: var(--accent); }
 

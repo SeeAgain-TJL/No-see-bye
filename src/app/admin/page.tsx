@@ -9,6 +9,7 @@ import { AdminParticleField } from "@/components/admin-particle-field";
 import { AdminUserExplorer, type AdminUserTarget } from "@/components/admin-user-explorer";
 import { ADMIN_POLL_SECONDS, useAdminLiveData } from "@/components/admin-live-data";
 import { AdminActivity, type ActivityDay } from "@/components/admin-activity";
+import { useActiveTheme } from "@/components/theme-provider";
 import { bytes } from "@/lib/client";
 
 type Overview = {
@@ -102,6 +103,7 @@ function ServiceStatus({ overview }: { overview: Overview }) {
 }
 
 function AdminDashboard() {
+  const theme = useActiveTheme();
   const [revision, setRevision] = useState(0);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [accessLost, setAccessLost] = useState(false);
@@ -132,20 +134,12 @@ function AdminDashboard() {
   if (accessLost || overviewState?.denied) return <div className="admin-page"><div className="empty-state"><Icon name="lock" size={28} /><h1>管理权限已失效</h1><Link className="button" href="/login">重新登录<Icon name="arrow" size={16} /></Link></div></div>;
 
   return <div className="admin-page admin-observatory">
-    <header className="admin-monitor">
-      <div className="admin-monitor-stage">
-        <div className="admin-monitor-title">
-          <p className="admin-live-state" role="status" data-state={error ? "error" : autoRefresh && overview ? "live" : "idle"}><i aria-hidden="true" />{refreshStatus}</p>
-          <h1>站点观测</h1>
-          <div className="admin-monitor-count">
-            <strong>{overview ? count(overview.summary.activeUsers15m) : "—"}</strong>
-            <span>近 15 分钟活跃</span>
-          </div>
-          <button type="button" className="admin-monitor-jump" onClick={() => jumpTo("admin-trends-title")} disabled={!overview}>查看活动明细<Icon name="arrow" size={16} /></button>
-        </div>
-        <AdminParticleField synced={synced} active={overview?.summary.activeUsers15m ?? 0} days={overview?.daily} selectedDate={currentDate} onDateChange={selectSceneDate} />
+    <header className="admin-masthead">
+      <div className="admin-masthead-title">
+        <h1>站点观测</h1>
+        <p className="admin-live-state" role="status" data-state={error ? "error" : autoRefresh && overview ? "live" : "idle"}><i aria-hidden="true" />{refreshStatus}</p>
       </div>
-      <div className="admin-monitor-footer">
+      <div className="admin-masthead-tools">
         <div className="admin-monitor-sync">
           <Icon name="calendar" size={16} />
           <span>{sampled ? <>最后同步 <time dateTime={new Date(sampled).toISOString()} title="北京时间">{localTime.format(sampled)}</time></> : "等待首次同步"}</span>
@@ -159,8 +153,21 @@ function AdminDashboard() {
     </header>
 
     {error && <div className="admin-data-error" role="alert"><span>{error}{overview ? "。正在显示上次同步的数据。" : "。"}</span><button type="button" className="admin-control" onClick={refresh}>重试</button></div>}
-    {overview ? <>
-      <CurrentMetrics summary={overview.summary} />
+    {overview && <CurrentMetrics summary={overview.summary} />}
+
+    <div className="admin-overview-grid">
+      <AdminParticleField theme={theme} synced={synced} active={overview?.summary.activeUsers15m ?? 0} days={overview?.daily} selectedDate={currentDate} onDateChange={selectSceneDate} />
+      <aside className="admin-status-panel" aria-label="站点实时状态">
+        <div className="admin-monitor-count">
+          <h2>近 15 分钟活跃</h2>
+          <p><strong>{overview ? count(overview.summary.activeUsers15m) : "—"}</strong><span>位用户</span></p>
+        </div>
+        {overview && <ServiceStatus overview={overview} />}
+        <button type="button" className="admin-monitor-jump" onClick={() => jumpTo("admin-trends-title")} disabled={!overview}>查看活动明细<Icon name="arrow" size={16} /></button>
+      </aside>
+    </div>
+
+    {overview ? (
       <AdminActivity
         daily={overview.daily}
         period={activityPeriod}
@@ -172,10 +179,9 @@ function AdminDashboard() {
         onDenied={onDenied}
         onSelectUser={person => setSelectedUser(previous => ({ id: person.id, username: person.username, request: (previous?.request ?? 0) + 1 }))}
       />
-    </> : !error && <div className="admin-read-status" role="status">正在读取站点统计…</div>}
+    ) : !error && <div className="admin-read-status" role="status">正在读取站点统计…</div>}
 
     <AdminUserExplorer revision={revision} autoRefresh={autoRefresh} onChanged={refresh} onDenied={onDenied} target={selectedUser} />
-    {overview && <ServiceStatus overview={overview} />}
   </div>;
 }
 

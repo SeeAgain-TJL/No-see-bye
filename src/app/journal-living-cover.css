@@ -10,8 +10,10 @@
   overflow: hidden;
   background: transparent;
   color: var(--cinema-light);
+  cursor: zoom-in;
+  touch-action: pan-y;
 }
-.journal-living-scene:focus-visible { outline: 2px solid var(--cinema-light); outline-offset: -9px; }
+.journal-living-cover:has(.journal-living-scene:focus-visible) { outline: 2px solid var(--cinema-light); outline-offset: 3px; }
 .jls-view-window, .jls-photo-plane, .jls-lens-plane { position: absolute; display: block; pointer-events: none; }
 .jls-view-window { inset: 0; overflow: hidden; }
 .jls-photo-plane {
@@ -22,7 +24,6 @@
   transition: transform .92s var(--cinema-ease), filter .65s;
 }
 .journal-living-scene[data-jls-scope='public'] .jls-photo-plane { background-position-y: 40%; }
-.journal-living-scene[data-jls-open='true'] .jls-photo-plane { transform: translate(var(--camera-x, 0px), var(--camera-y, 0px)) scale(1.18); }
 .jls-lens-plane {
   inset: -15px;
   background: var(--opening-optics);
@@ -32,30 +33,8 @@
   transform: translate(calc(var(--camera-x, 0px) * -1), calc(var(--camera-y, 0px) * -1));
   transition: transform .82s var(--cinema-ease), opacity .55s;
 }
-.journal-living-scene[data-jls-open='true'] .jls-lens-plane { opacity: .82; }
-.jls-touchmark {
-  position: absolute;
-  right: 19px;
-  bottom: 15px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 33px;
-  padding: 4px 8px;
-  border-radius: 7px;
-  border: 1px solid #e4f1eb5a;
-  color: var(--cinema-light);
-  background: #0c1822ba;
-  font-size: 11px;
-  pointer-events: none;
-}
-.journal-living-scene:is([aria-pressed='true'], :hover) .jls-touchmark { border-color: var(--cinema-light); background: var(--cinema-matte); }
-.journal-living-cover[data-scope='public'] .jls-touchmark { right: 33px; }
 @media (max-width:760px) {
-  .jls-photo-plane { background-position: calc(var(--opening-position) + 3%) center; }
-  .jls-touchmark, .journal-living-cover[data-scope='public'] .jls-touchmark { min-height: 33px; bottom: 10px; right: 15px; }
-  .jls-touchmark > span { display: none; }
+  .jls-photo-plane { background-position: var(--opening-position) center; }
 }
 @media (prefers-reduced-motion:reduce) {
   .jls-photo-plane, .jls-lens-plane { transition: none; }

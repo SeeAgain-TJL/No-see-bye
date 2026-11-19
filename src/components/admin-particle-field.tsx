@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import type { ThemeName } from "@/lib/themes";
 import { Icon } from "./icons";
+import { ThemeMotif } from "./theme-motif";
 import type { ActivityDay } from "./admin-activity";
 import { createObservatoryRenderer, pickActivityDay, type ObservatoryRenderer } from "./admin-observatory-renderer";
+import { adminThemeScenes } from "./admin-observatory-theme";
 import "./admin-observatory-scene.css";
 
 type Mode = "orbit" | "activity";
 type Pose = { yaw: number; pitch: number; zoom: number };
-type Input = { synced: number; active: number; days: ActivityDay[]; mode: Mode; playing: boolean; selectedIndex: number };
+type Input = { theme: ThemeName; synced: number; active: number; days: ActivityDay[]; mode: Mode; playing: boolean; selectedIndex: number };
 
-const defaultPose: Pose = { yaw: -0.21, pitch: 0.72, zoom: 1 };
+const defaultPose: Pose = { yaw: -0.16, pitch: 0.45, zoom: 1 };
 const historyPose: Pose = { yaw: -0.82, pitch: 0.70, zoom: 0.94 };
 const minZoom = .65;
 const maxZoom = 1.55;
@@ -18,7 +21,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 const dateLabel = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric", day: "numeric" });
 const noDays: ActivityDay[] = [];
 
-export function AdminParticleField({ synced, active, days = noDays, selectedDate, onDateChange }: Pick<Input, "synced" | "active"> & {
+export function AdminParticleField({ theme, synced, active, days = noDays, selectedDate, onDateChange }: Pick<Input, "theme" | "synced" | "active"> & {
   days?: ActivityDay[];
   selectedDate: string;
   onDateChange: (date: string) => void;
@@ -35,6 +38,7 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
   const invalidate = useRef<() => void>(() => {});
   const findDay = useRef<(x: number, y: number) => number>(() => -1);
   const displayedDays = days.slice(-30);
+  const themeScene = adminThemeScenes[theme].name;
   const selected = displayedDays.find(day => day.date === selectedDate) ?? displayedDays.findLast(day => day.users || day.entries) ?? displayedDays.at(-1);
   const selectedIndex = selected ? displayedDays.indexOf(selected) : -1;
   const available = ready === "available";
@@ -54,7 +58,7 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
     let density = 1;
     let visible = true;
     let pose = { ...defaultPose };
-    let input: Input = { synced: 0, active: 0, days: noDays, mode: "orbit", playing: true, selectedIndex: -1 };
+    let input: Input = { theme: "forest", synced: 0, active: 0, days: noDays, mode: "orbit", playing: true, selectedIndex: -1 };
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
 
     function schedule() {
@@ -114,6 +118,7 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
           return;
         }
         renderer = createObservatoryRenderer(context);
+        if (input.theme !== "forest") renderer.updateTheme(input.theme);
         renderer.updateHistory(input.days);
         sizeCanvas();
         setReady("available");
@@ -136,6 +141,7 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
     setRenderInput.current = next => {
       if (lastSync && next.synced && lastSync !== next.synced) burst = performance.now();
       if (next.synced) lastSync = next.synced;
+      if (next.theme !== input.theme) renderer?.updateTheme(next.theme);
       if (next.days !== input.days) renderer?.updateHistory(next.days);
       input = next;
       schedule();
@@ -173,8 +179,8 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
   }, []);
 
   useEffect(() => {
-    setRenderInput.current({ synced, active, days, mode, playing, selectedIndex });
-  }, [synced, active, days, mode, playing, selectedIndex]);
+    setRenderInput.current({ theme, synced, active, days, mode, playing, selectedIndex });
+  }, [theme, synced, active, days, mode, playing, selectedIndex]);
 
   function reset(view: Mode = mode) {
     aim.current = { ...(view === "orbit" ? defaultPose : historyPose) };
@@ -244,16 +250,10 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
     event.preventDefault();
   }
 
-  return <section className="admin-scene" aria-label="实时观测图">
-    <div className="admin-scene-viewport" ref={scene} data-ready={available} data-mode={mode}>
-      <div className="admin-scene-fallback" aria-hidden="true"><i /><i /><i /></div>
-      <canvas ref={surface} className="admin-scene-canvas" role="img" tabIndex={available ? 0 : -1}
-        aria-hidden={!available}
-        aria-label={mode === "orbit" ? "三维粒子场" : "围绕中心排列的近 30 天站点活动"}
-        aria-describedby={available ? "admin-scene-instructions" : undefined}
-        onPointerDown={startDrag} onPointerMove={continueDrag} onPointerUp={finishDrag}
-        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={navigate} />
-      <div className="admin-scene-topline">
+  return <section className="admin-scene" aria-labelledby="admin-scene-title">
+    <div className="admin-scene-header">
+      <div className="admin-scene-heading"><ThemeMotif theme={theme} /><h2 id="admin-scene-title">{mode === "orbit" ? themeScene : "活动分布"}</h2></div>
+      <div className="admin-scene-toolbar">
         <div className="admin-scene-modes" role="group" aria-label="观测视图">
           <button type="button" aria-pressed={mode === "orbit"} onClick={() => changeMode("orbit")}>粒子场</button>
           <button type="button" aria-pressed={mode === "activity"} onClick={() => changeMode("activity")}>30 天活动</button>
@@ -261,6 +261,15 @@ export function AdminParticleField({ synced, active, days = noDays, selectedDate
         <button type="button" className="admin-scene-pause" disabled={!available || mode !== "orbit"}
           aria-label={playing ? "暂停粒子运动" : "继续粒子运动"} title={playing ? "暂停粒子运动" : "继续粒子运动"} onClick={() => setPlaying(value => !value)}><Icon name={playing ? "pause" : "play"} size={15} /></button>
       </div>
+    </div>
+    <div className="admin-scene-viewport" ref={scene} data-ready={available} data-mode={mode}>
+      <div className="admin-scene-fallback" aria-hidden="true"><i /><i /><i /></div>
+      <canvas ref={surface} className="admin-scene-canvas" role="img" tabIndex={available ? 0 : -1}
+        aria-hidden={!available}
+        aria-label={mode === "orbit" ? `${themeScene}三维粒子场` : "围绕中心排列的近 30 天站点活动"}
+        aria-describedby={available ? "admin-scene-instructions" : undefined}
+        onPointerDown={startDrag} onPointerMove={continueDrag} onPointerUp={finishDrag}
+        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={navigate} />
       <div className="admin-scene-zoom" role="group" aria-label="镜头控制">
         <button type="button" aria-label="缩小镜头" disabled={!available || zoom <= minZoom} onClick={() => magnify(-.12)}>−</button>
         <span aria-label={`缩放 ${Math.round(zoom * 100)}%`}>{Math.round(zoom * 100)}%</span>
