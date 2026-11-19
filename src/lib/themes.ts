@@ -9,7 +9,7 @@ export const themes = {
 export type ThemeName = keyof typeof themes;
 export const themeNames = Object.keys(themes) as ThemeName[];
 export const THEME_STORAGE_KEY = "theme";
-export const defaultTheme: ThemeName = "forest";
+export const defaultTheme: ThemeName = "grassland";
 const previousThemes = { dusk: "grassland", sea: "ocean", film: "rift", night: "forest" } as const;
 export function isTheme(value: string | null | undefined): value is ThemeName {
   return themeNames.some(name => name === value);
