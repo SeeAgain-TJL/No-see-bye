@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { type ThemeName } from "@/lib/themes";
+import { ThemeMotif } from "./theme-motif";
 import { Icon } from "./icons";
 import { useActiveTheme } from "./theme-provider";
 import { paintAtmosphere } from "./ambient-landscapes";
@@ -75,7 +76,7 @@ export function AmbientScene({ awake, onToggle }: { awake: boolean; onToggle: ()
     {awake && <div className="world-choreography" aria-hidden="true"><Landscape key={theme} theme={theme} /></div>}
     <button className="environment-toggle world-toggle" type="button" aria-pressed={awake} onClick={onToggle}
       aria-label={awake ? '关闭全页主题动效' : '开启全页主题动效'} title={awake ? '关闭全页主题动效' : label}>
-      <span className="world-switch-mark" aria-hidden="true"><Icon name={awake ? 'pause' : 'spark'} size={15} /></span>
+      <span className="world-switch-mark" aria-hidden="true">{awake ? <Icon name="pause" size={15}/> : <ThemeMotif theme={theme}/>}</span>
       <span className="world-switch-label">{awake ? '归于静处' : label}</span>
     </button>
     <span className="sr-only" role="status">{awake ? status : '全页主题动效已关闭'}</span>

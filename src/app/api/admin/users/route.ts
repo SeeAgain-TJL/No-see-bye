@@ -8,11 +8,12 @@ const query = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   q: z.string().trim().max(100).default(""),
   userId: z.string().max(100).optional(),
+  activity: z.enum(["all", "recent"]).default("all"),
 });
 export async function GET(req: NextRequest) {
   try {
     await requireAdmin(req);
-    const { q, page, pageSize, userId } = query.parse(Object.fromEntries(req.nextUrl.searchParams));
-    return NextResponse.json(await adminUsers(q, page, pageSize, userId), { headers: adminNoStore });
+    const { q, page, pageSize, userId, activity } = query.parse(Object.fromEntries(req.nextUrl.searchParams));
+    return NextResponse.json(await adminUsers(q, page, pageSize, userId, activity === "recent"), { headers: adminNoStore });
   } catch (error) { return apiError(error); }
 }

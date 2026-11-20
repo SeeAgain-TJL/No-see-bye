@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "@/components/icons";
 import { useAdminLiveData } from "@/components/admin-live-data";
+import { PulseChart } from "@/components/observatory/pulse-chart";
 
 export type ActivityDay = { date: string; users: number; entries: number };
 type Person = { id: string; username: string; displayName: string };
@@ -74,6 +75,9 @@ export function AdminActivity({ daily, period, selectedDate, revision, autoRefre
   const step = Math.max(1, Math.ceil(Math.max(0, ...days.flatMap(day => [day.users, day.entries])) / 4));
   const scale = step * 4;
   const labels = [0, Math.floor((days.length - 1) / 2), days.length - 1];
+  const totals = days.reduce((sum, day) => ({ users: sum.users + day.users, entries: sum.entries + day.entries }), { users: 0, entries: 0 });
+  const earlier = daily.slice(-14, -7);
+  const difference = period === 7 && earlier.length === 7 ? totals.entries - earlier.reduce((sum, day) => sum + day.entries, 0) : null;
 
   function selectDay(index: number, focus = false) {
     const day = days[index];
@@ -90,14 +94,14 @@ export function AdminActivity({ daily, period, selectedDate, revision, autoRefre
 
   return <section className="admin-panel admin-trend" aria-labelledby="admin-trends-title">
     <div className="admin-panel-heading">
-      <div><h2 id="admin-trends-title" tabIndex={-1}>新增趋势</h2><p>选择日期，查看谁注册、谁写了日常</p></div>
+      <div><span className="obs-station-label">01 / ACTIVITY</span><h2 id="admin-trends-title" tabIndex={-1}>新增趋势</h2></div>
       <div className="admin-segments" role="group" aria-label="趋势统计周期">
         {([7, 30] as const).map(value => <button type="button" key={value} aria-pressed={period === value} onClick={() => onPeriodChange(value)}>{value} 天</button>)}
       </div>
     </div>
     {active && <div className="admin-trend-body">
       <div className="admin-trend-main">
-        <div className="admin-chart-legend"><span>新增用户 <b>{active.users}</b></span><span>新增日常 <b>{active.entries}</b></span><small><time dateTime={active.date}>{active.date.slice(5)}</time> · 北京时间</small></div>
+        <div className="admin-chart-legend"><span>新增用户 <b>{totals.users}</b></span><span>新增日常 <b>{totals.entries}</b></span><small>{difference === null ? '周期合计 · 北京时间' : '日常较前 7 天 '+(difference>0?'+':'')+difference}</small></div>
         <div className="admin-activity-chart">
           <div className="admin-chart-axis" aria-hidden="true">{[4, 3, 2, 1, 0].map(mark => <span key={mark}>{mark * step}</span>)}</div>
           <div className="admin-chart-plot">
@@ -122,11 +126,11 @@ export function AdminActivity({ daily, period, selectedDate, revision, autoRefre
                 aria-label={`${day.date}，新增用户 ${day.users}，新增日常 ${day.entries}`}
                 onClick={() => selectDay(index)}
               >
-                <span className="admin-chart-bar" style={{ height: `${day.users / scale * 100}%` }} />
-                <span className="admin-chart-bar" style={{ height: `${day.entries / scale * 100}%` }} />
+                <span className="admin-chart-bar obs-glass-bar" style={{ height: `${day.entries / scale * 100}%` }} />
                 <span className="admin-day-tooltip" aria-hidden="true">{day.date.slice(5)} <b>{day.users} 人 · {day.entries} 篇</b></span>
               </button>)}
             </div>
+            <PulseChart days={days} scale={scale} active={activeIndex} />
             <div className="admin-chart-dates" aria-hidden="true">{labels.map((index, i) => <span key={i}>{days[index]?.date.slice(5)}</span>)}</div>
           </div>
         </div>
@@ -145,7 +149,7 @@ export function AdminActivity({ daily, period, selectedDate, revision, autoRefre
         </div>
       </div>
       <section className="admin-activity-detail" aria-label="当日新增明细" aria-busy={Boolean(!detail?.data && !detail?.error)}>
-        <div className="admin-activity-detail-heading"><div><h3>当日明细</h3><time dateTime={active.date}>{active.date}</time></div><span aria-hidden="true"><Icon name="list" size={19} /></span></div>
+        <div className="admin-activity-detail-heading"><div><time dateTime={active.date}>{active.date}</time><h3>当日明细</h3></div><span aria-hidden="true"><Icon name="list" size={19} /></span></div>
         {detail?.error && <div className="admin-activity-error" role="status"><span>{detail.data ? "暂未同步，显示上次明细" : "暂时无法加载明细"}</span><button className="admin-control" type="button" onClick={() => setRetry(value => value + 1)}>重试</button></div>}
         {!detail?.data && !detail?.error && <p className="admin-activity-loading" role="status">读取当日明细…</p>}
         <div className="admin-activity-people-list" key={active.date}>

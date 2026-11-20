@@ -80,6 +80,9 @@ try {
   assert.equal(list.data.total, 1); assert.equal(list.data.items[0].entries, 2); assert.equal(list.data.items[0].loginCount, 1); assert(list.data.items[0].lastLoginAt); assert(list.data.items[0].lastSeenAt);
   assert(!JSON.stringify(list.data).includes("passwordHash")); assert(!JSON.stringify(list.data).includes("Private body")); assert(!JSON.stringify(list.data).includes("backupEmail"));
   assert.equal((await call("/api/admin/users?page=999&pageSize=1", { cookie: adminSession.cookie })).data.page, 2);
+  const recentUsers = await call("/api/admin/users?activity=recent", { cookie: adminSession.cookie });
+  assert(recentUsers.data.items.every(person => Date.parse(person.lastSeenAt) > Date.now() - 15 * 60_000 - 3000 && Date.parse(person.lastSeenAt) <= Date.now()));
+  await call("/api/admin/users?activity=invalid", { cookie: adminSession.cookie, status: 400 });
   await call("/api/admin/users?pageSize=101", { cookie: adminSession.cookie, status: 400 });
   assert.equal((await call("/api/admin/users?q=" + encodeURIComponent("' OR 1=1--"), { cookie: adminSession.cookie })).data.total, 0);
   const exactUser = await call("/api/admin/users?userId=ordinary&q=nomatch", { cookie: adminSession.cookie });

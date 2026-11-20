@@ -59,8 +59,9 @@ function UserTime({ value, full = false }: { value: string | null; full?: boolea
   return <time dateTime={value}>{(full ? fullDate : localDate).format(new Date(value))}</time>;
 }
 
-function UserRow({ person, expanded, onToggle, onChanged }: {
+function UserRow({ person, sampled, expanded, onToggle, onChanged }: {
   person: AdminUser;
+  sampled: number;
   expanded: boolean;
   onToggle: () => void;
   onChanged: () => void;
@@ -69,6 +70,8 @@ function UserRow({ person, expanded, onToggle, onChanged }: {
   const buttonId = useId();
   const name = person.displayName || person.username;
   const isAdmin = person.role === "admin";
+  const seen = person.lastSeenAt ? Date.parse(person.lastSeenAt) : NaN;
+  const recent = seen <= sampled && sampled - seen < 15 * 60_000;
   const methods = person.loginMethods.map(method => method === "password" ? "密码" : method === "github" ? "GitHub" : method);
 
   return <li className="admin-explorer-person" data-expanded={expanded}>
@@ -82,7 +85,7 @@ function UserRow({ person, expanded, onToggle, onChanged }: {
       </span>
       <span className="admin-explorer-row-metric"><b>{count.format(person.entries)}</b><span> 条日常</span></span>
       <span className="admin-explorer-row-metric admin-explorer-row-storage">{bytes(person.storageBytes)}</span>
-      <span className="admin-explorer-row-seen"><span className="admin-explorer-mobile-label">最近活跃 </span><UserTime value={person.lastSeenAt} /></span>
+      <span className="admin-explorer-row-seen" data-recent={recent}><span className="admin-explorer-mobile-label">最近活跃 </span>{recent && <span className="sr-only">近 15 分钟活跃，</span>}<UserTime value={person.lastSeenAt} /></span>
       <span className="admin-explorer-disclosure"><Icon name="arrow" size={16} /></span>
     </button>
     <div className="admin-explorer-reveal" id={detailId} role="region" inert={!expanded} aria-hidden={!expanded} aria-labelledby={buttonId}>
@@ -126,13 +129,14 @@ function UserRow({ person, expanded, onToggle, onChanged }: {
 
 function UserDirectory({ revision, autoRefresh, onChanged, onDenied, target }: ExplorerProps) {
   const [page, setPage] = useState(1);
+  const [recentOnly, setRecentOnly] = useState(false);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [exact, setExact] = useState(target);
   const [expandedId, setExpandedId] = useState<string | null>(target?.id ?? null);
   const section = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
-  const endpoint = `/api/admin/users?${new URLSearchParams({ page: String(page), pageSize: "20", ...(exact ? { userId: exact.id } : { q: search }) })}`;
+  const endpoint = `/api/admin/users?${new URLSearchParams({ page: String(page), pageSize: "20", ...(exact ? { userId: exact.id } : { q: search, activity: recentOnly ? "recent" : "all" }) })}`;
   const state = useAdminLiveData<UserPage>(endpoint, revision, autoRefresh);
   const result = state?.data;
   const denied = state?.denied;
@@ -148,6 +152,7 @@ function UserDirectory({ revision, autoRefresh, onChanged, onDenied, target }: E
   }, [target]);
 
   function resetSearch() {
+    setRecentOnly(false);
     setExact(null);
     setQuery("");
     setSearch("");
@@ -159,7 +164,7 @@ function UserDirectory({ revision, autoRefresh, onChanged, onDenied, target }: E
     <div className="admin-explorer-header">
       <div className="admin-explorer-title">
         <span className="admin-explorer-title-icon"><Icon name="globe" size={19} /></span>
-        <h2 id="admin-users-title" ref={heading} tabIndex={-1}>用户管理</h2>
+        <div><span className="obs-station-label admin-explorer-section-label">02 / DIRECTORY</span><h2 id="admin-users-title" ref={heading} tabIndex={-1}>用户管理</h2></div>
         {result && <span className="admin-explorer-total" title="当前结果数">{count.format(result.total)}</span>}
       </div>
       <form className="admin-explorer-search" onSubmit={event => {
@@ -174,6 +179,9 @@ function UserDirectory({ revision, autoRefresh, onChanged, onDenied, target }: E
         <button type="submit">搜索</button>
       </form>
     </div>
+    <div className="admin-directory-controls"><div className="admin-segments" role="group" aria-label="用户活跃筛选">
+      {([false, true] as const).map(recent => <button key={String(recent)} type="button" aria-pressed={recentOnly === recent} onClick={() => { setRecentOnly(recent); setExact(null); setExpandedId(null); setPage(1); }}>{recent ? "近 15 分钟活跃" : "全部用户"}</button>)}
+    </div></div>
     {(exact || search) && <div className="admin-explorer-filter">
       <button type="button" onClick={resetSearch} aria-label="清空筛选，查看全部用户"><span>{exact ? `@${exact.username}` : search}</span><Icon name="close" size={15} /></button>
     </div>}
@@ -182,7 +190,7 @@ function UserDirectory({ revision, autoRefresh, onChanged, onDenied, target }: E
     {result && (result.items.length === 0 ? <div className="admin-read-status" role="status">{exact ? "该账号已不存在。" : "没有找到匹配的用户。"}</div> : <>
       <div className="admin-explorer-columns" aria-hidden="true"><span>账号</span><span>日常</span><span>存储</span><span>最近活跃</span></div>
       <ul className="admin-explorer-list">
-        {result.items.map(person => <UserRow key={person.id} person={person} expanded={expandedId === person.id} onToggle={() => setExpandedId(value => value === person.id ? null : person.id)} onChanged={onChanged} />)}
+        {result.items.map(person => <UserRow key={person.id} person={person} sampled={state?.updated ?? 0} expanded={expandedId === person.id} onToggle={() => setExpandedId(value => value === person.id ? null : person.id)} onChanged={onChanged} />)}
       </ul>
     </>)}
     {result && <footer className="admin-explorer-pagination">

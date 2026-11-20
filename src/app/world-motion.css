@@ -52,3 +52,10 @@
 @media (prefers-reduced-motion: reduce) {
   .world-toggle, .world-toggle *, :is(.app-shell, .studio-auth) :is(a, button, input, textarea, select), :is(.app-shell, .studio-auth) :is(a,button) > svg { animation: none !important; transition: none !important; }
 }
+
+.world-switch-mark .theme-motif { width: 20px; height: 20px; color: var(--cinema-light); }
+@media (prefers-reduced-motion: no-preference) {
+  .world-environment[data-awake='true'] .world-toggle::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border: 1px solid var(--cinema-light); pointer-events: none; animation: world-release .95s ease-out both; }
+  @keyframes world-release { from { opacity: .9; scale: .9; } to { opacity: 0; scale: 1.48; } }
+}
+@media (max-width:760px) { .app-shell:has(.obs-stage) .mobile-nav { padding-inline: 6px; } }

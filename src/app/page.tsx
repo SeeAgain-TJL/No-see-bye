@@ -44,7 +44,7 @@ export default function Home() {
       </header>
       <div aria-busy={loading || !current}>
         {current?.error ? <div className="home-error" role="alert">{current.error}<button onClick={reload}>重新加载</button></div>
-          : loading || !data ? <div className="studio-skeleton" role="status" aria-label="正在加载照片"><span /><span /></div>
+          : loading || !data ? <div className="projection-contact-grid contact-skeleton" role="status" aria-label="正在加载照片"><span /><span /><span /></div>
           : photos.length ? <div className="projection-contact-grid">
             {photos.map((photo, index) => <CollectionCard key={photo.asset.id} photo={photo} index={index} onOpen={() => setViewing({ owner, photo: photo.asset.id })} />)}
           </div>

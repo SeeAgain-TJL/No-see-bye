@@ -5,12 +5,13 @@ import { useCallback, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
-import { AdminParticleField } from "@/components/admin-particle-field";
+import { ObservatoryStage } from "@/components/observatory/stage";
 import { AdminUserExplorer, type AdminUserTarget } from "@/components/admin-user-explorer";
 import { ADMIN_POLL_SECONDS, useAdminLiveData } from "@/components/admin-live-data";
 import { AdminActivity, type ActivityDay } from "@/components/admin-activity";
 import { useActiveTheme } from "@/components/theme-provider";
 import { bytes } from "@/lib/client";
+import "./observatory.css";
 
 type Overview = {
   summary: {
@@ -69,7 +70,7 @@ function CurrentMetrics({ summary }: { summary: Overview["summary"] }) {
         onClick={() => setActive(current => current === item.id ? null : item.id)}
       >
         <span className="admin-metric-label"><Icon name={item.name} size={17} />{item.label}</span>
-        <strong>{item.value}</strong>
+        <strong key={item.value}>{item.value}</strong>
         <small>{item.note}</small>
         <Icon name="plus" size={14} className="admin-metric-reveal" />
       </button>)}
@@ -126,17 +127,11 @@ function AdminDashboard() {
     if (!overview?.daily.slice(-period).some(day => day.date === activityDate)) setActivityDate("");
   }
 
-  function selectSceneDate(date: string) {
-    if (!periodDays?.some(day => day.date === date)) setActivityPeriod(30);
-    setActivityDate(date);
-  }
-
   if (accessLost || overviewState?.denied) return <div className="admin-page"><div className="empty-state"><Icon name="lock" size={28} /><h1>管理权限已失效</h1><Link className="button" href="/login">重新登录<Icon name="arrow" size={16} /></Link></div></div>;
 
-  return <div className="admin-page admin-observatory">
-    <header className="admin-masthead">
+  const masthead = <header className="admin-masthead">
       <div className="admin-masthead-title">
-        <h1>站点观测</h1>
+        <div><span className="obs-station-label">NO SEE BYE / ADMIN</span><h1 id="admin-monitor-title">站点观测</h1></div>
         <p className="admin-live-state" role="status" data-state={error ? "error" : autoRefresh && overview ? "live" : "idle"}><i aria-hidden="true" />{refreshStatus}</p>
       </div>
       <div className="admin-masthead-tools">
@@ -152,20 +147,12 @@ function AdminDashboard() {
       </div>
     </header>
 
-    {error && <div className="admin-data-error" role="alert"><span>{error}{overview ? "。正在显示上次同步的数据。" : "。"}</span><button type="button" className="admin-control" onClick={refresh}>重试</button></div>}
-    {overview && <CurrentMetrics summary={overview.summary} />}
-
-    <div className="admin-overview-grid">
-      <AdminParticleField theme={theme} days={overview?.daily} selectedDate={currentDate} onDateChange={selectSceneDate} />
-      <aside className="admin-status-panel" aria-label="站点实时状态">
-        <div className="admin-monitor-count">
-          <h2>近 15 分钟活跃</h2>
-          <p><strong>{overview ? count(overview.summary.activeUsers15m) : "—"}</strong><span>位用户</span></p>
-        </div>
-        {overview && <ServiceStatus overview={overview} />}
-        <button type="button" className="admin-monitor-jump" onClick={() => jumpTo("admin-trends-title")} disabled={!overview}>查看活动明细<Icon name="arrow" size={16} /></button>
-      </aside>
-    </div>
+  return <div className="admin-page admin-observatory">
+    <ObservatoryStage key={theme} theme={theme} active={overview?.summary.activeUsers15m ?? null}
+      header={masthead} status={overview && <ServiceStatus overview={overview} />}
+      metrics={overview && <CurrentMetrics summary={overview.summary} />}>
+      {error && <div className="admin-data-error" role="alert"><span>{error}{overview ? "。正在显示上次同步的数据。" : "。"}</span><button type="button" className="admin-control" onClick={refresh}>重试</button></div>}
+    </ObservatoryStage>
 
     {overview ? (
       <AdminActivity

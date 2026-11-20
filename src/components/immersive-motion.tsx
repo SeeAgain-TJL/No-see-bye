@@ -35,9 +35,9 @@ export function ImmersiveMotion() {
   useEffect(() => {
     const host = anchor.current?.closest<HTMLElement>('.app-shell, .studio-auth');
     if (!host) return;
-    host.dataset.worldAwake = String(awake);
+    host.dataset.worldAwake = String(awake && pathname !== "/admin");
     return () => { delete host.dataset.worldAwake; };
-  }, [awake]);
+  }, [awake, pathname]);
 
   useEffect(() => {
     const host = anchor.current?.closest<HTMLElement>('.app-shell, .studio-auth');
@@ -212,6 +212,6 @@ export function ImmersiveMotion() {
 
   return <div ref={anchor} className="immersive-motion-root">
     <div className="immersive-reading-track" aria-hidden="true"><span /></div>
-    <AmbientScene awake={awake} onToggle={toggleScene} />
+    {pathname !== "/admin" && <AmbientScene awake={awake} onToggle={toggleScene} />}
   </div>;
 }
