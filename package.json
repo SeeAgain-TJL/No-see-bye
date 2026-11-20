@@ -10,7 +10,7 @@
     "db:init": "node --experimental-sqlite scripts/init-db.mjs",
     "test:integration": "node scripts/integration.mjs",
     "test:security": "node scripts/test-admin-security.mjs && node scripts/test-admin-user-lifecycle.mjs",
-    "test:layout": "node scripts/test-photo-rows.mjs",
+    "test:layout": "node scripts/test-photo-rows.mjs && node scripts/test-observatory.mjs",
     "db:generate": "prisma generate",
     "check": "tsc --noEmit",
     "assets:cleanup": "node scripts/cleanup-assets.mjs",

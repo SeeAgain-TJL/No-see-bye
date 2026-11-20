@@ -43,8 +43,8 @@ export async function adminOverview() {
   const start = dates[0];
   const end = dates[dates.length - 1];
   const [users, activeUsers7d, activeUsers15m, entries, publicEntries, privateEntries, trashedEntries, assets, storage, photos, videos, userDays, entryDays] = await Promise.all([
-    prisma.user.count(), prisma.user.count({ where: { lastSeenAt: { gte: week } } }),
-    prisma.user.count({ where: { lastSeenAt: { gte: quarterHour } } }),
+    prisma.user.count(), prisma.user.count({ where: { lastSeenAt: { gte: week, lte: new Date(now) } } }),
+    prisma.user.count({ where: { lastSeenAt: { gte: quarterHour, lte: new Date(now) } } }),
     prisma.entry.count({ where: { deletedAt: null } }),
     prisma.entry.count({ where: { deletedAt: null, visibility: "public" } }),
     prisma.entry.count({ where: { deletedAt: null, visibility: "private" } }),
@@ -103,8 +103,9 @@ export async function adminDayActivity(date: string, registrationPage: number, c
   });
 }
 
-export async function adminUsers(q: string, page: number, pageSize: number, userId?: string) {
-  const where = userId ? { id: userId } : q ? { OR: [{ username: { contains: q } }, { displayName: { contains: q } }, { email: { contains: q } }] } : {};
+export async function adminUsers(q: string, page: number, pageSize: number, userId?: string, recent = false) {
+  const matching = userId ? { id: userId } : q ? { OR: [{ username: { contains: q } }, { displayName: { contains: q } }, { email: { contains: q } }] } : {};
+  const where = recent && !userId ? { ...matching, lastSeenAt: { gte: new Date(Date.now() - 15 * 60_000), lte: new Date() } } : matching;
   const total = await prisma.user.count({ where });
   const { totalPages, page: current, offset } = pageBounds(total, page, pageSize);
   const users = await prisma.user.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "asc" }], skip: offset, take: pageSize,
