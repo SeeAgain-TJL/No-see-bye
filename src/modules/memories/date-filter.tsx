@@ -10,7 +10,7 @@ export function DateFilter({ month, day, onChange }: { month: string; day: strin
   const trigger = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   return <div className='date-filter'>
-    <button ref={trigger} type='button' className='date-filter-trigger' aria-haspopup='dialog' aria-expanded={open} onClick={() => setOpen(true)}><Icon name='calendar' size={18} /><span>{day || (month ? month.replace('-', ' 年 ') + ' 月' : '按日期查找')}</span><Icon name='arrow' size={14} /></button>
+    <button ref={trigger} type='button' className='date-filter-trigger' aria-haspopup='dialog' aria-expanded={open} onClick={() => setOpen(true)}><Icon name='calendar' size={18} /><span>{day || (month ? month.replace('-', ' 年 ') + ' 月' : '日期')}</span><Icon name='arrow' size={14} /></button>
     {open && <Calendar month={month} day={day} dialog={dialog} onChange={onChange} close={() => { setOpen(false); trigger.current?.focus(); }} />}
   </div>;
 }

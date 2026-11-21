@@ -36,6 +36,10 @@ export function upload(
   signal: AbortSignal,
 ): Promise<MediaAsset> {
   return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("上传已取消", "AbortError"));
+      return;
+    }
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/assets");
     xhr.setRequestHeader("Content-Type", file.type);
@@ -60,10 +64,6 @@ export function upload(
     };
     xhr.onerror = () => reject(new Error("网络中断，文件仍在，可以重试"));
     xhr.onabort = () => reject(new DOMException("上传已取消", "AbortError"));
-    if (signal.aborted) {
-      reject(new DOMException("上传已取消", "AbortError"));
-      return;
-    }
     xhr.send(file);
   });
 }

@@ -37,7 +37,7 @@ export function JournalAtmosphere({ title, items, publicScope, ownerId, month, t
         </div>
       </div>
       <div className="jl-cover-art"><JournalCoverScene publicScope={publicScope} /></div>
-      <Link className="jl-scope-link" href={publicScope ? "/memories" : "/memories?scope=public"} aria-label={publicScope ? "前往我的日常" : "前往发现日常"}><Icon name={publicScope ? "book" : "globe"} size={15} /><Icon name="arrow" size={13} /></Link>
+      <Link className="jl-scope-link" href={publicScope ? "/memories" : "/memories?scope=public"} aria-label={publicScope ? "前往我的日常" : "前往发现日常"}><Icon name={publicScope ? "book" : "globe"} size={15} /><span>{publicScope ? "我的" : "发现"}</span></Link>
     </header>
     <JournalNavigator id={navigatorId} expanded={expanded} onClose={close} publicScope={publicScope} ownerId={ownerId} revision={revision} items={items} month={month} type={type} activeFilters={activeFilters} onBrowse={onBrowse} />
   </>;

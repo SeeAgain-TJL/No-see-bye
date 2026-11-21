@@ -8,8 +8,8 @@ import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
 import { PhotoWall } from "./photo-wall";
-import { MediaGrid, previewUrl } from "./media";
-import { DecodedImage } from "@/components/decoded-image";
+import { MediaGrid, MediaViewer } from "./media";
+import { CollectionCard } from "./collection-card";
 import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
 import { ThemeMotif } from "@/components/theme-motif";
@@ -35,6 +35,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const [moreBusy, setMoreBusy] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [pending, setPending] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<Memory | null>(null);
   const [removing, setRemoving] = useState<Memory | null>(null);
   const results = useRef<HTMLElement>(null);
   const activeFilters = !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
@@ -199,10 +200,10 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           <div className="feed-toolbar">
             <div className="filter-tabs" role="group" aria-label="记录类型">
               {[
-                ["all", "全卷", "全部记录"],
-                ["photo", "留影", "照片"],
-                ["video", "流光", "视频"],
-                ["text", "尺素", "文字"],
+                ["all", "全部", "全部记录"],
+                ["photo", "照片", "照片"],
+                ["video", "视频", "视频"],
+                ["text", "文字", "文字"],
               ].map(([value, title, description]) => (
                 <button
                   key={value}
@@ -263,17 +264,17 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 );
               }}
             >
-              <Icon name="search" size={18} />
               <input
                 key={params.get("q") || ""}
                 name="search"
+                enterKeyHint="search"
                 type="search"
                 maxLength={100}
                 defaultValue={params.get("q") || ""}
                 aria-label="搜索记忆"
-                placeholder="循一字、一处地名，寻回某页…"
+                placeholder="内容、地点或标签"
               />
-              <button type="submit" aria-label="搜索日常">寻页</button>
+              <button className="feed-search-submit" type="submit" aria-label="提交搜索"><Icon name="search" size={17} /></button>
             </form>
             <DateFilter month={params.get('month') || ''} day={params.get('day') || ''} onChange={(month, day) => {
               const next = new URLSearchParams(params.toString()); next.delete('cursor'); next.delete('month'); next.delete('day');
@@ -282,15 +283,16 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
             }} />
             {activeFilters && (
               <Link
-                className="text-link small"
+                className="text-link small feed-reset"
+                title="清除筛选"
                 aria-label="清除筛选"
                 href={trash ? "/memories/trash" : `/memories?scope=${scope}${view === "grid" ? "" : "&view=" + view}`}
               >
-                重启全卷
+                <Icon name="restore" size={16} /><span>清除筛选</span>
               </Link>
             )}
           </div>
-          <section className="journal-result-set" ref={results} tabIndex={-1} aria-label="日常列表" aria-busy={!data && !current?.error}>
+          <section id="journal-results" className="journal-result-set" ref={results} tabIndex={-1} aria-label="日常列表" aria-busy={!data && !current?.error}>
           {current?.error ? (
             <div className="empty-state">
               <h2>风声稍歇，书页未启。</h2>
@@ -338,6 +340,20 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           ) : view === "gallery" ? <PhotoWall memories={data.items} /> : (
             <div key={key + ':' + view} className={`memory-feed ${view}`}>
               {data.items.map((m, i) => {
+                if (view === 'grid' && scope === 'public' && m.assets[0]?.mime.startsWith('image/')) {
+                  const owner = m.userId === user?.id;
+                  return <div key={m.id} id={'journal-entry-' + m.id} className="memory-wrapper discovery-print-wrapper" tabIndex={-1}>
+                    <CollectionCard photo={{ memory: m, asset: m.assets[0] }} index={i} discovery onOpen={() => setViewing(m)} actions={(owner || m.tags.length > 0) && <details className="print-options"
+                      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}
+                      onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); } }}
+                      onClick={e => { if ((e.target as Element).closest('button, a')) e.currentTarget.open = false; }}>
+                      <summary aria-label="日常选项">更多</summary><div>
+                        {m.tags.map(tag => <button type="button" key={tag} onClick={() => filter('q', tag)}># {tag}</button>)}
+                        {owner && <><button type="button" disabled={!!pending} onClick={() => action(m, 'pin')}>{m.pinned ? '取消收藏' : '收藏'}</button><Link href={'/memories/' + m.id + '/edit'}>编辑</Link><button type="button" onClick={() => setRemoving(m)}>移到回收站</button></>}
+                      </div>
+                    </details>} />
+                  </div>;
+                }
                 const month = dateText(m.happenedAt, {
                   year: "numeric",
                   month: "long",
@@ -359,11 +375,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}${m.title || m.content ? ' has-authored-copy' : ''}`}
                       data-motion-surface=""
                     >
-                      {view === 'grid' && <Link
-                        className="memory-card-detail"
-                        href={`/memories/${m.id}`}
-                        aria-label={`展开${dateText(m.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}的日常${m.title ? `：${m.title}` : ''}`}
-                      ><span className="memory-card-open" aria-hidden="true"><Icon name="arrow" size={17} /></span></Link>}
+                      {view === 'grid' && <Link className="memory-card-detail" href={'/memories/' + m.id} aria-label={'打开日常：' + (m.title || dateText(m.happenedAt))} />}
                       <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
                       <span className="motion-spotlight" aria-hidden="true" />
                       <div className="memory-card-top">
@@ -399,9 +411,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                         </div>
                       </div>
                       <div className="memory-card-preview">
-                        {view === 'grid' && m.assets[0] && (m.assets[0].mime.startsWith('image/') || m.assets[0].thumbnailUrl) && <span className="memory-card-echo" aria-hidden="true"><DecodedImage src={previewUrl(m.assets[0])} alt="" loading="lazy" /></span>}
                         {view === 'grid' && m.assets.length > 0 && <span className="memory-card-imprint" aria-hidden="true"><ThemeMotif /></span>}
-                        <MediaGrid assets={m.assets} compact />
+                        <MediaGrid assets={m.assets} compact echo={view === 'grid'} />
                         <div className="memory-card-copy">
                           {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
                           {m.content && (
@@ -509,6 +520,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           </section>
         </>
       )}
+      {viewing && <MediaViewer assets={viewing.assets} initial={0} close={() => setViewing(null)} />}
       {removing && (
         <DeleteDialog
           memory={removing}

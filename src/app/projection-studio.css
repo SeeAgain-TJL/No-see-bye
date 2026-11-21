@@ -93,7 +93,7 @@
 .projection-home .cinematic-opening-copy a { pointer-events: auto; }
 .projection-home .opening-photo-surface:focus-visible { outline-offset: -13px; }
 
-.cover-photo-viewer .immersive-dismiss { opacity: 1; pointer-events: auto; }
+.immersive-viewer .immersive-dismiss { opacity: 1; pointer-events: auto; }
 .cover-photo-viewer .immersive-stage:not(.is-zoomed) { cursor: zoom-in; }
 .immersive-zoom-controls {
   position: absolute;
@@ -252,21 +252,8 @@
 .contact-print .decoded-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; background: transparent; }
 .contact-print img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .contact-print .image-placeholder, .contact-print .image-unavailable { position: absolute; inset: 0; }
-.contact-sheen {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 38%, #ffffff40 49%, #ffffff12 54%, transparent 63%);
-  translate: -110% 0;
-}
 .projection-contact-card:hover .contact-print { scale: 1.035; box-shadow: 0 30px 52px -16px #000000c4, 0 8px 18px -6px #0009; }
 .projection-contact-card:hover .contact-backdrop img { transform: scale(1.16); }
-.projection-contact-card:hover .contact-sheen { translate: 110% 0; transition: translate 1.05s var(--cinema-ease); }
-.projection-contact-expand {
-  position: absolute; right: 12px; top: 12px; z-index: 2; display: grid; place-items: center;
-  width: 34px; height: 34px; border: 1px solid #ffffff3b; border-radius: 999px;
-  background: #0b131866; backdrop-filter: blur(10px); color: #fbf8ef; translate: 0 -5px; opacity: 0;
-  transition: translate .35s var(--cinema-ease), opacity .24s; pointer-events: none;
-}
-.projection-contact-photo:is(:hover, :focus-visible) .projection-contact-expand { opacity: 1; translate: none; }
 .projection-contact-caption {
   position: absolute; z-index: 2; inset: auto 0 0 0;
   display: grid; gap: 4px; padding: 0 0 clamp(14px, 5.2cqw, 22px) clamp(14px, 6cqw, 24px);
@@ -277,14 +264,6 @@
   margin: 0; color: inherit; font: 400 clamp(15px, 5.4cqw, 21px)/1.3 'Songti SC','STSong','SimSun',serif;
   letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 12px #0008;
 }
-.projection-contact-detail {
-  position: absolute; z-index: 2; right: clamp(10px, 4.4cqw, 18px); bottom: clamp(12px, 4.6cqw, 19px);
-  display: grid; place-items: center; width: 38px; height: 38px;
-  color: #fbf8ef; border: 1px solid #ffffff38; border-radius: 999px; background: #ffffff14; backdrop-filter: blur(10px);
-  transition: background .25s, color .25s, border-color .25s, translate .3s var(--cinema-ease);
-}
-.projection-contact-detail:is(:hover, :focus-visible) { color: var(--cinema-matte, #111); background: #fbf8ef; border-color: #fbf8ef; translate: 2px 0; }
-.projection-contact-detail:focus-visible { outline: 2px solid var(--cinema-light); outline-offset: 2px; }
 .contact-skeleton > span { aspect-ratio: 4 / 5; border-radius: 14px; background: linear-gradient(140deg,var(--surface-dim),var(--surface)); }
 .projection-empty { display: grid; justify-items: center; align-content: center; min-height: 188px; gap: 10px; color: var(--ink-muted); border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .projection-empty > svg { color: var(--accent); }
@@ -307,10 +286,9 @@
   .projection-home .gallery-detail { gap: 5px; padding-inline: 7px; font-size: 10px; }
   .projection-contact-card { --print-top: 6cqw; --print-side: 6cqw; --print-bottom: 31cqw; border-radius: 11px; }
   .projection-contact-caption time { font-size: 10px; letter-spacing: .02em; }
-  .projection-contact-expand { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .projection-home :is(a, button, .projection-contact-card, .projection-contact-expand, .contact-print, .contact-backdrop img, .contact-sheen) { transition: none; }
+  .projection-home :is(a, button, .projection-contact-card, .contact-print, .contact-backdrop img) { transition: none; }
   .projection-home .cinematic-opening-art { transform: none; }
 }
 @media (max-width: 360px) {

@@ -1,0 +1,106 @@
+/* The journal's controls share the selected theme's ink, paper and inlay. */
+:root[data-theme] .journal-experience .feed-toolbar .filter-tabs button.selected,
+:root[data-theme] .journal-experience .view-switch button.selected {
+  color: var(--on-accent); background: var(--accent);
+  box-shadow: inset 0 1px 0 #ffffff35, 0 2px 5px -3px var(--album-shadow);
+}
+:root[data-theme] .journal-experience .search-box:focus-within,
+:root[data-theme] .search-dialog-input:focus-within {
+  border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+:root[data-theme] .journal-experience .search-box .feed-search-submit {
+  flex: 0 0 38px; display: grid; place-items: center; align-self: stretch; padding: 0;
+  color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 8px;
+}
+:root[data-theme] .search-dialog { width: min(480px, calc(100vw - 24px)); padding: clamp(16px, 4vw, 24px); }
+.search-dialog .search-dialog-heading { gap: 10px; margin-bottom: 14px; }
+.search-dialog-heading h2 { margin-right: auto; }
+.search-scope, .search-scope-stamp { display: inline-flex; align-items: center; border-radius: 20px; background: var(--surface-dim); }
+:root[data-theme] .search-scope button { width: auto; height: 34px; padding: 0 12px; color: var(--ink-muted); background: transparent; border: 0; border-radius: inherit; font-size: 12px; }
+:root[data-theme] .search-scope button[aria-pressed='true'] { color: var(--on-accent); background: var(--accent); }
+.search-scope-stamp { gap: 6px; padding: 5px 10px; color: var(--accent); font-size: 12px; }
+:root[data-theme] .search-dialog-heading .search-dismiss { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; }
+:root[data-theme] .search-dialog-results p, :root[data-theme] .search-dialog-results small { color: var(--ink-muted); }
+:root[data-theme] .search-dialog-results a { color: var(--ink); }
+:root[data-theme] .search-dialog .search-dialog-input input:focus { box-shadow: none; }
+
+/* A ticket-shaped action with a perforated end; no permanent animation. */
+.jl-cover-actions :is(.jl-primary-action, .jl-secondary-action) { min-height: 42px; border-radius: 11px; font-weight: 600; }
+.jl-cover-actions .jl-primary-action { background: linear-gradient(112deg, var(--accent), color-mix(in srgb, var(--accent) 85%, var(--motion-deep))); box-shadow: inset 0 1px 0 #ffffff35, 0 3px 10px -6px var(--album-shadow); }
+.jl-cover-actions :is(.jl-primary-action, .jl-secondary-action) > svg:last-child:not(:first-child) { box-sizing: content-box; padding-left: 8px; border-left: 1px dashed currentColor; }
+.home-small-actions button { border-radius: 99px; }
+:root[data-theme] .quick-search-trigger { border-radius: 99px; }
+/* The theme portal is a tiny viewfinder. Its rim moves only on interaction. */
+.world-environment .world-switch-mark { position: relative; flex: 0 0 30px; }
+.world-switch-mark::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; pointer-events: none; background: conic-gradient(from 35deg, var(--cinema-light) 0 50deg, transparent 50deg 180deg, var(--cinema-light) 180deg 230deg, transparent 230deg); mask-image: radial-gradient(circle, transparent 61%, #000 65%); }
+.world-toggle[aria-pressed='true'] .world-switch-mark::after { rotate: 90deg; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .world-switch-mark::after { transition: rotate .4s ease; }
+  .world-toggle:not([aria-pressed='true']):hover .world-switch-mark::after { rotate: 45deg; }
+  .home-small-actions button:hover > svg, .jl-cover-actions button:hover > svg:first-child { rotate: -8deg; }
+  .gallery-control:not(:disabled):hover { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); }
+}
+@media (max-width: 760px) {
+  .search-dialog .search-dialog-input input { font-size: 16px; }
+}
+.feed-reset { gap: 5px; }
+@media (max-width: 760px) {
+  :root[data-theme] .journal-experience .feed-toolbar { gap: 5px; min-height: 0; padding: 6px; }
+  :root[data-theme] .journal-experience .feed-toolbar .filter-tabs button { padding-inline: 8px; }
+  :root[data-theme] .journal-experience .feed-toolbar .toolbar-right { gap: 5px; }
+  :root[data-theme] .journal-experience .feed-toolbar .view-switch { gap: 0; }
+  :root[data-theme] .journal-experience .feed-toolbar :is(.view-switch button, .toolbar-right > .icon-button) { min-width: 34px; width: 34px; }
+  :root[data-theme] .journal-experience .search-row { display: flex; flex-flow: row nowrap; align-items: center; gap: 5px; padding: 6px; }
+  :root[data-theme] .journal-experience .search-row .search-box { flex: 1 1 0; width: auto; min-width: 0; }
+  .journal-experience .search-row .search-box input { min-width: 0; }
+  .journal-experience .search-row .date-filter { width: auto; min-width: 0; flex: 0 0 auto; max-width: 34%; }
+  :root[data-theme] .journal-experience .search-row .date-filter-trigger { width: 100%; gap: 4px; padding-inline: 8px; }
+  .journal-experience .date-filter-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .journal-experience .date-filter-trigger > svg:last-child, .journal-experience .feed-reset span { display: none; }
+  .journal-experience .search-row .feed-reset { width: 34px; flex: 0 0 auto; justify-content: center; }
+}
+
+@media (min-width: 761px) and (hover: hover) {
+  .world-environment .world-toggle { right: 9px; padding: 6px; gap: 0; border-radius: 24px; }
+  .world-toggle .world-switch-label { max-width: 0; overflow: hidden; opacity: 0; white-space: nowrap; }
+  .world-toggle:is(:hover, :focus-visible) .world-switch-label { max-width: 9em; margin-inline: 8px; opacity: 1; }
+}
+@media (min-width: 761px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .world-switch-label { transition: max-width .25s ease, opacity .2s ease; }
+}
+/* The media list is a contact sheet, not a stack of feed widgets. The same
+   negative space, optical centre and print limits are shared with home. */
+:root[data-theme] .journal-discovery .memory-feed.grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: auto; gap: clamp(12px, 1.9vw, 26px);
+}
+.discovery-print-wrapper .projection-contact-card { width: 100%; }
+:root[data-theme] .journal-discovery .memory-feed.grid .memory-card { height: 100%; min-height: 246px; }
+.projection-contact-caption > a { display: grid; gap: 4px; justify-self: start; max-width: 100%; color: inherit; pointer-events: auto; }
+.projection-contact-caption > a:hover h3, .projection-contact-caption > a:focus-visible time { text-decoration: underline; text-underline-offset: .2em; }
+.projection-contact-caption { padding-right: 6cqw; }
+.projection-contact-card:has(.print-options) .projection-contact-caption { padding-right: max(52px, 15cqw); }
+.projection-contact-caption time { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.print-options { position: absolute; z-index: 4; right: 5%; bottom: 3%; color: #fffaf2; }
+.print-options summary { display: grid; place-items: center; min-height: 36px; min-width: 36px; list-style: none; font: 12px/1 sans-serif; cursor: pointer; }
+.print-options summary::-webkit-details-marker { display: none; }
+.print-options > div { position: absolute; right: 0; bottom: 100%; display: grid; min-width: 110px; max-width: 200px; max-height: 140px; overflow: auto; padding: 5px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 5px 16px #0004; }
+.print-options :is(button,a) { text-align: start; padding: 7px 11px; font-size: 13px; }
+.print-options :is(button,a):hover { background: var(--accent-soft); }
+@media (max-width: 920px) { :root[data-theme] .journal-discovery .memory-feed.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) {
+  :root[data-theme] .journal-discovery .memory-feed.grid, .projection-contact-grid { grid-template-columns: minmax(0, 1fr); }
+  .projection-contact-card { --print-side: 7.5cqw; --print-bottom: 25cqw; }
+}
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .projection-contact-card:is(:hover,:focus-within) { translate: none; transition: none; }
+  .projection-contact-card:hover .contact-print { scale: 1; transition: none; }
+  .projection-contact-card:hover .contact-backdrop img { transform: scale(1.06); }
+}
+/* Navigation belongs to the viewer's footer, not in front of the print. */
+.immersive-viewer:has(.viewer-pagination) .immersive-stage { bottom: calc(49px + env(safe-area-inset-bottom)); }
+.immersive-viewer .immersive-stage:not(.is-zoomed,.is-video) { cursor: zoom-in; }
+.viewer-pagination { position: absolute; inset: auto 0 0; display: flex; gap: 18px; justify-content: center; align-items: center; color: #f6f2e8; background: #101014; padding: 2px 12px calc(3px + env(safe-area-inset-bottom)); }
+.viewer-pagination button { padding: 0 12px; min-height: 44px; background: transparent; color: inherit; font-size: 13px; }
+.viewer-pagination button:hover { text-decoration: underline; text-underline-offset: .3em; }
+.viewer-pagination span { color: #c6c3b8; font: 12px/1 monospace; }
+.journal-experience .jl-scope-link:has(span) { width: auto; padding-inline: 10px; font-size: 11px; }
