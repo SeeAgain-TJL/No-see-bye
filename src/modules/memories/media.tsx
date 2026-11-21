@@ -107,7 +107,7 @@ export function MediaViewer({ assets, initial, close, zoomControls = false }: { 
     return { distance: Math.hypot(b.x - a.x, b.y - a.y), center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
   }
   const source = displayUrl(asset);
-  return <dialog ref={dialog} className={'immersive-viewer' + (zoomControls ? ' cover-photo-viewer' : '')} aria-label={zoomControls ? '封面照片，支持滚轮或双指缩放' : '媒体预览，照片可双指缩放、拖动，轻点关闭'} onClose={close} onKeyDown={e => {
+  return <dialog ref={dialog} className={'immersive-viewer' + (zoomControls ? ' cover-photo-viewer' : '')} aria-label={zoomControls ? '封面照片，支持滚轮或双指缩放' : '媒体预览，双击或双指缩放，左右切换，Esc 关闭'} onClose={close} onKeyDown={e => {
     if ((e.target as HTMLElement).tagName === 'VIDEO') return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); choose(index + (e.key === 'ArrowLeft' ? -1 : 1)); }
     if (!isVideo && ['+', '=', '-', '0'].includes(e.key)) { e.preventDefault(); update(e.key === '0' ? resting : { ...transformRef.current, scale: transformRef.current.scale * (e.key === '-' ? .8 : 1.25) }); }
@@ -143,7 +143,6 @@ export function MediaViewer({ assets, initial, close, zoomControls = false }: { 
         gesture.current = null; pinch.current = null; if (!g || g.pinched) return;
         const dx = e.clientX - g.start.x, dy = e.clientY - g.start.y;
         if (!g.moved && Math.hypot(dx, dy) < 8 && performance.now() - g.time < 350) {
-          if (!zoomControls) { dialog.current?.close(); return; }
           const time = performance.now();
           const previous = lastTap.current;
           if (previous && time - previous.time < 330 && Math.hypot(e.clientX - previous.x, e.clientY - previous.y) < 34) {
@@ -164,7 +163,9 @@ export function MediaViewer({ assets, initial, close, zoomControls = false }: { 
         : <DecodedImage key={asset.id + ':' + attempt} className='immersive-image' src={attempt ? addQuery(source, 'retry=' + attempt) : source} alt={asset.alt || '日常照片'} fetchPriority='high' style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }} onReady={() => { setReady(true); setFailed(false); }} onFailure={() => setFailed(true)} />}
       {failed ? <div className='immersive-status' role='alert'><span>{isVideo ? '暂时无法播放' : previewReady ? '清晰画面暂未加载，正在显示预览' : '图片加载失败'}</span><button type='button' onClick={() => { setAttempt(v => v + 1); setFailed(false); setReady(false); }}>重试</button></div> : ((!isVideo && !ready && !previewReady) || buffering) ? <span className='immersive-loader' role='status' aria-label='加载中' /> : !isVideo && !ready && previewReady ? <span className='immersive-refining' role='status'>正在加载清晰画面…</span> : null}
     </div>
-    {assets.length > 1 && <><button type='button' className='immersive-prev' aria-label='上一张' onClick={() => choose(index - 1)}><Icon name='back' size={22} /></button><button type='button' className='immersive-next' aria-label='下一张' onClick={() => choose(index + 1)}><Icon name='arrow' size={22} /></button><span className='immersive-count' aria-live='polite'>{index + 1}<span> / {assets.length}</span></span></>}
+    {assets.length > 1 && <nav className='viewer-pagination' aria-label='影像翻页'>
+      <button type='button' onClick={() => choose(index - 1)}>上一张</button><span aria-live='polite'>{index + 1} / {assets.length}</span><button type='button' onClick={() => choose(index + 1)}>下一张</button>
+    </nav>}
     {asset.credit && <a className='immersive-photo-credit' href={asset.credit.url} target='_blank' rel='noreferrer'>{asset.credit.name}<Icon name='arrow' size={14} /></a>}
   </dialog>;
 }

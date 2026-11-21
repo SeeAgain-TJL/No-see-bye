@@ -1,16 +1,9 @@
 .studio-auth { position: relative; isolation: isolate; }
 .world-choreography {
-  position: fixed;
-  z-index: 22;
-  pointer-events: none;
-  inset: auto 0 0 var(--environment-left, 0px);
-  height: clamp(145px, 25vh, 250px);
-  overflow: hidden;
+  position: fixed; z-index: 22; pointer-events: none; right: 0; bottom: 0;
+  width: min(420px, 43vw); aspect-ratio: 5 / 3; isolation: isolate; overflow: hidden;
 }
-.world-landscape { display: block; width: 100%; height: 100%; }
-@media (min-width: 761px) {
-  .world-landscape { mask-image: linear-gradient(90deg, #0006, #0004 23%, #0006 55%, #000 86%); }
-}
+.field-study { display: block; width: 100%; height: 100%; }
 .world-environment .world-toggle {
   z-index: 55; min-height: 44px; padding: 5px 15px 5px 6px; border-radius: 24px;
   color: #f3f5ec; background: var(--motion-deep); border-color: color-mix(in srgb, var(--cinema-light) 44%, transparent);
@@ -46,7 +39,7 @@
   .world-environment .world-toggle { width: 44px; height: 44px; padding: 0; justify-content: center; right: 12px; bottom: calc(11px + env(safe-area-inset-bottom)); }
   .world-switch-label { display: none; }
   .app-shell .world-choreography { bottom: calc(58px + env(safe-area-inset-bottom)); }
-  .world-choreography { height: clamp(100px, 16vh, 148px); }
+  .world-choreography { width: clamp(185px, 55vw, 270px); }
   .studio-auth .world-toggle { top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); right: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -59,3 +52,39 @@
   @keyframes world-release { from { opacity: .9; scale: .9; } to { opacity: 0; scale: 1.48; } }
 }
 @media (max-width:760px) { .app-shell:has(.obs-stage) .mobile-nav { padding-inline: 6px; } }
+/* Independent motion at three scales: travel, articulation and secondary drift.
+   No rAF loop, animated blur or layout work; offscreen tabs unmount the plate. */
+@media (prefers-reduced-motion: no-preference) {
+  .field-study { animation: plate-emerge .7s cubic-bezier(.2,.8,.2,1) both; }
+  .study-stalk { transform-box: fill-box; transform-origin: center bottom; animation: reed-bend 4.6s ease-in-out var(--phase,0s) infinite alternate; }
+  .study-butterfly-flight { animation: meadow-visit 7.2s ease-in-out infinite; }
+  .study-wing-near, .study-wing-far { transform-origin: 0 0; animation: swallow-fold .76s ease-in-out infinite; }
+  .study-wing-far { animation-delay: -.045s; }
+  .study-bird-flight { animation: kingfisher-arc 6s ease-in-out infinite; }
+  .study-feather { transform-origin: 0 0; animation: feather-beat .68s cubic-bezier(.43,0,.45,1) infinite; }
+  .study-drift { animation: pelagic-drift 7s ease-in-out infinite; }
+  .study-drift-late { animation: pelagic-drift 8s ease-in-out -3.6s infinite reverse; }
+  .study-bell { transform-origin: center bottom; transform-box: fill-box; animation: bell-contract 2.9s ease-in-out infinite; }
+  .study-tentacles { transform-box: fill-box; transform-origin: center top; animation: silk-trail 2.9s ease-in-out -.37s infinite; }
+  .study-aurora, .study-aurora-late { transform-origin: right center; transform-box: fill-box; animation: polar-fold 6.4s ease-in-out infinite alternate; }
+  .study-aurora-late { animation-delay: -3s; animation-duration: 7.8s; }
+  .study-reflection, .study-spray { transform-origin: center; transform-box: fill-box; animation: surface-breathe 3.6s ease-in-out infinite alternate; }
+  .study-cascade { stroke-dasharray: 9 5 2 7; animation: water-fall .82s linear var(--phase) infinite; }
+  .study-soar { animation: ridge-lift 8s ease-in-out infinite; }
+}
+@keyframes plate-emerge { from { opacity: 0; transform: translate(22px,12px); } to { opacity: 1; transform: none; } }
+@keyframes reed-bend { from { transform: rotate(-4deg); } to { transform: rotate(6deg); } }
+@keyframes meadow-visit { 0%,100% { transform: translate(7px,4px); } 28% { transform: translate(-18px,-9px) rotate(-2deg); } 62% { transform: translate(-34px,5px); } 82% { transform: translate(-5px,-12px); } }
+@keyframes swallow-fold { 0%,100% { transform: scaleX(.94) rotate(1deg); } 42% { transform: scaleX(.28) rotate(-9deg); } 76% { transform: scaleX(1) rotate(2deg); } }
+@keyframes kingfisher-arc { 0%,100% { transform: translate(20px,6px); } 46% { transform: translate(-32px,-16px) rotate(-4deg); } 72% { transform: translate(-9px,-5px); } }
+@keyframes feather-beat { 0%,100% { transform: rotate(-8deg) scaleY(1); } 43% { transform: rotate(17deg) scaleY(-.5); } 77% { transform: rotate(-12deg) scaleY(.9); } }
+@keyframes pelagic-drift { 0%,100% { transform: translate(0,8px); } 40% { transform: translate(-12px,-12px); } 73% { transform: translate(4px,-4px); } }
+@keyframes bell-contract { 0%,100% { transform: scale(1.04,.95); } 34% { transform: scale(.84,1.11); } 74% { transform: scale(1.09,.94); } }
+@keyframes silk-trail { 0%,100% { transform: skewX(-4deg) scaleY(.98); } 45% { transform: skewX(7deg) scaleY(1.07); } 81% { transform: skewX(2deg) scaleY(.96); } }
+@keyframes polar-fold { from { transform: translate(-5px,4px) skewX(-4deg) scaleY(.85); opacity: .68; } to { transform: translate(5px,-6px) skewX(5deg) scaleY(1.12); opacity: 1; } }
+@keyframes surface-breathe { from { transform: scale(.88,.85); opacity: .68; } to { transform: scale(1.1,1.06); opacity: 1; } }
+@keyframes water-fall { to { stroke-dashoffset: -46; } }
+@keyframes ridge-lift { 0%,100% { transform: translate(0,4px); } 46% { transform: translate(-24px,-12px) rotate(-3deg); } 74% { transform: translate(-12px,-14px); } }
+.world-choreography:is([data-reading],[data-scrolling]) { opacity: .12; }
+body:has(dialog[open]) .world-choreography { visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) { .world-choreography { transition: opacity .2s ease; } }

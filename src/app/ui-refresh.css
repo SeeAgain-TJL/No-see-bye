@@ -68,11 +68,39 @@
 @media (min-width: 761px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
   .world-switch-label { transition: max-width .25s ease, opacity .2s ease; }
 }
-.world-arrival { display: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .world-arrival { display: block; position: absolute; right: 14px; bottom: 14px; width: clamp(130px, 19vw, 235px); color: var(--cinema-light); opacity: 0; animation: scene-ink-reveal 1.55s ease-out; }
-  .world-arrival path { stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.35; stroke-dasharray: 1; animation: scene-ink-stroke 1s cubic-bezier(.2,.75,.28,1) both; }
-  .world-arrival path + path { stroke-width: .8; animation-delay: .1s; }
-  @keyframes scene-ink-stroke { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-  @keyframes scene-ink-reveal { 0% { opacity: 0; } 12%, 62% { opacity: .95; } 100% { opacity: 0; } }
+/* The media list is a contact sheet, not a stack of feed widgets. The same
+   negative space, optical centre and print limits are shared with home. */
+:root[data-theme] .journal-discovery .memory-feed.grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: auto; gap: clamp(12px, 1.9vw, 26px);
 }
+.discovery-print-wrapper .projection-contact-card { width: 100%; }
+:root[data-theme] .journal-discovery .memory-feed.grid .memory-card { height: 100%; min-height: 246px; }
+.projection-contact-caption > a { display: grid; gap: 4px; justify-self: start; max-width: 100%; color: inherit; pointer-events: auto; }
+.projection-contact-caption > a:hover h3, .projection-contact-caption > a:focus-visible time { text-decoration: underline; text-underline-offset: .2em; }
+.projection-contact-caption { padding-right: 6cqw; }
+.projection-contact-card:has(.print-options) .projection-contact-caption { padding-right: max(52px, 15cqw); }
+.projection-contact-caption time { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.print-options { position: absolute; z-index: 4; right: 5%; bottom: 3%; color: #fffaf2; }
+.print-options summary { display: grid; place-items: center; min-height: 36px; min-width: 36px; list-style: none; font: 12px/1 sans-serif; cursor: pointer; }
+.print-options summary::-webkit-details-marker { display: none; }
+.print-options > div { position: absolute; right: 0; bottom: 100%; display: grid; min-width: 110px; max-width: 200px; max-height: 140px; overflow: auto; padding: 5px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 5px 16px #0004; }
+.print-options :is(button,a) { text-align: start; padding: 7px 11px; font-size: 13px; }
+.print-options :is(button,a):hover { background: var(--accent-soft); }
+@media (max-width: 920px) { :root[data-theme] .journal-discovery .memory-feed.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) {
+  :root[data-theme] .journal-discovery .memory-feed.grid, .projection-contact-grid { grid-template-columns: minmax(0, 1fr); }
+  .projection-contact-card { --print-side: 7.5cqw; --print-bottom: 25cqw; }
+}
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .projection-contact-card:is(:hover,:focus-within) { translate: none; transition: none; }
+  .projection-contact-card:hover .contact-print { scale: 1; transition: none; }
+  .projection-contact-card:hover .contact-backdrop img { transform: scale(1.06); }
+}
+/* Navigation belongs to the viewer's footer, not in front of the print. */
+.immersive-viewer:has(.viewer-pagination) .immersive-stage { bottom: calc(49px + env(safe-area-inset-bottom)); }
+.immersive-viewer .immersive-stage:not(.is-zoomed,.is-video) { cursor: zoom-in; }
+.viewer-pagination { position: absolute; inset: auto 0 0; display: flex; gap: 18px; justify-content: center; align-items: center; color: #f6f2e8; background: #101014; padding: 2px 12px calc(3px + env(safe-area-inset-bottom)); }
+.viewer-pagination button { padding: 0 12px; min-height: 44px; background: transparent; color: inherit; font-size: 13px; }
+.viewer-pagination button:hover { text-decoration: underline; text-underline-offset: .3em; }
+.viewer-pagination span { color: #c6c3b8; font: 12px/1 monospace; }
+.journal-experience .jl-scope-link:has(span) { width: auto; padding-inline: 10px; font-size: 11px; }

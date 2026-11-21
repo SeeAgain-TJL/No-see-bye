@@ -8,7 +8,8 @@ import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
 import { PhotoWall } from "./photo-wall";
-import { MediaGrid } from "./media";
+import { MediaGrid, MediaViewer } from "./media";
+import { CollectionCard } from "./collection-card";
 import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
 import { ThemeMotif } from "@/components/theme-motif";
@@ -34,6 +35,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const [moreBusy, setMoreBusy] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [pending, setPending] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<Memory | null>(null);
   const [removing, setRemoving] = useState<Memory | null>(null);
   const results = useRef<HTMLElement>(null);
   const activeFilters = !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
@@ -290,7 +292,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               </Link>
             )}
           </div>
-          <section className="journal-result-set" ref={results} tabIndex={-1} aria-label="日常列表" aria-busy={!data && !current?.error}>
+          <section id="journal-results" className="journal-result-set" ref={results} tabIndex={-1} aria-label="日常列表" aria-busy={!data && !current?.error}>
           {current?.error ? (
             <div className="empty-state">
               <h2>风声稍歇，书页未启。</h2>
@@ -338,6 +340,20 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           ) : view === "gallery" ? <PhotoWall memories={data.items} /> : (
             <div key={key + ':' + view} className={`memory-feed ${view}`}>
               {data.items.map((m, i) => {
+                if (view === 'grid' && scope === 'public' && m.assets[0]?.mime.startsWith('image/')) {
+                  const owner = m.userId === user?.id;
+                  return <div key={m.id} id={'journal-entry-' + m.id} className="memory-wrapper discovery-print-wrapper" tabIndex={-1}>
+                    <CollectionCard photo={{ memory: m, asset: m.assets[0] }} index={i} discovery onOpen={() => setViewing(m)} actions={(owner || m.tags.length > 0) && <details className="print-options"
+                      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}
+                      onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); } }}
+                      onClick={e => { if ((e.target as Element).closest('button, a')) e.currentTarget.open = false; }}>
+                      <summary aria-label="日常选项">更多</summary><div>
+                        {m.tags.map(tag => <button type="button" key={tag} onClick={() => filter('q', tag)}># {tag}</button>)}
+                        {owner && <><button type="button" disabled={!!pending} onClick={() => action(m, 'pin')}>{m.pinned ? '取消收藏' : '收藏'}</button><Link href={'/memories/' + m.id + '/edit'}>编辑</Link><button type="button" onClick={() => setRemoving(m)}>移到回收站</button></>}
+                      </div>
+                    </details>} />
+                  </div>;
+                }
                 const month = dateText(m.happenedAt, {
                   year: "numeric",
                   month: "long",
@@ -504,6 +520,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           </section>
         </>
       )}
+      {viewing && <MediaViewer assets={viewing.assets} initial={0} close={() => setViewing(null)} />}
       {removing && (
         <DeleteDialog
           memory={removing}

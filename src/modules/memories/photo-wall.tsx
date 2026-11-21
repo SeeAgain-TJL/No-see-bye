@@ -28,7 +28,7 @@ export function PhotoWall({ memories }: { memories: Memory[] }) {
     <div ref={grid} className="justified-wall">{rows.map(row => <div className='justified-row' key={row.start} style={{ '--row-height': row.height + 'px', gridTemplateColumns: row.widths.map(value => value + 'px').join(' '), gap: gap + 'px' } as CSSProperties}>{items.slice(row.start, row.start + row.count).map(({ memory, asset }, localIndex) => <article className="wall-item" key={asset.id}>
       <span className="motion-spotlight" aria-hidden="true" />
       <div className="wall-preview-well"><MediaThumbnail asset={asset} className="wall-image" onRatio={value => setRatios(previous => previous[asset.id] === value ? previous : { ...previous, [asset.id]: value })} onOpen={() => setSelected(row.start + localIndex)} label={'查看' + (asset.mime.startsWith("video/") ? "视频" : "图片") + '：' + asset.filename} /></div>
-      <Link href={'/memories/' + memory.id} className="wall-caption"><span>{memory.title && <strong>{memory.title}</strong>}<time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: "long", day: "numeric" })}</time></span><Icon name="arrow" size={17} /></Link>
+      <Link href={'/memories/' + memory.id} className="wall-caption"><span>{memory.title && <strong>{memory.title}</strong>}<time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: "long", day: "numeric" })}</time></span></Link>
     </article>)}</div>)}</div>
     {selected !== null && <MediaViewer assets={items.map(item => item.asset)} initial={selected} close={() => setSelected(null)} />}
   </section>;

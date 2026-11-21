@@ -134,14 +134,9 @@
 .immersive-image img { object-fit: contain; width: 100%; height: 100%; transform-origin: center; will-change: transform; -webkit-touch-callout: default; user-select: none; }
 .immersive-image .decoded-image-placeholder { background: transparent; }
 .immersive-stage video { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; cursor: auto; }
-.immersive-dismiss, .immersive-prev, .immersive-next { position: absolute; z-index: 3; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #ffffff18; border-radius: 50%; background: #15151b4d; color: #ffffffb3; backdrop-filter: blur(8px); transition: opacity .2s, background .2s; }
+.immersive-dismiss { position: absolute; z-index: 3; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #ffffff18; border-radius: 50%; background: #15151b4d; color: #ffffffb3; backdrop-filter: blur(8px); transition: opacity .2s, background .2s; }
 .immersive-dismiss { top: max(22px, env(safe-area-inset-top)); right: 22px; opacity: 0; pointer-events: none; }
 .immersive-dismiss:focus-visible, .immersive-dismiss.for-video { opacity: 1; pointer-events: auto; }
-.immersive-prev { left: 22px; top: calc(50% - 22px); }
-.immersive-next { right: 22px; top: calc(50% - 22px); }
-.immersive-prev:hover, .immersive-next:hover { background: #343443b3; color: #fff; }
-.immersive-count { position: absolute; bottom: max(23px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); font: 11px/1 monospace; color: #e1dfe7; padding: 10px 15px; border-radius: 20px; background: #15151b55; pointer-events: none; }
-.immersive-count span { opacity: .5; }
 .immersive-status { position: absolute; display: flex; align-items: center; gap: 16px; padding: 18px; background: #15151bd9; border-radius: 14px; font-size: 13px; }
 .immersive-status button { background: #fff1; border: 1px solid #fff3; padding: 9px 15px; color: white; border-radius: 8px; }
 .immersive-loader { position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff3; border-top-color: #ddd; animation: loader-turn 1s linear infinite; pointer-events: none; }
@@ -224,9 +219,9 @@
   .postcard-dialog .daydream-scenes button { padding-inline: 8px; font-size: 10px; }
   .postcard-back { inset: 20px 4px 80px; padding: 20px; }
   .postcard-back p { font-size: 20px; }
-  .immersive-prev, .immersive-next { display: none; }
+
   .immersive-dismiss { right: 16px; }
-  .immersive-count { bottom: max(26px, env(safe-area-inset-bottom)); }
+
 }
 @media (max-width: 370px) {
   .mobile-brand > span { display: none; }
