@@ -526,7 +526,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                     <span className="tiny upload-status">
                       {item.error ||
                         (busy && !item.asset
-                          ? `${item.progress}%`
+                          ? (item.progress === 100 ? "正在处理…" : `${item.progress}%`)
                           : item.asset
                             ? "已就绪"
                             : "等待上传")}

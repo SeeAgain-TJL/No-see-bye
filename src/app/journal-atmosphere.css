@@ -311,16 +311,13 @@
 .journal-experience .discovery-card-byline time { font-size: 10px; }
 .journal-experience .discovery-author-initial { background: var(--interior-recess); border-radius: 8px; }
 :root[data-theme] .journal-experience .memory-feed.grid .media-grid .framed-preview { box-shadow: 0 2px 9px -3px var(--album-shadow); }
-:root[data-theme] .journal-experience .memory-feed.grid .memory-card-echo { opacity: .2; }
-:root[data-theme] .journal-experience .memory-feed.grid .has-authored-copy .memory-card-echo { opacity: .1; }
-:root[data-theme] .journal-experience .memory-feed.grid .memory-card-open { border-color: var(--interior-edge); background: var(--interior-paper); }
-:root[data-theme] .journal-experience .memory-feed.grid .memory-card:focus-within .memory-card-open { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+
 .journal-experience .wall-caption { color: var(--ink); }
 .journal-experience .wall-caption > svg { transition: translate .28s var(--cinema-ease, ease); }
 .journal-experience .wall-caption:focus-visible > svg { translate: 3px 0; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   :root[data-theme] .journal-experience .memory-feed.grid .memory-card:hover { border-color: color-mix(in srgb, var(--accent) 64%, var(--line)); transform: none; }
-  :root[data-theme] .journal-experience .memory-feed.grid .memory-card:hover .memory-card-open { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+
 }
 
 /* Detail keeps authored copy and uncropped media in separate reading planes. */

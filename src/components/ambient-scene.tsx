@@ -15,6 +15,20 @@ const invitations: Record<ThemeName, [string, string]> = {
   ocean: ["唤一场潮", "潮线正在漫过岸边"],
 };
 
+// Brief line drawings grow inward from the switch, then yield to the landscape.
+const arrivalLines: Record<ThemeName, string[]> = {
+  grassland: ["M258 85 Q205 73 153 23 Q172 37 166 48 Q154 44 153 23 M182 52 Q178 37 182 32 Q191 42 187 57", "M239 80 Q184 70 113 50 Q125 47 140 58 M155 62 Q146 47 133 40"],
+  ocean: ["M263 69 Q227 75 205 53 C185 32 158 37 162 50 Q165 58 176 54 Q166 70 145 62 T93 61", "M249 79 Q220 82 197 68 T147 73 Q129 78 111 70"],
+  iceberg: ["M259 77 C219 83 221 25 186 27 S165 62 137 49 S112 32 92 42", "M251 77 C217 80 218 34 187 35 S165 65 138 56 S115 43 102 46"],
+  forest: ["M259 85 Q208 62 153 28 M209 63 Q199 37 178 24 Q179 45 209 63 M191 52 Q160 56 143 43 Q164 37 191 52", "M235 76 Q233 54 216 40 Q214 56 235 76"],
+  rift: ["M259 80 L229 66 L209 68 L185 34 L169 32 L165 55 L150 56 L147 73 L100 77", "M249 83 L221 77 L201 78 L182 50 L173 48 L168 65 L154 66 L151 79 L124 81"],
+};
+function ArrivalTrace({ theme }: { theme: ThemeName }) {
+  return <svg className="world-arrival" viewBox="90 10 176 80" fill="none" aria-hidden="true" focusable="false">
+    {arrivalLines[theme].map(d => <path key={d} d={d} pathLength={1} />)}
+  </svg>;
+}
+
 function Landscape({ theme }: { theme: ThemeName }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -73,7 +87,7 @@ export function AmbientScene({ awake, onToggle }: { awake: boolean; onToggle: ()
   const theme = useActiveTheme();
   const [label, status] = invitations[theme];
   return <div className="world-environment" data-awake={awake}>
-    {awake && <div className="world-choreography" aria-hidden="true"><Landscape key={theme} theme={theme} /></div>}
+    {awake && <div className="world-choreography" aria-hidden="true"><Landscape key={theme} theme={theme} /><ArrivalTrace key={"arrival-" + theme} theme={theme} /></div>}
     <button className="environment-toggle world-toggle" type="button" aria-pressed={awake} onClick={onToggle}
       aria-label={awake ? '关闭全页主题动效' : '开启全页主题动效'} title={awake ? '关闭全页主题动效' : label}>
       <span className="world-switch-mark" aria-hidden="true">{awake ? <Icon name="pause" size={15}/> : <ThemeMotif theme={theme}/>}</span>

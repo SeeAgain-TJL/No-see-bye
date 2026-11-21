@@ -27,9 +27,6 @@
 .photo-reel[data-dragging='true'] .gallery-photo { cursor: grabbing; transition: opacity .2s; }
 .gallery-print-index { position: absolute; left: 9px; bottom: 9px; display: flex; align-items: center; gap: 10px; padding: 4px 6px; border: 1px solid color-mix(in srgb,var(--line) 65%,transparent); background: color-mix(in srgb,var(--surface) 90%,transparent); color: var(--ink-muted); font: 7px/1 var(--font-display),sans-serif; letter-spacing: .06em; pointer-events: none; }
 .gallery-print-index i { display: block; width: 14px; height: 4px; background: repeating-linear-gradient(90deg,var(--ink-muted) 0 1px,transparent 1px 3px); opacity: .5; }
-.gallery-zoom { position: absolute; right: 11px; bottom: 11px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 50%; background: var(--motion-pop); color: var(--motion-on-pop); transform: translateY(8px) scale(.75); opacity: 0; transition: transform .4s cubic-bezier(.16,1,.3,1),opacity .3s; }
-.gallery-zoom > span { display: none; }
-.gallery-photo[data-current='true']:is(:hover,:focus-visible) .gallery-zoom { transform: none; opacity: 1; }
 .gallery-caption { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 24px 12px; }
 .gallery-authored { min-width: 0; max-width: 650px; padding-left: 13px; border-left: 1px solid color-mix(in srgb,var(--warm) 60%,var(--line)); animation: gallery-caption-enter 1.1s ease-in-out both; }
 .gallery-authored time { font-size: 10px; color: var(--ink-muted); letter-spacing: .04em; }
@@ -67,7 +64,6 @@
  .gallery-photo { outline-width: 2px; }
  .gallery-rail { padding: 8px 18px 0; font-size: 6px; }
  .gallery-speed { display: none; }
- .gallery-photo[data-current='true'] .gallery-zoom { transform: none; opacity: 1; width: 32px; height: 32px; right: 7px; bottom: 7px; }
  .gallery-caption { padding: 13px 18px 15px; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
  .gallery-authored { padding-left: 9px; }
  .gallery-print-index { left: 6px; bottom: 6px; padding: 3px 5px; font-size: 6px; }
@@ -82,7 +78,7 @@
  .gallery-contacts { gap: 6px; }
  .gallery-detail { width: 38px; }
 }
-@media(prefers-reduced-motion:reduce) { .gallery-photo,.gallery-zoom,.gallery-contacts > button { transition: none; } .gallery-authored { animation: none; } }
+@media(prefers-reduced-motion:reduce) { .gallery-photo,.gallery-contacts > button { transition: none; } .gallery-authored { animation: none; } }
 
 /* The latest entries are a reading ledger, rather than another oversized album. */
 :root[data-theme] .studio-home .studio-records { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 24px; }
@@ -114,16 +110,6 @@
 .justified-wall .wall-caption > svg { width: 14px; flex-shrink: 0; }
 
 @media(max-width:760px) {
- :root[data-theme] .journal-experience .memory-feed.grid { grid-template-columns: minmax(0,1fr); }
- :root[data-theme] .journal-experience .memory-feed.grid .has-media { display: grid; grid-template-columns: 112px minmax(0,1fr); align-items: center; }
- .journal-experience .memory-feed.grid .has-media .memory-card-top { grid-column: 1 / -1; }
- :root[data-theme] .journal-experience .memory-feed.grid .has-media .media-grid { grid-column: 1; grid-row: 2; margin: 0 0 0 12px; width: calc(100% - 12px); }
- .journal-experience .memory-feed.grid .has-media .media-print { --preview-height: 112px; height: 112px; place-items: center; }
- :root[data-theme] .journal-experience .memory-feed.grid .has-media .memory-card-copy { grid-column: 2; grid-row: 2; min-height: 112px; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center; }
- :root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy h2 { font-size: 17px; -webkit-line-clamp: 2; line-height: 1.5; }
- :root[data-theme] .journal-experience .memory-feed.grid .memory-card-copy .memory-excerpt { font-size: 12px; -webkit-line-clamp: 3; }
- :root[data-theme] .journal-experience .memory-feed.grid .memory-card-bottom { grid-column: 1 / -1; margin-top: 8px; }
- :root[data-theme] .journal-experience .memory-feed.grid .text-memory .memory-card-copy { padding: 18px; }
  :root[data-theme] .studio-home .studio-records { grid-template-columns: minmax(0,1fr); gap: 12px; }
  :root[data-theme] .studio-home .studio-records > .keepsake-entry { grid-template-columns: 105px minmax(0,1fr); gap: 12px; padding: 10px; }
  :root[data-theme] .studio-home .keepsake-entry.recent-entry-note { grid-template-columns: minmax(0,1fr); padding-inline: 18px; }

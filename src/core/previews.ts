@@ -19,11 +19,11 @@ async function withPreviewSlot<T>(work: () => Promise<T>): Promise<T> {
 }
 
 async function encodePreview(key: string, input: Buffer, display: boolean) {
+  const longEdge = display ? 1920 : 1280;
   const { data, info } = await sharp(input, { limitInputPixels: 40_000_000, sequentialRead: true, animated: false })
-    .rotate().resize({ width: display ? 1920 : 960, height: display ? 1920 : 960, fit: "inside", withoutEnlargement: true })
-    // HD is created on first open: use the faster encoder search, preserving
-    // its quality and dimensions. Frequently transferred thumbnails stay small.
-    .webp({ quality: display ? 82 : 72, effort: display ? 2 : 4 }).toBuffer({ resolveWithObject: true });
+    .rotate().resize({ width: longEdge, height: longEdge, fit: "inside", withoutEnlargement: true })
+    // Favor fast encodes on both the upload path and the first HD open.
+    .webp({ quality: display ? 82 : 80, effort: 2 }).toBuffer({ resolveWithObject: true });
   const thumbnailKey = key + ".preview-" + crypto.randomUUID() + ".webp";
   await getStorage().put(thumbnailKey, Readable.from(data));
   return { thumbnailKey, width: info.width, height: info.height };

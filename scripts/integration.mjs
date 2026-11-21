@@ -317,7 +317,7 @@ try {
   assert.equal(thumb.status,200);assert.equal(thumb.headers.get("content-type"),"image/webp");
   const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
   assert(thumbBuffer.length < png.length);
-  const thumbInfo = await sharp(thumbBuffer).metadata();assert.equal(thumbInfo.width,960);assert.equal(thumbInfo.height,600);passed++;
+  const thumbInfo = await sharp(thumbBuffer).metadata();assert.equal(thumbInfo.width,1280);assert.equal(thumbInfo.height,800);passed++;
   assert.deepEqual([asset.width, asset.height], [thumbInfo.width, thumbInfo.height]);passed++;
   const thumbnailEtag = thumb.headers.get("etag");
   assert(thumbnailEtag);
@@ -975,6 +975,17 @@ try {
   await call("/api/account",{cookie:rotated.cookie});
   await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"person_a",password:"IndependentPass123"},status:401});
   const freshLogin=await call("/api/auth/login",{method:"POST",body:{emailOrUsername:"person_a",password:"UpdatedPassword123"}});assert(freshLogin.cookie);
+  // Portraits get the same long-edge budget. Small originals must not be enlarged.
+  for (const [width, height, expected] of [[1500, 2400, [800, 1280]], [80, 60, [80, 60]]]) {
+    const image = await sharp({ create: { width, height, channels: 3, background: "#59745a" } }).png().toBuffer();
+    const uploaded = await uploadFile(rotated.cookie, image);
+    const response = await fetch(base + uploaded.thumbnailUrl, { headers: { Cookie: rotated.cookie } });
+    assert.equal(response.status, 200);
+    const preview = await sharp(Buffer.from(await response.arrayBuffer())).metadata();
+    assert.deepEqual([preview.width, preview.height], expected);
+    assert.deepEqual([uploaded.width, uploaded.height], expected);
+    passed++;
+  }
   await call("/api/auth/logout", { cookie: rotated.cookie, method: "POST" });
   await call("/api/upload/sign", { method: "POST", status: 410 });
   let challengeLimited=false;

@@ -8,8 +8,7 @@ import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
 import type { Memory, MemoryList } from "./types";
 import { PhotoWall } from "./photo-wall";
-import { MediaGrid, previewUrl } from "./media";
-import { DecodedImage } from "@/components/decoded-image";
+import { MediaGrid } from "./media";
 import { DateFilter } from './date-filter';
 import { EmptyTrash } from "./empty-trash";
 import { ThemeMotif } from "@/components/theme-motif";
@@ -199,10 +198,10 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           <div className="feed-toolbar">
             <div className="filter-tabs" role="group" aria-label="记录类型">
               {[
-                ["all", "全卷", "全部记录"],
-                ["photo", "留影", "照片"],
-                ["video", "流光", "视频"],
-                ["text", "尺素", "文字"],
+                ["all", "全部", "全部记录"],
+                ["photo", "照片", "照片"],
+                ["video", "视频", "视频"],
+                ["text", "文字", "文字"],
               ].map(([value, title, description]) => (
                 <button
                   key={value}
@@ -263,17 +262,17 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 );
               }}
             >
-              <Icon name="search" size={18} />
               <input
                 key={params.get("q") || ""}
                 name="search"
+                enterKeyHint="search"
                 type="search"
                 maxLength={100}
                 defaultValue={params.get("q") || ""}
                 aria-label="搜索记忆"
-                placeholder="循一字、一处地名，寻回某页…"
+                placeholder="内容、地点或标签"
               />
-              <button type="submit" aria-label="搜索日常">寻页</button>
+              <button className="feed-search-submit" type="submit" aria-label="提交搜索"><Icon name="search" size={17} /></button>
             </form>
             <DateFilter month={params.get('month') || ''} day={params.get('day') || ''} onChange={(month, day) => {
               const next = new URLSearchParams(params.toString()); next.delete('cursor'); next.delete('month'); next.delete('day');
@@ -282,11 +281,12 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
             }} />
             {activeFilters && (
               <Link
-                className="text-link small"
+                className="text-link small feed-reset"
+                title="清除筛选"
                 aria-label="清除筛选"
                 href={trash ? "/memories/trash" : `/memories?scope=${scope}${view === "grid" ? "" : "&view=" + view}`}
               >
-                重启全卷
+                <Icon name="restore" size={16} /><span>清除筛选</span>
               </Link>
             )}
           </div>
@@ -359,11 +359,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}${m.title || m.content ? ' has-authored-copy' : ''}`}
                       data-motion-surface=""
                     >
-                      {view === 'grid' && <Link
-                        className="memory-card-detail"
-                        href={`/memories/${m.id}`}
-                        aria-label={`展开${dateText(m.happenedAt, { year: 'numeric', month: 'long', day: 'numeric' })}的日常${m.title ? `：${m.title}` : ''}`}
-                      ><span className="memory-card-open" aria-hidden="true"><Icon name="arrow" size={17} /></span></Link>}
+                      {view === 'grid' && <Link className="memory-card-detail" href={'/memories/' + m.id} aria-label={'打开日常：' + (m.title || dateText(m.happenedAt))} />}
                       <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
                       <span className="motion-spotlight" aria-hidden="true" />
                       <div className="memory-card-top">
@@ -399,9 +395,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                         </div>
                       </div>
                       <div className="memory-card-preview">
-                        {view === 'grid' && m.assets[0] && (m.assets[0].mime.startsWith('image/') || m.assets[0].thumbnailUrl) && <span className="memory-card-echo" aria-hidden="true"><DecodedImage src={previewUrl(m.assets[0])} alt="" loading="lazy" /></span>}
                         {view === 'grid' && m.assets.length > 0 && <span className="memory-card-imprint" aria-hidden="true"><ThemeMotif /></span>}
-                        <MediaGrid assets={m.assets} compact />
+                        <MediaGrid assets={m.assets} compact echo={view === 'grid'} />
                         <div className="memory-card-copy">
                           {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
                           {m.content && (

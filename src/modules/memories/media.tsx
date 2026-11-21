@@ -23,13 +23,15 @@ export function MediaThumbnail({ asset, onOpen, className = 'media-tile', label,
   </button>;
 }
 
-export function MediaGrid({ assets, compact = false }: { assets: MediaAsset[]; compact?: boolean }) {
+export function MediaGrid({ assets, compact = false, echo = false }: { assets: MediaAsset[]; compact?: boolean; echo?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
   if (!assets.length) return null;
   const shown = compact ? assets.slice(0, 1) : assets;
   return <>
     <div className={'media-grid ' + (shown.length === 1 ? 'single ' : '') + (compact ? 'compact archive-cover' : '')}>
-      {shown.map((asset, index) => <div className='media-print' key={asset.id}><MediaThumbnail asset={asset} onOpen={() => setSelected(index)} count={compact ? assets.length : 1} label={'查看第 ' + (index + 1) + ' 个' + (asset.mime.startsWith('video/') ? '视频' : '照片') + (compact && assets.length > 1 ? '，共 ' + assets.length + ' 项影像' : '')} /></div>)}
+      {shown.map((asset, index) => <div className='media-print' key={asset.id}>
+        {echo && (asset.mime.startsWith('image/') || asset.thumbnailUrl) && <span className='memory-card-echo' aria-hidden='true'><DecodedImage src={previewUrl(asset)} alt='' loading='lazy' /></span>}
+        <MediaThumbnail asset={asset} onOpen={() => setSelected(index)} count={compact ? assets.length : 1} label={'查看第 ' + (index + 1) + ' 个' + (asset.mime.startsWith('video/') ? '视频' : '照片') + (compact && assets.length > 1 ? '，共 ' + assets.length + ' 项影像' : '')} /></div>)}
     </div>
     {selected !== null && <MediaViewer assets={assets} initial={selected} close={() => setSelected(null)} />}
   </>;
