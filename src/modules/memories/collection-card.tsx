@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { DecodedImage } from "@/components/decoded-image";
 import { Icon } from "@/components/icons";
@@ -32,6 +31,5 @@ export function CollectionCard({ photo, index, onOpen }: { photo: GalleryPhoto; 
       <time dateTime={memory.happenedAt}>{date}</time>
       {memory.title && <h3>{memory.title}</h3>}
     </div>
-    <Link href={`/memories/${memory.id}`} className="projection-contact-detail" aria-label={`打开${memory.title || date}的日常`}><Icon name="arrow" size={16} /></Link>
   </article>;
 }

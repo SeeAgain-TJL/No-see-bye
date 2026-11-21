@@ -268,7 +268,7 @@
 }
 .projection-contact-photo:is(:hover, :focus-visible) .projection-contact-expand { opacity: 1; translate: none; }
 .projection-contact-caption {
-  position: absolute; z-index: 2; left: 0; right: 54px; bottom: 0;
+  position: absolute; z-index: 2; inset: auto 0 0 0;
   display: grid; gap: 4px; padding: 0 0 clamp(14px, 5.2cqw, 22px) clamp(14px, 6cqw, 24px);
   pointer-events: none; color: #fbf8ef;
 }
@@ -306,10 +306,8 @@
   .projection-home .gallery-heading h2 { font-size: 18px; }
   .projection-home .gallery-detail { gap: 5px; padding-inline: 7px; font-size: 10px; }
   .projection-contact-card { --print-top: 6cqw; --print-side: 6cqw; --print-bottom: 31cqw; border-radius: 11px; }
-  .projection-contact-caption { right: 40px; gap: 2px; }
   .projection-contact-caption time { font-size: 10px; letter-spacing: .02em; }
   .projection-contact-expand { display: none; }
-  .projection-contact-detail { width: 30px; height: 30px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .projection-home :is(a, button, .projection-contact-card, .projection-contact-expand, .contact-print, .contact-backdrop img, .contact-sheen) { transition: none; }
