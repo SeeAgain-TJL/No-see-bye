@@ -52,10 +52,14 @@ export default function Settings() {
   return <AppShell><section className="page-heading"><h1>设置</h1>{user?.role === "admin" && <Link className="button secondary" href="/admin"><Icon name="grid" size={17} />管理台<Icon name="arrow" size={16} /></Link>}</section>
     {error && <div className="notice error" role="alert">{error}</div>}
     {loading ? <div className="loading-panel">加载中…</div> : !user ? <div className="empty-state"><h2>登录后管理账号</h2><Link className="button" href="/login">登录</Link></div> : !data ? <div className="loading-panel">{error ? <button className="button secondary" onClick={() => refresh()}>重新加载</button> : "正在读取账号…"}</div> : <div className="settings-grid">
+      <Link href="/memories/trash" className="settings-card settings-trash-link">
+        <span className="settings-trash-icon"><Icon name="trash" size={21} /></span>
+        <span>回收站</span><Icon name="arrow" size={17} />
+      </Link>
       <section className="settings-card"><h2>个人资料</h2>
         <div className="settings-avatar-row">
           <Avatar name={data.user.displayName || data.user.username} src={preview || data.user.avatarUrl} className="settings-avatar" />
-          <div className="settings-avatar-controls"><strong>换个头像，换个心情</strong><p>图片不超过 5 MB，将居中裁剪为正方形</p>
+          <div className="settings-avatar-controls"><strong>头像</strong><p>图片不超过 5 MB，将居中裁剪为正方形</p>
             <input ref={picker} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={chooseAvatar} aria-label="选择头像图片" disabled={!!busy} />
             <div className="settings-avatar-actions"><button type="button" className="button secondary" disabled={!!busy} onClick={() => picker.current?.click()}>{file ? "重新选择" : "更换头像"}</button>
               {file ? <><button type="button" className="button" disabled={!!busy} onClick={() => updateAvatar()}>{busy === "avatar" ? "上传中…" : "保存头像"}</button><button className="text-link small" type="button" disabled={!!busy} onClick={() => { setFile(null); setPreview(null); }}>取消</button></> : data.user.avatarUrl && <button className="text-link small" type="button" disabled={!!busy} onClick={() => updateAvatar(true)}>恢复默认</button>}
@@ -72,7 +76,7 @@ export default function Settings() {
       </section>
       {data.user.hasLocalPassword ? <PasswordSecurity security={data.security} onChanged={async () => setData(await api<Account>("/api/account"))} />
         : <section className="settings-card settings-connected"><span className="connected-symbol"><Icon name="lock" size={28} /></span><h2>登录方式</h2><strong>{data.user.loginMethods.includes("github") ? "GitHub" : "第三方账号"} 登录</strong><p>本站不保存你的第三方密码。账号密码请前往对应平台修改。</p>{data.user.loginMethods.includes("github") && <a className="button secondary" href="https://github.com/settings/security" target="_blank" rel="noopener noreferrer">管理 GitHub 账号<Icon name="arrow" size={16} /></a>}</section>}
-      <section className="settings-card settings-storage"><span className="shortcut-icon"><Icon name="image" size={26} /></span><div className="storage-gauge"><h2>存储用量</h2><p>已使用 {bytes(data.usedBytes)}{data.quotaBytes !== null ? ` / ${bytes(data.quotaBytes)}` : " · 不设个人总量上限"} · {data.records} 条记录</p>{data.quotaBytes !== null && <progress aria-label="原文件存储使用量" max={data.quotaBytes} value={data.usedBytes} />}</div><Link href="/memories/trash" className="text-link small">回收站<Icon name="arrow" size={16} /></Link></section>
+      <section className="settings-card settings-storage"><span className="shortcut-icon"><Icon name="image" size={26} /></span><div className="storage-gauge"><h2>存储用量</h2><p>已使用 {bytes(data.usedBytes)}{data.quotaBytes !== null ? ` / ${bytes(data.quotaBytes)}` : " · 不设个人总量上限"} · {data.records} 条记录</p>{data.quotaBytes !== null && <progress aria-label="原文件存储使用量" max={data.quotaBytes} value={data.usedBytes} />}</div></section>
     </div>}
   </AppShell>;
 }

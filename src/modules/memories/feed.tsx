@@ -26,7 +26,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       : "mine";
   const type = params.get("type") || "all";
   const resetPublicFilter = scope === 'public' && !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
-  const view = ["gallery", "timeline"].includes(params.get("view") || "") ? params.get("view")! : "grid";
+  const requestedView = params.get("view");
+  const view = requestedView === "timeline" || (!trash && requestedView === "gallery") ? requestedView : "grid";
   const [result, setResult] = useState<{
     key: string;
     data?: MemoryList;
@@ -106,25 +107,25 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       setMoreBusy(false);
     }
   }
-  async function action(memory: Memory, action: "pin" | "restore" | "delete") {
+  async function action(memory: Memory, action: "pin" | "restore" | "delete" | "purge") {
     if (pending) return;
     setPending(memory.id);
     try {
-      await api(`/api/memories/${memory.id}`, {
-        method: action === "delete" ? "DELETE" : "PATCH",
-        ...(action === "delete" ? {} : { body: JSON.stringify({ action }) }),
-      });
-      setRefreshKey((v) => v + 1);
+      if (action === "purge") {
+        const result = await api<{ pending: number }>("/api/memories/trash", {
+          method: "DELETE",
+          body: JSON.stringify({ confirmation: "DELETE_ENTRY", id: memory.id, deletedAt: memory.deletedAt }),
+        });
+        notify(result.pending ? "记录已永久删除，附件稍后清理" : "已永久删除");
+      } else {
+        await api(`/api/memories/${memory.id}`, {
+          method: action === "delete" ? "DELETE" : "PATCH",
+          ...(action === "delete" ? {} : { body: JSON.stringify({ action }) }),
+        });
+        notify(action === "delete" ? "已移到回收站" : action === "restore" ? "已恢复" : memory.pinned ? "已取消收藏" : "已收藏");
+      }
+      setRefreshKey(v => v + 1);
       setRemoving(null);
-      notify(
-        action === "delete"
-          ? "已放入回收站，随时可以恢复"
-          : action === "restore"
-            ? "记忆已恢复"
-            : memory.pinned
-              ? "已取消收藏"
-              : "已标记为收藏",
-      );
     } catch (error) {
       notify((error as Error).message);
     } finally {
@@ -134,7 +135,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   if (!loading && !user && scope === 'mine') return <div className="journal-experience"><JournalPrivateGate /></div>;
   return (
     <div className={'journal-experience' + (trash ? ' journal-trash' : scope === 'public' ? ' journal-discovery' : ' journal-personal')} data-journal-view={view}>
-      {!trash && <JournalAtmosphere key={scope} title={scope === 'public' ? '发现日常' : '我的日常'} items={data?.items || []} publicScope={scope === 'public'} ownerId={user?.id} month={params.get('month') || ''} type={type} activeFilters={activeFilters} revision={refreshKey} onBrowse={browse} />}
+      {!trash && <JournalAtmosphere key={scope} items={data?.items || []} publicScope={scope === 'public'} ownerId={user?.id} month={params.get('month') || ''} type={type} activeFilters={activeFilters} revision={refreshKey} onBrowse={browse} />}
       <section className="page-heading journal-page-heading">
         <div>
           <h1>
@@ -169,15 +170,15 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
             <div className="stats-strip">
               <div aria-label="日常总数">
                 <strong>{data?.stats?.total ?? "—"}</strong>
-                <span>篇拾遗</span>
+                <span>条日常</span>
               </div>
               <div aria-label="照片总数">
                 <strong>{data?.stats?.photos ?? "—"}</strong>
-                <span>帧留影</span>
+                <span>张照片</span>
               </div>
               <div aria-label="视频总数">
                 <strong>{data?.stats?.videos ?? "—"}</strong>
-                <span>段流光</span>
+                <span>段视频</span>
               </div>
               <div className="storage-stat">
                 <Icon name="lock" size={16} />
@@ -194,7 +195,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           )}
           {trash && (
             <div className="notice">
-              还没想好？可以恢复。确定不要了？清空后会永久删除记录和附件。
+              永久删除的记录和附件无法恢复。
             </div>
           )}
           <div className="feed-toolbar">
@@ -231,7 +232,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 <Icon name="pin" size={18} />
               </button>
               <div className="view-switch" role="group" aria-label="浏览方式">
-                <button type="button" aria-label="照片墙" title="照片墙" aria-pressed={view === "gallery"} className={view === "gallery" ? "selected" : ""} onClick={() => filter("view", "gallery")}><Icon name="image" size={17} /></button>
+                {!trash && <button type="button" aria-label="照片墙" title="照片墙" aria-pressed={view === "gallery"} className={view === "gallery" ? "selected" : ""} onClick={() => filter("view", "gallery")}><Icon name="image" size={17} /></button>}
                 <button
                   type="button"
                   aria-label="卡片视图"
@@ -312,7 +313,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           ) : !data ? (
             <div className="loading-panel" role="status">
               <span className="loading-ring" />
-              正在拾起散落的时光…
+              正在加载…
             </div>
           ) : !data.items.length ? (
             <div className="empty-state">
@@ -326,32 +327,40 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       params.get("month") ||
                       params.get("pinned") ||
                       type !== "all"
-                    ? "这一页，尚未寻得回声。"
-                    : "岁月待写，此间留白。"}
+                    ? "没有符合条件的日常"
+                    : "暂无日常"}
               </h2>
 
               {!trash && (
                 <Link className="button" href={resetPublicFilter ? '/memories?scope=public' : user ? '/memories/new' : '/register'} aria-label={resetPublicFilter ? '清除筛选，查看全部公开日常' : user ? '创建日常' : '注册账户并记录日常'}>
                   <Icon name={resetPublicFilter ? 'globe' : 'plus'} size={17} />
-                  {resetPublicFilter ? '重阅人间' : '落笔成笺'}
+                  {resetPublicFilter ? '清除筛选' : user ? '记录日常' : '注册'}
                 </Link>
               )}
             </div>
           ) : view === "gallery" ? <PhotoWall memories={data.items} /> : (
             <div key={key + ':' + view} className={`memory-feed ${view}`}>
               {data.items.map((m, i) => {
-                if (view === 'grid' && scope === 'public' && m.assets[0]?.mime.startsWith('image/')) {
-                  const owner = m.userId === user?.id;
+                const owner = m.userId === user?.id;
+                const actions = owner && <JournalEntryActions
+                  memory={m} trash={trash} busy={!!pending}
+                  onPin={() => action(m, "pin")} onRestore={() => action(m, "restore")}
+                  onRemove={() => setRemoving(m)}
+                />;
+                const firstAsset = m.assets[0];
+                if (view === 'grid' && scope !== 'trash' && firstAsset?.mime.startsWith('image/')) {
                   return <div key={m.id} id={'journal-entry-' + m.id} className="memory-wrapper discovery-print-wrapper" tabIndex={-1}>
-                    <CollectionCard photo={{ memory: m, asset: m.assets[0] }} index={i} discovery onOpen={() => setViewing(m)} actions={(owner || m.tags.length > 0) && <details className="print-options"
-                      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}
-                      onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); } }}
-                      onClick={e => { if ((e.target as Element).closest('button, a')) e.currentTarget.open = false; }}>
-                      <summary aria-label="日常选项">更多</summary><div>
-                        {m.tags.map(tag => <button type="button" key={tag} onClick={() => filter('q', tag)}># {tag}</button>)}
-                        {owner && <><button type="button" disabled={!!pending} onClick={() => action(m, 'pin')}>{m.pinned ? '取消收藏' : '收藏'}</button><Link href={'/memories/' + m.id + '/edit'}>编辑</Link><button type="button" onClick={() => setRemoving(m)}>移到回收站</button></>}
-                      </div>
-                    </details>} />
+                    <CollectionCard photo={{ memory: m, asset: firstAsset }} index={i} journal={scope} onOpen={() => setViewing(m)}
+                      actions={m.tags.length > 0 && <details className="print-options"
+                        onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}
+                        onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); } }}
+                        onClick={e => { if ((e.target as Element).closest('button')) e.currentTarget.open = false; }}>
+                        <summary aria-label="查看标签">标签</summary><div>
+                          {m.tags.map(tag => <button type="button" key={tag} onClick={() => filter('q', tag)}># {tag}</button>)}
+                        </div>
+                      </details>}
+                    />
+                    {actions}
                   </div>;
                 }
                 const month = dateText(m.happenedAt, {
@@ -446,48 +455,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                             moodLabel(m.mood) || ""
                           )}
                         </span>
-                        {user?.id === m.userId ? (
-                          <div className="card-actions">
-                            {trash ? (
-                              <button
-                                className="text-link"
-                                disabled={pending === m.id}
-                                onClick={() => action(m, "restore")}
-                              >
-                                <Icon name="restore" size={15} />
-                                恢复
-                              </button>
-                            ) : (
-                              <>
-                                <button
-                                  title={m.pinned ? "取消收藏" : "收藏"}
-                                  aria-label={m.pinned ? "取消收藏" : "收藏"}
-                                  className="icon-button"
-                                  disabled={pending === m.id}
-                                  onClick={() => action(m, "pin")}
-                                >
-                                  <Icon name="pin" size={15} />
-                                </button>
-                                <Link
-                                  title="编辑"
-                                  aria-label="编辑"
-                                  className="icon-button"
-                                  href={`/memories/${m.id}/edit`}
-                                >
-                                  <Icon name="edit" size={15} />
-                                </Link>
-                                <button
-                                  title="移到回收站"
-                                  aria-label="移到回收站"
-                                  className="icon-button"
-                                  onClick={() => setRemoving(m)}
-                                >
-                                  <Icon name="trash" size={15} />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        ) : view !== 'grid' ? (
+                        {owner ? actions : view !== 'grid' ? (
                           <Link
                             href={`/memories/${m.id}`}
                             className="text-link small"
@@ -509,13 +477,10 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 disabled={moreBusy}
                 onClick={loadMore}
               >
-                {moreBusy ? "拾页中…" : "续阅未尽"}
+                {moreBusy ? "加载中…" : "加载更多"}
                 <Icon name="arrow" size={16} />
               </button>
             </div>
-          )}
-          {data && data.items.length > 0 && !data.nextCursor && (
-            <div className="feed-end"><span aria-hidden='true'>✦</span>{scope === 'public' ? '目光所及，皆为人间。' : trash ? '旧页已收，余白犹在。' : '此卷暂歇，来日续章。'}<span lang='en'>TO BE CONTINUED</span></div>
           )}
           </section>
         </>
@@ -526,22 +491,46 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
           memory={removing}
           busy={pending === removing.id}
           cancel={() => setRemoving(null)}
-          confirm={() => action(removing, "delete")}
+          permanent={trash}
+          confirm={() => action(removing, trash ? "purge" : "delete")}
         />
       )}
     </div>
   );
 }
+function JournalEntryActions({ memory, trash, busy, onPin, onRestore, onRemove }: {
+  memory: Memory;
+  trash: boolean;
+  busy: boolean;
+  onPin: () => void;
+  onRestore: () => void;
+  onRemove: () => void;
+}) {
+  return <div className="journal-entry-actions" role="group" aria-label={trash ? "回收站操作" : "日常操作"}>
+    {trash
+      ? <button type="button" disabled={busy} onClick={onRestore}><Icon name="restore" size={17} />恢复</button>
+      : <>
+        <button type="button" disabled={busy} aria-pressed={memory.pinned} onClick={onPin}><Icon name="pin" size={17} />收藏</button>
+        <Link href={`/memories/${memory.id}/edit`}><Icon name="edit" size={17} />编辑</Link>
+      </>}
+    <button type="button" className="entry-remove" disabled={busy} onClick={onRemove}>
+      <Icon name="trash" size={17} />{trash ? "永久删除" : "移到回收站"}
+    </button>
+  </div>;
+}
+
 export function DeleteDialog({
   memory,
   busy,
   cancel,
   confirm,
+  permanent = false,
 }: {
   memory: Memory;
   busy: boolean;
   cancel: () => void;
   confirm: () => void;
+  permanent?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -558,10 +547,9 @@ export function DeleteDialog({
       }}
     >
       <Icon name="trash" size={27} />
-      <h2 id="delete-title">移到回收站？</h2>
+      <h2 id="delete-title">{permanent ? "永久删除这条日常？" : "移到回收站？"}</h2>
       <p>
-        「{memory.title || "这段日常"}
-        」会移到回收站。你可以随时恢复，公开访问也会同时关闭。
+        「{memory.title || "这段日常"}」{permanent ? "及其附件将永久删除，无法恢复。" : "会移到回收站，可以随时恢复。"}
       </p>
       <div>
         <button
@@ -573,7 +561,7 @@ export function DeleteDialog({
           再想想
         </button>
         <button disabled={busy} className="button danger" onClick={confirm}>
-                {busy ? "处理中…" : "移到回收站"}
+                {busy ? "处理中…" : permanent ? "永久删除" : "移到回收站"}
         </button>
       </div>
     </dialog>

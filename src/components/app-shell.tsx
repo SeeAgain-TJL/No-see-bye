@@ -41,7 +41,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     <div className='app-body'>
       <header className='topbar'>
         <span className='breadcrumb'>我的空间<span>/</span>{({ admin: '管理台', settings: '设置', trash: '回收站', memories: '我的日常', discover: '发现日常', new: '记录日常' } as Record<string, string>)[active] || '首页'}</span>
-        <Link href='/' className='mobile-brand'><BrandMark /><span>不说再见</span></Link>
+        <Link href='/' className='mobile-brand' aria-label='首页'><BrandMark /><span>不说再见</span></Link>
         <div className='account'>
           <QuickSearch /><span className='account-divider' aria-hidden='true' /><ThemeSwitcher />
           {loading ? <span className='muted small'>连接中…</span> : user ? <>

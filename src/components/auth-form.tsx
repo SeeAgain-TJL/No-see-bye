@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { OAuthProvider } from "@/core/oauth";
@@ -9,13 +10,12 @@ import { registrationCredentials, type RegistrationCredentials, type Registratio
 import { Icon } from "./icons";
 import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
-import { MemoryPortal } from "./memory-portal";
-import { ThemeSwitcher } from "./theme-provider";
-import { ImmersiveMotion } from "./immersive-motion";
+import { useActiveTheme, ThemeSwitcher } from "./theme-provider";
 
 type AuthPath = "/login" | "/register";
 
 export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[] }) {
+  const theme = useActiveTheme();
   const register = usePathname() === "/register";
   const searchParams = useSearchParams();
   const oauthError = Boolean(searchParams.get("error"));
@@ -26,7 +26,7 @@ export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[]
 
   function switchMode(path: AuthPath, event: { preventDefault(): void }) {
     event.preventDefault();
-    // These pages use the same shell. Keep the picture and player mounted across the URL change.
+    // These pages use the same shell. Keep the illustration mounted across the URL change.
     if (window.location.pathname !== path) window.history.pushState(null, "", modeHref(path));
   }
 
@@ -41,9 +41,9 @@ export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[]
         </Link></div>
       </header>
       <div className="auth-card">
-        <section className="auth-story" aria-label="主题记忆短片">
-          <MemoryPortal />
-        </section>
+        <div className="auth-story auth-static-art" aria-hidden="true">
+          <Image unoptimized fill src={`/visuals/auth-${theme}.webp`} alt="" fetchPriority="high" />
+        </div>
         <div className="auth-form-room">
           <div className="auth-form-stack">
             <nav className="auth-mode-tabs" aria-label="账号入口">
@@ -54,7 +54,6 @@ export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[]
           </div>
         </div>
       </div>
-      <ImmersiveMotion />
     </main>
   );
 }
@@ -119,13 +118,12 @@ function AuthFields({ register, oauthError, socialProviders }: { register: boole
   }
   return (
     <>
-        <form className="auth-form" onSubmit={submit}>
-          <h1>{register ? "从此，留痕。" : "久别，重逢。"}</h1>
+        <form className="auth-form" aria-label={register ? "注册" : "登录"} onSubmit={submit}>
           <div className="auth-form-feedback">
             {error ? <div className="auth-form-error" role="alert">
               {error}
               {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
-            </div> : <p>{register ? "创建账号，留下第一篇日常。" : "登录你的记忆档案。"}</p>}
+            </div> : null}
           </div>
           <div className="auth-form-credentials">
           {register ? (
@@ -196,7 +194,6 @@ function AuthFields({ register, oauthError, socialProviders }: { register: boole
               </div>
             </div>
           )}
-          <div className="auth-form-colophon"><Icon name="lock" size={14} /><span>记录的可见范围由你决定</span></div>
         </form>
       {registration && <RegistrationVerification credentials={registration.credentials} initialChallenge={registration.challenge}
         onCancel={() => setRegistration(null)} onComplete={signal => finish("/", signal)}

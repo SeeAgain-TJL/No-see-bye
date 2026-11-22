@@ -26,12 +26,15 @@ try {
       await photo.dblclick();
       const viewer = page.locator('dialog.immersive-viewer[open]');
       await viewer.waitFor();
-      await viewer.locator('.immersive-stage').dblclick();
+      assert.equal(await viewer.locator('.immersive-dismiss').count(), 0, 'Photo previews close on tap');
+      const stage = viewer.locator('.immersive-stage');
+      await stage.hover();
+      await page.mouse.wheel(0, -280);
       await viewer.locator('.is-zoomed').waitFor();
-      await viewer.getByRole('button', { name: '关闭预览' }).click();
+      await stage.click();
       await viewer.waitFor({ state: 'hidden' });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      console.log(`PASS ${width}px: 4:5 mount, contained print, clean hover, double-click, zoom and dismiss`);
+      console.log(`PASS ${width}px: 4:5 mount, contained print, clean hover, double-click, wheel zoom and tap to dismiss`);
     } finally { await context.close(); }
   }
 } finally { await browser.close(); }

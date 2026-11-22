@@ -775,6 +775,31 @@ try {
   assert.equal((await call("/api/memories/trash", { cookie: a.cookie })).data.count, 1);
   assert.equal((await call("/api/memories/trash", { cookie: b.cookie })).data.count, 1);
   assert.equal((await call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", body: { confirmation: "EMPTY_TRASH", before: snapshot.before } })).data.deleted, 0);
+  // Single-entry purge keeps other entries and honors ownership and the exact trash state.
+  const singleAsset = await uploadFile(a.cookie, png);
+  const singleEntry = (await call("/api/memories", {
+    cookie: a.cookie, method: "POST", status: 201, body: memoryInput({ assetIds: [singleAsset.id] }),
+  })).data;
+  const singleRoute = "/api/memories/" + singleEntry.id;
+  const singleRemove = (body, opts = {}) => call("/api/memories/trash", { cookie: a.cookie, method: "DELETE", body, ...opts });
+  await singleRemove({ confirmation: "DELETE_ENTRY", id: singleEntry.id }, { status: 400 });
+  await singleRemove({ confirmation: "DELETE_ENTRY", id: singleEntry.id, deletedAt: singleEntry.updatedAt }, { status: 404 });
+  await call(singleRoute, { cookie: a.cookie, method: "DELETE" });
+  const singleBody = { confirmation: "DELETE_ENTRY", id: singleEntry.id, deletedAt: (await call(singleRoute, { cookie: a.cookie })).data.deletedAt };
+  await singleRemove(singleBody, { cookie: b.cookie, status: 404 });
+  await singleRemove(singleBody, { headers: { Origin: "https://evil.example" }, status: 403 });
+  await call(singleRoute, { cookie: a.cookie, method: "PATCH", body: { action: "restore" } });
+  await singleRemove(singleBody, { status: 404 });
+  await call(singleRoute, { cookie: a.cookie, method: "DELETE" });
+  await singleRemove(singleBody, { status: 404 });
+  singleBody.deletedAt = (await call(singleRoute, { cookie: a.cookie })).data.deletedAt;
+  const singlePath = inspection.prepare("SELECT key FROM Asset WHERE id=?").get(singleAsset.id).key;
+  assert.deepEqual((await singleRemove(singleBody)).data, { ok: true, deleted: 1, pending: 0 });
+  await assert.rejects(access(path.join(env.STORAGE_LOCAL_DIR, singlePath)));
+  await call(singleRoute, { cookie: a.cookie, status: 404 });
+  await call("/api/assets/" + singleAsset.id, { cookie: a.cookie, status: 404 });
+  assert.equal((await call("/api/memories/trash", { cookie: a.cookie })).data.count, 1);
+  assert.equal((await call("/api/memories/trash", { cookie: b.cookie })).data.count, 1);
   // Force a filesystem failure: retained tombstones allow safe cleanup retries.
   const retryAsset = await uploadFile(a.cookie, png);
   const retryEntry = (await call("/api/memories", { cookie: a.cookie, method: "POST", status: 201, body: memoryInput({ assetIds: [retryAsset.id] }) })).data;

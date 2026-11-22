@@ -377,9 +377,9 @@
 .settings-grid .security-verification { align-items: stretch; }
 .settings-grid .security-verification > button { align-self: end; margin-bottom: 15px; }
 @container (min-width: 415px) {
-  .settings-grid > section:first-child > form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 13px; }
-  .settings-grid > section:first-child > form > :is(label:first-child, button) { grid-column: 1 / -1; }
-  .settings-grid > section:first-child > form > button { justify-self: start; }
+  .settings-grid > section:first-of-type > form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 13px; }
+  .settings-grid > section:first-of-type > form > :is(label:first-child, button) { grid-column: 1 / -1; }
+  .settings-grid > section:first-of-type > form > button { justify-self: start; }
 }
 
 @media (max-width: 930px) { .settings-grid { grid-template-columns: minmax(0, 1fr); } }

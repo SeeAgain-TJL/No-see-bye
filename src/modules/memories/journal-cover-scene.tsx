@@ -1,25 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useActiveTheme } from "@/components/theme-provider";
 import { themeNames } from "@/lib/themes";
-import { useCoverGesture } from "./cover-gesture";
-import { LivingPhoto } from "./living-photo";
 import { MediaViewer } from "./media";
 import { sceneImages } from "./scene-photography";
 
-export function JournalCoverScene({ publicScope = false }: { publicScope?: boolean }) {
+export function JournalCoverScene() {
   const theme = useActiveTheme();
   const [open, setOpen] = useState(false);
-  const gesture = useCoverGesture(() => setOpen(true));
+  const index = themeNames.indexOf(theme);
+  const image = sceneImages[index];
   return <>
-    <button type="button" className="journal-living-scene" data-jls-scope={publicScope ? "public" : "personal"}
-      aria-label="打开日常封面，可缩放" aria-haspopup="dialog" title="双击查看照片" {...gesture}>
-      <span className="jls-view-window" aria-hidden="true">
-        <span className="jls-photo-plane"><LivingPhoto theme={theme} paused={open} /></span>
-        <span className="jls-lens-plane" />
-      </span>
+    <button type="button" className="journal-cover-photo" aria-label="打开日常封面照片" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+      <Image src={image.url} alt="" width={1920} height={1080} unoptimized fetchPriority="high" />
     </button>
-    {open && <MediaViewer assets={sceneImages} initial={themeNames.indexOf(theme)} close={() => setOpen(false)} zoomControls />}
+    {open && <MediaViewer assets={sceneImages} initial={index} close={() => setOpen(false)} zoomControls />}
   </>;
 }
