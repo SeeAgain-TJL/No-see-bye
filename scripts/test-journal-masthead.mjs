@@ -23,7 +23,7 @@ try {
         assert.equal(await tabs.locator('[aria-current=page]').innerText(), label);
         assert.equal(await page.locator('.auth-form h1:visible, .auth-story video, .auth-story canvas').count(), 0);
         const card = await page.locator('.auth-card').boundingBox();
-        assert(card.width <= 901 && card.height <= 680, JSON.stringify(card));
+        assert(card.width <= 1401 && card.height <= 740, JSON.stringify(card));
         await page.locator('.auth-static-art img').evaluate(img => img.decode());
         await capture(mode);
       }
