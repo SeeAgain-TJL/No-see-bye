@@ -14,15 +14,15 @@ function JournalMasthead({ publicScope = false, children, guest = false }: {
 }) {
   const titleId = useId();
   return <header className="journal-masthead" aria-labelledby={titleId}>
-    <div className="journal-masthead-print"><JournalCoverScene /></div>
+    <JournalCoverScene />
     <div className="journal-masthead-heading">
       <h1 id={titleId}>{publicScope ? "发现日常" : "我的日常"}</h1>
       {guest && <p>登录后查看自己的照片和记录。</p>}
-      <Link className="journal-scope-switch" href={publicScope ? "/memories" : "/memories?scope=public"}>
-        <Icon name={publicScope ? "book" : "globe"} size={15} />{publicScope ? "我的日常" : "发现日常"}<Icon name="arrow" size={14} />
-      </Link>
+      <div className="journal-masthead-actions">{children}</div>
     </div>
-    <div className="journal-masthead-actions">{children}</div>
+    <Link className="journal-scope-switch" href={publicScope ? "/memories" : "/memories?scope=public"}>
+      <Icon name={publicScope ? "book" : "globe"} size={15} />{publicScope ? "我的日常" : "发现日常"}<Icon name="arrow" size={14} />
+    </Link>
   </header>;
 }
 

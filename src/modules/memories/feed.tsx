@@ -381,6 +381,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                     )}
                     <article
+                      style={view === "timeline" && firstAsset?.width && firstAsset.height ? { "--entry-ratio": firstAsset.width / firstAsset.height } as CSSProperties : undefined}
                       className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}${m.title || m.content ? ' has-authored-copy' : ''}`}
                       data-motion-surface=""
                     >
@@ -421,7 +422,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       </div>
                       <div className="memory-card-preview">
                         {view === 'grid' && m.assets.length > 0 && <span className="memory-card-imprint" aria-hidden="true"><ThemeMotif /></span>}
-                        <MediaGrid assets={m.assets} compact echo={view === 'grid'} />
+                        <MediaGrid assets={m.assets} compact echo={view === 'grid'} mat={!trash && view === 'timeline'} />
                         <div className="memory-card-copy">
                           {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
                           {m.content && (

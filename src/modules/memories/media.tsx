@@ -13,17 +13,18 @@ const addQuery = (url: string, query: string) => url + (url.includes('?') ? '&' 
 export const previewUrl = (asset: Pick<MediaAsset, 'thumbnailUrl' | 'url'>) => asset.thumbnailUrl || addQuery(asset.url, 'variant=preview');
 const displayUrl = (asset: ViewerAsset) => asset.fullUrl || addQuery(asset.url, 'variant=display');
 
-export function MediaThumbnail({ asset, onOpen, className = 'media-tile', label, count = 1, onRatio }: { asset: MediaAsset; onOpen: () => void; className?: string; label: string; count?: number; onRatio?: (ratio: number) => void }) {
+export function MediaThumbnail({ asset, onOpen, className = 'media-tile', label, count = 1, mat = false }: { asset: MediaAsset; onOpen: () => void; className?: string; label: string; count?: number; mat?: boolean }) {
   const [ratio, setRatio] = useState(asset.width && asset.height ? asset.width / asset.height : 1.5);
   const isVideo = asset.mime.startsWith('video/');
-  return <button type='button' className={className + ' framed-preview'} style={{ '--media-ratio': ratio } as CSSProperties} data-orientation={ratio < .9 ? 'portrait' : 'landscape'} onClick={onOpen} aria-label={label}>
-    {!isVideo || asset.thumbnailUrl ? <DecodedImage src={isVideo ? asset.thumbnailUrl! : previewUrl(asset)} alt={isVideo ? '视频封面' : '日常照片'} loading='lazy' width={asset.width || undefined} height={asset.height || undefined} onDimensions={({ width, height }) => { if (width > 0 && height > 0) { setRatio(width / height); onRatio?.(width / height); } }} /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
+  return <button type='button' className={className + ' framed-preview' + (mat ? ' journal-mounted-photo' : '')} style={{ '--media-ratio': ratio } as CSSProperties} data-orientation={ratio < .9 ? 'portrait' : 'landscape'} onClick={onOpen} aria-label={label}>
+    {mat && (!isVideo || asset.thumbnailUrl) && <span className='journal-photo-matte' aria-hidden='true'><DecodedImage src={previewUrl(asset)} alt='' loading='lazy' /></span>}
+    {!isVideo || asset.thumbnailUrl ? <DecodedImage src={isVideo ? asset.thumbnailUrl! : previewUrl(asset)} alt={isVideo ? '视频封面' : '日常照片'} loading='lazy' width={asset.width || undefined} height={asset.height || undefined} onDimensions={({ width, height }) => { if (width > 0 && height > 0) { setRatio(width / height); } }} /> : <div className='video-placeholder'><Icon name='video' size={32} /></div>}
     {isVideo && <span className='play-icon'><Icon name='play' size={23} /></span>}
     {count > 1 && <span className='cover-count'><Icon name='image' size={13} />{count}</span>}
   </button>;
 }
 
-export function MediaGrid({ assets, compact = false, echo = false }: { assets: MediaAsset[]; compact?: boolean; echo?: boolean }) {
+export function MediaGrid({ assets, compact = false, echo = false, mat = false }: { assets: MediaAsset[]; compact?: boolean; echo?: boolean; mat?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
   if (!assets.length) return null;
   const shown = compact ? assets.slice(0, 1) : assets;
@@ -31,7 +32,7 @@ export function MediaGrid({ assets, compact = false, echo = false }: { assets: M
     <div className={'media-grid ' + (shown.length === 1 ? 'single ' : '') + (compact ? 'compact archive-cover' : '')}>
       {shown.map((asset, index) => <div className='media-print' key={asset.id}>
         {echo && (asset.mime.startsWith('image/') || asset.thumbnailUrl) && <span className='memory-card-echo' aria-hidden='true'><DecodedImage src={previewUrl(asset)} alt='' loading='lazy' /></span>}
-        <MediaThumbnail asset={asset} onOpen={() => setSelected(index)} count={compact ? assets.length : 1} label={'查看第 ' + (index + 1) + ' 个' + (asset.mime.startsWith('video/') ? '视频' : '照片') + (compact && assets.length > 1 ? '，共 ' + assets.length + ' 项影像' : '')} /></div>)}
+        <MediaThumbnail asset={asset} mat={mat} onOpen={() => setSelected(index)} count={compact ? assets.length : 1} label={'查看第 ' + (index + 1) + ' 个' + (asset.mime.startsWith('video/') ? '视频' : '照片') + (compact && assets.length > 1 ? '，共 ' + assets.length + ' 项影像' : '')} /></div>)}
     </div>
     {selected !== null && <MediaViewer assets={assets} initial={selected} close={() => setSelected(null)} />}
   </>;
