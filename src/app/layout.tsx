@@ -37,6 +37,7 @@ import './admin-user-actions.css';
 import './cinematic-motion.css';
 import './projection-studio.css';
 import './ui-refresh.css';
+import './journal-touch.css';
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

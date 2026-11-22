@@ -72,9 +72,7 @@ export function PasswordSecurity({ security, onChanged }: { security: PasswordSe
     setError("");
   }
   return <form ref={form} className="settings-card password-security" onSubmit={submit} onChange={invalidate}>
-    <span className="security-eyebrow"><Icon name="lock" size={15} />ACCOUNT SECURITY</span>
-    <h2>为珍藏，留一道锁。</h2>
-    <p className="security-description">{security.requiresEmailVerification ? "修改密码需要当前密码与邮箱验证码。" : "以当前密码验证身份，守护你的私人卷册。"}更新后，其余设备将退出登录。</p>
+    <h2>修改密码</h2>
     {security.requiresEmailVerification && !security.mailConfigured && <p className="security-mail-unavailable" role="status"><Icon name="lock" size={16} />验证码邮件暂不可用，需由管理员配置发信服务。</p>}
     <label>当前密码<input name="currentPassword" type="password" required maxLength={72} autoComplete="current-password" disabled={busy} /></label>
     <div className="security-password-pair">
