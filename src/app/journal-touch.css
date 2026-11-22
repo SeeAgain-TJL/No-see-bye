@@ -69,7 +69,6 @@
 .settings-trash-icon { display: grid; place-items: center; min-height: 42px; border-radius: 11px; color: var(--accent); background: var(--accent-soft); }
 :root[data-theme] .auth-editorial .auth-story.auth-static-art { position: relative; min-height: 0; overflow: hidden; padding: 0; }
 .auth-static-art img { object-fit: cover; object-position: 50% 45%; }
-.studio-auth .auth-form-feedback:empty { display: none; }
 .immersive-viewer .immersive-stage:not(.is-video,.is-zoomed) { cursor: zoom-out; }
 
 @media (max-width: 760px) {
@@ -91,7 +90,7 @@
   .app-shell .topbar .quick-search-trigger span { font-size: 13px; }
   .app-shell .topbar .account-divider { display: none; }
   .journal-entry-actions :is(a,button) { min-height: 48px; }
-  :root[data-theme] .auth-editorial .auth-story.auth-static-art { display: block; min-height: clamp(106px,32vw,178px); }
+  :root[data-theme] .auth-editorial .auth-story.auth-static-art { display: block; min-height: clamp(96px, min(53vw, calc(100svh - 450px)), 225px); }
 }
 /* A small photographic print anchors the section without hiding half the image behind text. */
 .journal-masthead {

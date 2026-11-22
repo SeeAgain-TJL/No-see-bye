@@ -119,78 +119,46 @@ function AuthFields({ register, oauthError, socialProviders }: { register: boole
   return (
     <>
         <form className="auth-form" aria-label={register ? "注册" : "登录"} onSubmit={submit}>
-          <div className="auth-form-feedback">
-            {error ? <div className="auth-form-error" role="alert">
-              {error}
-              {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
-            </div> : null}
-          </div>
           <div className="auth-form-credentials">
-          {register ? (
-              <label>
-                用户名
-                <input
-                  name="username"
-                  required
-                  minLength={3}
-                  maxLength={20}
-                  pattern="[a-zA-Z0-9_]+"
-                  autoComplete="username"
-                  placeholder="3–20 位字母、数字或下划线"
-                />
-              </label>
-          ) : (
             <label>
               用户名
-              <input
-                name="emailOrUsername"
-                required
-                maxLength={254}
-                autoComplete="username"
-                placeholder="输入你的用户名"
-              />
+              <input name={register ? "username" : "emailOrUsername"} required autoComplete="username"
+                minLength={register ? 3 : undefined} maxLength={register ? 20 : 254} pattern={register ? "[a-zA-Z0-9_]+" : undefined}
+                placeholder={register ? "3–20 位字母、数字或下划线" : "输入你的用户名"} />
             </label>
-          )}
-          <label>
-            密码
-            <div className="password-field">
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                required
-                minLength={register ? 8 : 1}
-                maxLength={72}
-                autoComplete={register ? "new-password" : "current-password"}
-                placeholder={
-                  register ? "至少 8 位，建议使用独立密码" : "输入密码"
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-pressed={showPassword} aria-label={showPassword ? "隐藏密码" : "显示密码"}
-              >
-                <Icon name={showPassword ? 'eye-off' : 'eye'} size={19} />
+            <div className="auth-password-row">
+              <label>
+                密码
+                <input id="auth-password" name="password" type={showPassword ? "text" : "password"}
+                  required minLength={register ? 8 : 1} maxLength={72} autoComplete={register ? "new-password" : "current-password"}
+                  placeholder={register ? "至少 8 位" : "输入密码"} />
+              </label>
+              {register && <label>
+                确认密码
+                <input id="auth-confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"}
+                  required minLength={8} maxLength={72} autoComplete="new-password" placeholder="再次输入" />
+              </label>}
+              <button className="auth-password-visibility" type="button" onClick={() => setShowPassword(v => !v)}
+                aria-controls={register ? "auth-password auth-confirm-password" : "auth-password"}
+                aria-pressed={showPassword} aria-label={showPassword ? "隐藏密码" : "显示密码"}>
+                <Icon name={showPassword ? "eye-off" : "eye"} size={19} />
               </button>
             </div>
-          </label>
-          {register && <label>
-            再次确认密码
-            <div className="password-field">
-              <input name="confirmPassword" type={showPassword ? "text" : "password"} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="再次输入密码" />
-            </div>
-          </label>}
           </div>
           <button className="button wide auth-submit" disabled={busy || registration !== null}>
             {busy ? register ? "正在准备验证…" : "请稍候…" : register ? "创建账号" : "登录"}
             <Icon name="arrow" size={17} />
           </button>
+          {error && <div className="auth-form-error" role="alert">
+            {error}
+            {siteOrigin && <a className="origin-recovery" href={siteOrigin + (register ? "/register" : "/login")}>前往正式入口，重新{register ? "注册" : "登录"}<Icon name="arrow" size={15} /></a>}
+          </div>}
           {socialProviders.length > 0 && (
             <div className="auth-social">
-              <div className="auth-social-divider"><span>或使用其他方式继续</span></div>
+              <div className="auth-social-divider"><span>或</span></div>
               <div className="auth-social-buttons">
-                {socialProviders.includes("qq") && <Link prefetch={false} className="auth-social-button qq" href="/api/auth/qq"><span>Q</span>使用 QQ {register ? "注册" : "登录"}</Link>}
-                {socialProviders.includes("github") && <Link prefetch={false} className="auth-social-button github" href="/api/auth/github"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.54v-2.08c-3.1.68-3.76-1.32-3.76-1.32-.5-1.3-1.23-1.65-1.23-1.65-1.01-.7.08-.69.08-.69 1.12.08 1.71 1.15 1.71 1.15 1 .1.68 2.03 3.55 1.43.1-.72.4-1.2.72-1.47-2.48-.28-5.09-1.24-5.09-5.53 0-1.22.44-2.22 1.15-3-.11-.28-.5-1.42.11-2.96 0 0 .94-.3 3.06 1.14a10.7 10.7 0 0 1 5.57 0c2.13-1.44 3.06-1.14 3.06-1.14.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.3-2.61 5.25-5.1 5.53.4.34.76 1 .76 2.02v3c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/></svg>使用 GitHub {register ? "注册" : "登录"}</Link>}
+                {socialProviders.includes("qq") && <Link prefetch={false} className="auth-social-button qq" href="/api/auth/qq" aria-label="使用 QQ 继续"><span aria-hidden="true">Q</span>QQ</Link>}
+                {socialProviders.includes("github") && <Link prefetch={false} className="auth-social-button github" href="/api/auth/github" aria-label="使用 GitHub 继续"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.54v-2.08c-3.1.68-3.76-1.32-3.76-1.32-.5-1.3-1.23-1.65-1.23-1.65-1.01-.7.08-.69.08-.69 1.12.08 1.71 1.15 1.71 1.15 1 .1.68 2.03 3.55 1.43.1-.72.4-1.2.72-1.47-2.48-.28-5.09-1.24-5.09-5.53 0-1.22.44-2.22 1.15-3-.11-.28-.5-1.42.11-2.96 0 0 .94-.3 3.06 1.14a10.7 10.7 0 0 1 5.57 0c2.13-1.44 3.06-1.14 3.06-1.14.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.3-2.61 5.25-5.1 5.53.4.34.76 1 .76 2.02v3c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/></svg>GitHub</Link>}
               </div>
             </div>
           )}
