@@ -127,23 +127,21 @@ function AuthFields({ register, oauthError, socialProviders }: { register: boole
                 placeholder={register ? "3–20 位字母、数字或下划线" : "输入你的用户名"} />
             </label>
             <div className="auth-password-row">
-              <label>
-                密码
-                <input id="auth-password" name="password" type={showPassword ? "text" : "password"}
-                  required minLength={register ? 8 : 1} maxLength={72} autoComplete={register ? "new-password" : "current-password"}
-                  placeholder={register ? "至少 8 位" : "输入密码"} />
-              </label>
-              {register && <label>
-                确认密码
-                <input id="auth-confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"}
-                  required minLength={8} maxLength={72} autoComplete="new-password" placeholder="再次输入" />
-              </label>}
+              <label htmlFor="auth-password">密码</label>
+              <input id="auth-password" name="password" type={showPassword ? "text" : "password"}
+                required minLength={register ? 8 : 1} maxLength={72} autoComplete={register ? "new-password" : "current-password"}
+                placeholder={register ? "至少 8 位" : "输入密码"} />
               <button className="auth-password-visibility" type="button" onClick={() => setShowPassword(v => !v)}
                 aria-controls={register ? "auth-password auth-confirm-password" : "auth-password"}
                 aria-pressed={showPassword} aria-label={showPassword ? "隐藏密码" : "显示密码"}>
                 <Icon name={showPassword ? "eye-off" : "eye"} size={19} />
               </button>
             </div>
+            {register && <label>
+              确认密码
+              <input id="auth-confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"}
+                required minLength={8} maxLength={72} autoComplete="new-password" placeholder="再次输入密码" />
+            </label>}
           </div>
           <button className="button wide auth-submit" disabled={busy || registration !== null}>
             {busy ? register ? "正在准备验证…" : "请稍候…" : register ? "创建账号" : "登录"}

@@ -59,15 +59,23 @@ try {
           const now = await snapshot(mode);
           assert(now.active && now.pill && now.height >= 44, `missing selected pill: ${mode}`);
           assert(now.overflow <= 0 && now.x === baseline.x && now.y === baseline.y, `unexpected scroll: ${width}`);
-          for (const [key, rect] of Object.entries(boxes)) {
-            for (const axis of ['x','y','width','height']) {
-              if (key === 'password' && axis === 'width') continue; // Confirmation shares this row in register.
-              assert(Math.abs(now.boxes[key][axis] - rect[axis]) < 0.5, `${width} ${mode}: ${key}.${axis}: ${rect[axis]} -> ${now.boxes[key][axis]}`);
+          assert(Math.abs(now.boxes.card.x-boxes.card.x)<.5 && Math.abs(now.boxes.card.y-boxes.card.y)<.5);
+          assert(Math.abs(now.boxes.card.height-boxes.card.height)<=(width<761?90:.5));
+          for (const key of ['image','tabs','name','password','visibility']) {
+            if (boxes[key]) for (const axis of ['x','y','width','height']) {
+              assert(Math.abs(now.boxes[key][axis] - boxes[key][axis]) < .5, `${width} ${mode}: ${key}.${axis} moved`);
             }
+          }
+          const extra=now.boxes.password.height + 26 + (width<=760 ? 10 : 12);
+          const actionShift=(Number(mode==='register')-Number(first==='register')) * extra;
+          for(const key of ['submit','social']) if(boxes[key]) {
+            assert(Math.abs(now.boxes[key].y - boxes[key].y - actionShift)<.5, `Only confirmation may shift ${key}`);
           }
           if (mode === 'register') {
             const confirm = await page.locator('input[name=confirmPassword]').boundingBox();
-            assert(confirm.width >= 94 && confirm.y === now.boxes.password.y);
+            assert(confirm.y >= now.boxes.password.y + now.boxes.password.height + 4);
+            assert(Math.abs(confirm.width - now.boxes.name.width) < .5 && confirm.x === now.boxes.name.x);
+            assert(await page.locator('.auth-password-visibility').evaluate(e => { const a=e.getBoundingClientRect(), p=document.querySelector('#auth-password').getBoundingClientRect(); return Math.abs((a.top+a.height/2)-(p.top+p.height/2))<1; }), 'Password visibility is not attached to the password field');
           }
         };
         await stable(first);

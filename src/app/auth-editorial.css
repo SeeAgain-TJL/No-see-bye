@@ -68,7 +68,7 @@
   grid-template-columns: minmax(0, 1fr) clamp(354px, 39%, 510px);
   width: 100%;
   max-width: var(--auth-width);
-  min-height: clamp(380px, 61svh, 660px);
+  min-height: clamp(520px, 70svh, 760px);
   margin: 0 auto auto;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--cinema-edge) 38%, var(--line));
@@ -95,7 +95,7 @@
   display: grid;
   place-items: start center;
   min-width: 0;
-  padding: clamp(30px, calc((61svh - 390px) / 2), 130px) clamp(22px, 3.5vw, 54px);
+  padding: clamp(20px, calc((70svh - 520px) / 2), 100px) clamp(22px, 3.5vw, 54px);
   background:
     radial-gradient(ellipse at 84% 4%, color-mix(in srgb, var(--cinema-edge) 15%, transparent), transparent 60%),
     linear-gradient(148deg, var(--surface), color-mix(in srgb, var(--surface) 78%, var(--surface-dim)));
@@ -167,14 +167,14 @@
 }
 .auth-form-error .origin-recovery { display: flex; align-items: center; gap: 6px; min-height: 44px; }
 .auth-form-credentials { display: grid; gap: var(--auth-field-spacing); margin-bottom: 16px; }
-/* Confirmation shares the password row, not a hidden third row in login. */
+
 .auth-password-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
-  align-items: end;
-  gap: 8px;
+  gap: 6px;
+  position: relative;
+  grid-template-rows: 20px var(--auth-input-height);
 }
-.auth-editorial[data-auth-mode='register'] .auth-password-row { grid-template-columns: repeat(2, minmax(0, 1fr)) 44px; }
+
 .auth-editorial.studio-auth .auth-form-credentials label {
   display: grid;
   min-width: 0;
@@ -197,8 +197,10 @@
   color: var(--ink);
   font-size: 16px;
 }
+.auth-editorial .auth-password-row #auth-password { padding-inline-end: 48px; }
 .auth-editorial .auth-password-visibility {
-  display: grid; place-items: center; padding: 0; color: var(--ink-muted); cursor: pointer;
+  position: absolute; inset: auto 1px 1px auto; width: 44px; height: calc(var(--auth-input-height) - 2px);
+  border: 0; background: transparent; display: grid; place-items: center; padding: 0; color: var(--ink-muted); cursor: pointer;
 }
 .auth-editorial .auth-password-visibility:is(:hover,[aria-pressed='true']) { background: var(--accent-soft); color: var(--ink); }
 :root[data-theme] .auth-editorial.studio-auth .auth-form-credentials input:focus {
