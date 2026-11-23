@@ -7,7 +7,7 @@ const origin = new URL(process.env.QA_BASE || 'http://127.0.0.1:3210');
 assert(['localhost', '127.0.0.1', '[::1]'].includes(origin.hostname), 'Use a local fixture, not production');
 const browser = await chromium.launch({ headless: true });
 try {
-  for (const [width, columns] of [[1440, 3], [768, 2], [390, 1], [320, 1]]) {
+  for (const [width, columns] of [[1440, 5], [768, 2], [390, 1], [320, 1]]) {
     const context = await browser.newContext({ baseURL: origin.origin, viewport: { width, height: 900 }, reducedMotion: 'reduce' });
     try {
       const page = await context.newPage();
