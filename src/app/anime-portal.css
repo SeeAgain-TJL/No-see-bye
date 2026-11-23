@@ -6,6 +6,14 @@
 :root[data-theme="rift"] :is(.auth-projection, .auth-static-art) { --auth-scene-art: url("/visuals/auth-rift.webp"); }
 :root[data-theme="ocean"] :is(.auth-projection, .auth-static-art) { --auth-scene-art: url("/visuals/auth-ocean.webp"); }
 
+@media (max-width: 760px) {
+  :root[data-theme="grassland"] .auth-static-art { --auth-scene-art: url("/visuals/auth-grassland-mobile.webp"); }
+  :root[data-theme="forest"] .auth-static-art { --auth-scene-art: url("/visuals/auth-forest-mobile.webp"); }
+  :root[data-theme="iceberg"] .auth-static-art { --auth-scene-art: url("/visuals/auth-iceberg-mobile.webp"); }
+  :root[data-theme="rift"] .auth-static-art { --auth-scene-art: url("/visuals/auth-rift-mobile.webp"); }
+  :root[data-theme="ocean"] .auth-static-art { --auth-scene-art: url("/visuals/auth-ocean-mobile.webp"); }
+}
+
 .auth-projection {
   --auth-shot-position: 50%;
   --auth-shot-vertical: 44%;

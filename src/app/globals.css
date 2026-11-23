@@ -1360,6 +1360,22 @@ select:focus-visible {
   white-space: nowrap;
   font-size: 11px;
 }
+.photo-upload-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface-dim);
+  cursor: pointer;
+}
+.photo-upload-option input { width: 18px; height: 18px; flex: none; accent-color: var(--accent); }
+.photo-upload-option strong { display: block; font-size: 13px; }
+.photo-upload-option small { display: block; color: var(--ink-muted); font-size: 12px; }
 .upload-previews {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
