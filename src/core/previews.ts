@@ -19,11 +19,11 @@ async function withPreviewSlot<T>(work: () => Promise<T>): Promise<T> {
 }
 
 async function encodePreview(key: string, input: Buffer, display: boolean) {
-  const longEdge = display ? 1920 : 1280;
+  const longEdge = display ? 1920 : 1024;
   const { data, info } = await sharp(input, { limitInputPixels: 40_000_000, sequentialRead: true, animated: false })
     .rotate().resize({ width: longEdge, height: longEdge, fit: "inside", withoutEnlargement: true })
     // Favor fast encodes on both the upload path and the first HD open.
-    .webp({ quality: display ? 82 : 80, effort: 2 }).toBuffer({ resolveWithObject: true });
+    .webp({ quality: display ? 82 : 78, effort: 2 }).toBuffer({ resolveWithObject: true });
   const thumbnailKey = key + ".preview-" + crypto.randomUUID() + ".webp";
   await getStorage().put(thumbnailKey, Readable.from(data));
   return { thumbnailKey, width: info.width, height: info.height };

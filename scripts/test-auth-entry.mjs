@@ -35,7 +35,7 @@ try {
       let documentRequests = 0;
       page.on('request', request => {
         if (request.resourceType() === 'document') documentRequests++;
-        const artwork = new URL(request.url()).pathname.match(/^\/visuals\/auth-([a-z]+)\.webp$/)?.[1];
+        const artwork = new URL(request.url()).pathname.match(/^\/visuals\/auth-([a-z]+(?:-mobile)?)\.webp$/)?.[1];
         if (artwork) artworkRequests.add(artwork);
       });
       const tabs = page.getByRole('navigation', { name: '账号入口' });
@@ -66,8 +66,9 @@ try {
           await image.decode();
           return new URL(image.src).pathname;
         });
-        assert.equal(imageSource, `/visuals/auth-${theme}.webp`);
-        assert.deepEqual([...artworkRequests], [theme], 'the saved theme should be the only artwork requested');
+        const artwork = theme + (width <= 760 ? '-mobile' : '');
+        assert.equal(imageSource, `/visuals/auth-${artwork}.webp`);
+        assert.deepEqual([...artworkRequests], [artwork], 'request only the artwork for the saved theme and screen size');
         const baseline = await snapshot(first);
         const { boxes } = baseline;
         assert(boxes.tabs.width <= 175 && boxes.name.width <= 497);
@@ -78,7 +79,8 @@ try {
             assert(scale >= 1.025 && scale <= 1.06, 'desktop composition should grow slightly from the centered layout');
           }
           const bottom = height - boxes.card.y - boxes.card.height;
-          assert(boxes.masthead.y >= 24 && Math.abs(bottom - boxes.masthead.y) <= 17, 'center the combined masthead and card vertically');
+          const shift = Math.min(64, Math.max(0, .12 * height - 88));
+          assert(boxes.masthead.y >= 24 && Math.abs(bottom - boxes.masthead.y - 16 - shift) <= 1, 'move the composition slightly above center');
           assert(Math.abs((width - boxes.card.width) / 2 - boxes.card.x) < 1, 'center the card horizontally');
           assert(boxes.image.width >= boxes.card.width * .59 && boxes.name.height >= 54 && boxes.submit.height >= 51);
         } else if (width <= 760) {

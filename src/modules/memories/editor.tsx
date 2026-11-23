@@ -7,6 +7,7 @@ import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { videoPoster } from "@/lib/video-poster";
 import { api, bytes, upload } from "@/lib/client";
+import { canOptimizePhoto, optimizePhoto } from "@/lib/photo-upload";
 import { moods } from "./moods";
 import type { Memory, MemoryInput, MediaAsset } from "./types";
 type Selected = {
@@ -15,6 +16,8 @@ type Selected = {
   file?: File;
   asset?: MediaAsset;
   progress: number;
+  preparing?: boolean;
+  transferSize?: number;
   error?: string;
 };
 const localTime = (value: string) =>
@@ -46,13 +49,14 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
   const [items, setItems] = useState<Selected[]>(
     memory?.assets.map((a) => ({
       key: a.id,
-      preview: a.url,
+      preview: a.mime.startsWith("image/") ? a.thumbnailUrl || `${a.url}?variant=preview` : a.url,
       asset: a,
       progress: 100,
     })) || [],
   );
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [optimizeUploads, setOptimizeUploads] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationStatus, setLocationStatus] = useState("");
   const locationRequest = useRef(0);
@@ -223,13 +227,22 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
     });
     setDirty(true);
   }
-  async function transfer(item:Selected,signal:AbortSignal) {
-    setItems(v=>v.map(x=>x.key===item.key?{...x,error:undefined,progress:0}:x));
+  async function transfer(item: Selected, signal: AbortSignal) {
+    const source = item.file!;
+    const preparing = optimizeUploads && canOptimizePhoto(source);
+    const update = (patch: Partial<Selected>) => setItems(current => current.map(entry => entry.key === item.key ? { ...entry, ...patch } : entry));
+    update({ error: undefined, progress: 0, preparing, transferSize: undefined });
+    let file = source;
+    if (preparing) {
+      try { file = await optimizePhoto(source, signal); }
+      finally { update({ preparing: false }); }
+    }
+    if (file !== source) update({ transferSize: file.size });
     // Decode a cover while the original is in flight, rather than after it.
-    const posterTask = item.file?.type.startsWith('video/') ? videoPoster(item.file, signal) : null;
-    const asset=await upload(item.file!,progress=>setItems(v=>v.map(x=>x.key===item.key?{...x,progress}:x)),signal);
+    const posterTask = file.type.startsWith('video/') ? videoPoster(file, signal) : null;
+    const asset = await upload(file, progress => update({ progress }), signal);
     // Keep a completed original even if poster generation fails or upload is cancelled.
-    setItems(v=>v.map(x=>x.key===item.key?{...x,asset,progress:100}:x));
+    update({ asset, progress: 100 });
     if(item.file?.type.startsWith("video/")) {
       const poster=await posterTask;
       if(poster&&!signal.aborted)try{
@@ -449,6 +462,12 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                 支持 JPG / PNG / GIF / WebP / AVIF / MP4 / WebM / MOV
               </small>
             </button>
+            {items.some(item => !item.asset && item.file && canOptimizePhoto(item.file)) && (
+              <label className="photo-upload-option">
+                <input type="checkbox" checked={optimizeUploads} disabled={busy} onChange={event => setOptimizeUploads(event.target.checked)} />
+                <span><strong>加速上传</strong><small>较大的 JPG 将保存为压缩版，最长边 3072 像素。</small></span>
+              </label>
+            )}
             {items.length > 0 && (
               <div className="upload-previews">
                 {items.map((item, index) => (
@@ -470,6 +489,8 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                         <img
                           src={item.preview}
                           alt={item.file?.name || item.asset?.filename}
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                       <span className="upload-order">
@@ -495,7 +516,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                     </span>
                     <div className="upload-info">
                       <span>
-                        {bytes(item.file?.size || item.asset?.sizeBytes || 0)}
+                        {item.transferSize ? `${bytes(item.file!.size)} → ${bytes(item.transferSize)}` : bytes(item.asset?.sizeBytes || item.file?.size || 0)}
                       </span>
                       <div>
                         <button
@@ -516,7 +537,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                         </button>
                       </div>
                     </div>
-                    {busy && !item.asset && (
+                    {busy && !item.asset && !item.preparing && (
                       <progress
                         value={item.progress}
                         max={100}
@@ -526,7 +547,7 @@ export function MemoryEditor({ memory }: { memory?: Memory }) {
                     <span className="tiny upload-status">
                       {item.error ||
                         (busy && !item.asset
-                          ? (item.progress === 100 ? "正在处理…" : `${item.progress}%`)
+                          ? (item.preparing ? "正在压缩…" : item.progress === 100 ? "正在处理…" : `${item.progress}%`)
                           : item.asset
                             ? "已就绪"
                             : "等待上传")}

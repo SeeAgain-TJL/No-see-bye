@@ -99,12 +99,6 @@ export function MediaViewer({ assets, initial, close, zoomControls = false }: { 
     box.addEventListener('wheel', wheel, { passive: false });
     return () => box.removeEventListener('wheel', wheel);
   }, [isVideo]);
-  useEffect(() => {
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    if (!ready || assets.length < 2 || connection?.saveData || connection?.effectiveType?.includes('2g')) return;
-    const next = assets[(index + 1) % assets.length]; if (!next.mime.startsWith('image/')) return;
-    const image = new Image(); image.fetchPriority = 'low'; image.decoding = 'async'; image.src = displayUrl(next); void image.decode().catch(() => {});
-  }, [ready, index, assets]);
   function pinchPoints() {
     const [a, b] = [...pointers.current.values()];
     return { distance: Math.hypot(b.x - a.x, b.y - a.y), center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };

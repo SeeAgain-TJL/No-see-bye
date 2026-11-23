@@ -112,6 +112,9 @@
   max-width: 496px;
 }
 @media (min-width: 761px) {
+  :root[data-theme] .studio-auth.auth-editorial {
+    padding-block-end: calc(28px + clamp(0px, 12svh - 88px, 64px));
+  }
   /* Center a shared slot so the first two fields stay put across modes. */
   .auth-form-stack { min-height: 432px; }
   .auth-form-stack:has(.auth-social) { min-height: 542px; }
