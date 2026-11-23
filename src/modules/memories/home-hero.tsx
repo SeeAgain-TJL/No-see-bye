@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { BrandMark } from '@/components/brand-mark';
 import { Icon } from '@/components/icons';
@@ -10,11 +11,12 @@ import { LivingPhoto } from './living-photo';
 import { MediaViewer } from './media';
 import { sceneImages } from './scene-photography';
 import { MemoryAlbum } from './memory-album';
-import { MemoryStories } from './stories';
-import { PostcardStudio } from './postcard-studio';
 import type { MemoryList, UserInfo } from './types';
 
-function GuestOpening() {
+const MemoryStories = dynamic(() => import('./stories').then(module => module.MemoryStories));
+const PostcardStudio = dynamic(() => import('./postcard-studio').then(module => module.PostcardStudio));
+
+function GuestOpening({ allowMotion }: { allowMotion: boolean }) {
   const theme = useActiveTheme();
   const [view, setView] = useState<number | null>(null);
   const scene = themes[theme];
@@ -23,7 +25,7 @@ function GuestOpening() {
   return <>
     <section key={theme} className='cinematic-opening' aria-labelledby='hero-title'>
       <div className='cinematic-camera-track'>
-        <div className='cinematic-opening-art' aria-hidden='true'><LivingPhoto theme={theme} paused={view !== null} /></div>
+        <div className='cinematic-opening-art' aria-hidden='true'><LivingPhoto theme={theme} paused={!allowMotion || view !== null} /></div>
         <button type='button' className='opening-photo-surface' aria-label={`打开${scene.label}摄影，可缩放`} aria-haspopup='dialog' title='双击查看照片' {...gesture} />
       </div>
       <div className='cinematic-opening-copy'>
@@ -39,9 +41,9 @@ function GuestOpening() {
   </>;
 }
 
-export function HomeHero({ user, data, error, onRetry }: { user: UserInfo | null; data?: MemoryList; error?: string; onRetry: () => void }) {
+export function HomeHero({ user, data, error, onRetry, allowCoverMotion }: { user: UserInfo | null; data?: MemoryList; error?: string; onRetry: () => void; allowCoverMotion: boolean }) {
   const [experience, setExperience] = useState<'postcard' | 'stories' | null>(null);
-  if (!user) return <GuestOpening />;
+  if (!user) return <GuestOpening allowMotion={allowCoverMotion} />;
   return <section className='home-observatory' aria-labelledby='hero-title'>
     <header className='home-welcome'>
       <div className='home-welcome-copy'><div><span className='welcome-eyebrow'>{user.displayName || user.username} · 私人相册</span><h1 id='hero-title'>旧日如笺。</h1></div></div>

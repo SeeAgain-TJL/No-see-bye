@@ -25,7 +25,7 @@ try {
   }
   browser = await (process.env.QA_BROWSER === 'webkit' ? webkit : chromium).launch();
   const geometries = { card: '.auth-card', image: '.auth-story img', tabs: '.auth-mode-tabs', name: 'input[autocomplete=username]', password: 'input[name=password]', visibility: '.auth-password-visibility', submit: '.auth-submit', social: '.auth-social' };
-  for (const [width, height] of [[1920,1080],[1280,800],[768,900],[390,844],[320,568],[667,375]]) {
+  for (const [width, height] of [[1920,1080],[1728,1120],[1280,800],[768,900],[390,844],[320,568],[667,375]]) {
     const context = await browser.newContext({ baseURL, viewport: { width, height }, hasTouch: width < 768 });
     try {
       const page = await context.newPage();
@@ -52,21 +52,25 @@ try {
         await page.goto(`/${first}`);
         const baseline = await snapshot(first);
         const { boxes } = baseline;
-        assert(boxes.tabs.width <= 170 && boxes.name.width <= 449);
-        if (width >= 1280) assert(boxes.card.width >= 1090 && boxes.card.width <= 1481 && boxes.image.width > boxes.name.width && boxes.name.height >= 50);
+        assert(boxes.tabs.width <= 187 && boxes.name.width <= 561);
+        if (!process.env.QA_BASE && width >= 1280) {
+          assert(boxes.card.width >= .93 * width && boxes.card.width <= .95 * width, 'desktop card should use the viewport');
+          assert(boxes.card.y < 110 && boxes.card.height >= height * .81, 'avoid oversized margins above and below the card');
+          assert(boxes.name.width >= 440 && boxes.name.height >= 56 && boxes.submit.height >= 56, 'form itself should scale up');
+        }
         if (!process.env.QA_BASE) assert.equal(Boolean(boxes.social), process.env.QA_SOCIAL !== 'off');
         const stable = async mode => {
           const now = await snapshot(mode);
           assert(now.active && now.pill && now.height >= 44, `missing selected pill: ${mode}`);
           assert(now.overflow <= 0 && now.x === baseline.x && now.y === baseline.y, `unexpected scroll: ${width}`);
           assert(Math.abs(now.boxes.card.x-boxes.card.x)<.5 && Math.abs(now.boxes.card.y-boxes.card.y)<.5);
-          assert(Math.abs(now.boxes.card.height-boxes.card.height)<=(width<761?90:.5));
+          assert(Math.abs(now.boxes.card.height-boxes.card.height)<=(width<761?96:.5));
           for (const key of ['image','tabs','name','password','visibility']) {
             if (boxes[key]) for (const axis of ['x','y','width','height']) {
               assert(Math.abs(now.boxes[key][axis] - boxes[key][axis]) < .5, `${width} ${mode}: ${key}.${axis} moved`);
             }
           }
-          const extra=now.boxes.password.height + 26 + (width<=760 ? 10 : 12);
+          const extra=now.boxes.password.height + 26 + (width<=760 ? 14 : 17);
           const actionShift=(Number(mode==='register')-Number(first==='register')) * extra;
           for(const key of ['submit','social']) if(boxes[key]) {
             assert(Math.abs(now.boxes[key].y - boxes[key].y - actionShift)<.5, `Only confirmation may shift ${key}`);
@@ -104,7 +108,7 @@ try {
         await page.goBack(); await stable(first);
         await page.goForward(); await stable(other);
         assert(await image.evaluate(el => el === document.querySelector('.auth-story img')), 'art remounted');
-        if (output && [1920,390,320].includes(width)) await page.screenshot({path: path.join(output, `${other}-${width}.png`)});
+        if (output && [1920,1728,390,320].includes(width)) await page.screenshot({path: path.join(output, `${other}-${width}.png`)});
       }
       console.log(`PASS ${width}×${height}: direct entry, selected button, repeated switches, history, stable coordinates and scroll`);
     } finally { await context.close(); }

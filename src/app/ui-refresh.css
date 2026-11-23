@@ -81,7 +81,7 @@
 .projection-contact-caption time { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 920px) { :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 540px) {
-  :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid, .projection-contact-grid { grid-template-columns: minmax(0, 1fr); }
+  :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { grid-template-columns: minmax(0, 1fr); }
   .projection-contact-card { --print-side: 7.5cqw; --print-bottom: 25cqw; }
 }
 @media (prefers-reduced-motion: reduce), (hover: none) {
