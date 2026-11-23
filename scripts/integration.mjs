@@ -33,6 +33,7 @@ const env = {
   PORT: String(port),
   SMTP_HOST: "127.0.0.1", SMTP_PORT: String(inbox.port), SMTP_SECURE: "false", SMTP_USER: "", SMTP_PASSWORD: "", SMTP_FROM: "test@example.test",
   PASSWORD_EMAIL_VERIFICATION: "true",
+  QQ_APP_ID: "qq-fixture-id", QQ_APP_KEY: "qq-fixture-key", QQ_REDIRECT_URI: "",
 };
 if (releaseMode) {
   const preflight = spawnSync(runtime, ["scripts/check-runtime.mjs"], { cwd: workspace, env, encoding: "utf8" });
@@ -95,9 +96,10 @@ assert.equal(upgraded.prepare("SELECT hasLocalPassword FROM User WHERE id='legac
 assert.equal(upgraded.prepare("SELECT passwordHash FROM User WHERE id='legacy-oauth'").get().passwordHash,"random-old-hash");
 upgraded.close();
 let output = "";
+const serverEntry = releaseMode ? ["server.js"] : ["node_modules/next/dist/bin/next", "start", "-p", String(port)];
 const server = spawn(
   runtime,
-  releaseMode ? ["server.js"] : ["node_modules/next/dist/bin/next", "start", "-p", String(port)],
+  ["--import", new URL("./test-support/qq-oauth.mjs", import.meta.url).href, ...serverEntry],
   { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] },
 );
 server.stdout.on("data", (b) => {
@@ -177,6 +179,36 @@ try {
       throw new Error("Server did not start: " + output);
     await new Promise((r) => setTimeout(r, 300));
   }
+  const { data: availableProviders } = await call("/api/auth/providers");
+  assert(availableProviders.providers.includes("qq"));
+  for (const mode of ["login", "register"]) {
+    const page = await fetch(base + "/" + mode);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /href="\/api\/auth\/qq"/);
+  }
+  const qqStart = await fetch(base + "/api/auth/qq", { redirect: "manual" });
+  assert.equal(qqStart.status, 307);
+  const qqAuthorize = new URL(qqStart.headers.get("location"));
+  const qqCallback = "/api/auth/qq/callback";
+  assert.equal(qqAuthorize.origin + qqAuthorize.pathname, "https://graph.qq.com/oauth2.0/authorize");
+  assert.equal(qqAuthorize.searchParams.get("redirect_uri"), base + qqCallback);
+  assert.equal(qqAuthorize.searchParams.get("client_id"), env.QQ_APP_ID);
+  const qqState = qqAuthorize.searchParams.get("state");
+  assert.match(qqState, /^[A-Za-z0-9_-]{43}$/);
+  const qqCookie = qqStart.headers.get("set-cookie").split(";")[0];
+  assert.equal(qqCookie, "oauth_state_qq=" + qqState);
+  const qqReturn = base + qqCallback + "?code=qq-fixture-code&state=" + qqState;
+  const rejectedQQ = await fetch(qqReturn, { redirect: "manual" });
+  assert.equal(rejectedQQ.headers.get("location"), base + "/login?error=oauth");
+  const cancelledQQ = await fetch(base + qqCallback + "?error=access_denied", { headers: { Cookie: qqCookie }, redirect: "manual" });
+  assert.equal(cancelledQQ.headers.get("location"), base + "/login?error=cancelled");
+  const signedInQQ = await fetch(qqReturn, { headers: { Cookie: qqCookie }, redirect: "manual" });
+  assert.equal(signedInQQ.headers.get("location"), base + "/");
+  const qqSession = signedInQQ.headers.getSetCookie().find(cookie => cookie.startsWith("memory_session="));
+  assert(qqSession);
+  const qqUser = (await call("/api/account", { cookie: qqSession.split(";")[0] })).data;
+  assert.equal(qqUser.user.displayName, "QQ fixture user");
+  passed += 4;
   if (releaseMode) {
     const health = await fetch(base + "/api/health");
     assert.equal(health.status, 200);

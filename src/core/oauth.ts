@@ -38,7 +38,7 @@ export function callbackUrl(provider: OAuthProvider) {
   if (explicit) return explicit;
   const origin = process.env.APP_ORIGIN;
   if (!origin) throw new HttpError(503, "站点地址尚未配置");
-  return `${origin}/api/auth/${provider}`;
+  return new URL(provider === "qq" ? "/api/auth/qq/callback" : "/api/auth/github", origin).toString();
 }
 
 export function authorizationUrl(provider: OAuthProvider, state: string) {
@@ -85,13 +85,13 @@ async function qqProfile(code: string): Promise<OAuthProfile> {
   const accessToken = token.get("access_token");
   if (!accessToken || token.get("error")) throw new HttpError(502, "QQ 授权失败，请重试");
   const openIdText = await requestText(`https://graph.qq.com/oauth2.0/me?access_token=${encodeURIComponent(accessToken)}`);
-  const match = openIdText.match(/callback\\(\\s*(\\{[\\s\\S]*\\})\\s*\\)/);
+  const match = openIdText.match(/^\s*callback\(\s*(\{[\s\S]*\})\s*\)\s*;?\s*$/);
   if (!match) throw new HttpError(502, "QQ 用户信息获取失败");
   const openId = JSON.parse(match[1]) as { openid?: string; client_id?: string; error?: string };
   if (openId.error || openId.client_id !== configs.qq.appId() || !openId.openid)
     throw new HttpError(502, "QQ 用户信息获取失败");
   const info = await requestJson(`https://graph.qq.com/user/get_user_info?access_token=${encodeURIComponent(accessToken)}&oauth_consumer_key=${encodeURIComponent(configs.qq.appId()!)}&openid=${encodeURIComponent(openId.openid)}`);
-  providerError(info);
+  if (info.ret !== 0) throw new HttpError(502, "QQ 用户信息获取失败");
   return {
     providerAccountId: openId.openid,
     displayName: typeof info.nickname === "string" ? info.nickname : "QQ 用户",
