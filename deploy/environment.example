@@ -13,4 +13,4 @@ COOKIE_SECURE=true
 # GITHUB_REDIRECT_URI=https://life.tingjieli.shop/api/auth/github
 # QQ_APP_ID=your-qq-app-id
 # QQ_APP_KEY=your-qq-app-key
-# QQ_REDIRECT_URI=https://life.tingjieli.shop/api/auth/qq
+# QQ_REDIRECT_URI=https://life.tingjieli.shop/api/auth/qq/callback
