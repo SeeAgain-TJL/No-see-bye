@@ -1,12 +1,3 @@
-/* Shrink the whole mount, keeping the same image-to-matte proportions. */
-:root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { width: 96%; margin-inline: auto; }
-@media (min-width: 1410px) {
-  :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-@media (max-width: 540px) {
-  :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { width: min(91%, 390px); }
-}
-
 .entry-options { position: relative; z-index: 3; flex: none; margin-inline-start: auto; }
 .entry-options-trigger {
   display: grid;
@@ -76,6 +67,8 @@
   white-space: nowrap;
   touch-action: manipulation;
 }
+.memory-feed.grid .public-entry-actions :is(button, a) { gap: 4px; padding-inline: 4px; }
+.memory-feed.grid .public-entry-actions span { overflow: hidden; text-overflow: ellipsis; }
 .public-entry-actions svg { flex: none; }
 .public-entry-actions :is(button, a):hover { color: var(--ink); background: var(--surface-dim); }
 .public-entry-actions [aria-pressed='true'] { color: var(--accent); background: var(--accent-soft); }

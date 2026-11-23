@@ -1,5 +1,5 @@
 :root[data-theme] .studio-auth.auth-editorial {
-  --auth-width: min(94vw, 1820px);
+  --auth-width: clamp(1190px, 94vw, 1640px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -22,7 +22,7 @@
   width: 100%;
   max-width: var(--auth-width);
   min-height: 62px;
-  margin: 6px auto 12px;
+  margin: auto auto 8px;
 }
 .auth-editorial .auth-masthead-brand {
   display: inline-flex;
@@ -65,18 +65,18 @@
 
 :root[data-theme] .auth-editorial.studio-auth .auth-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(370px, 43%, 660px);
+  grid-template-columns: minmax(0, 1fr) clamp(405px, 40%, 610px);
   width: 100%;
   max-width: var(--auth-width);
-  min-height: clamp(640px, 82svh, 920px);
-  margin: 0 auto 16px;
+  min-height: clamp(606px, 80.8svh, 864px);
+  margin: 0 auto auto;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--cinema-edge) 38%, var(--line));
   border-radius: 23px;
   background: var(--surface);
   box-shadow: 0 37px 71px -42px color-mix(in srgb, var(--cinema-matte) 52%, transparent), 0 1px 3px var(--shadow-color);
 }
-:root[data-theme] .auth-editorial.studio-auth .auth-story {
+:root[data-theme] .auth-editorial.studio-auth .auth-story.auth-static-art {
   position: relative;
   display: block;
   min-width: 0;
@@ -86,7 +86,8 @@
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--cinema-matte);
+  /* The boot script sets data-theme before paint, so no default image is swapped during hydration. */
+  background: var(--cinema-matte) var(--auth-scene-art) 50% 45% / cover no-repeat;
   color: #fff9ed;
 }
 .auth-form-room {
@@ -95,25 +96,26 @@
   display: grid;
   place-items: center;
   min-width: 0;
-  padding: 26px clamp(22px, 2.5vw, 48px);
+  padding: 26px clamp(25px, 3.4vw, 53px);
   background:
     radial-gradient(ellipse at 84% 4%, color-mix(in srgb, var(--cinema-edge) 15%, transparent), transparent 60%),
     linear-gradient(148deg, var(--surface), color-mix(in srgb, var(--surface) 78%, var(--surface-dim)));
   box-shadow: inset 1px 0 color-mix(in srgb, var(--cinema-edge) 26%, var(--line));
 }
 .auth-form-stack {
-  --auth-input-height: 56px;
-  --auth-field-spacing: 17px;
+  --auth-input-height: 55px;
+  --auth-field-spacing: 13px;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 0;
-  max-width: 560px;
+  max-width: 496px;
 }
 @media (min-width: 761px) {
   /* Center a shared slot so the first two fields stay put across modes. */
-  .auth-form-stack { min-height: 448px; }
-  .auth-form-stack:has(.auth-social) { min-height: 556px; }
+  .auth-form-stack { min-height: 432px; }
+  .auth-form-stack:has(.auth-social) { min-height: 542px; }
+  :root[data-theme] .auth-editorial.studio-auth .auth-form > .button { min-height: 52px; }
 }
 :root[data-theme] .auth-editorial.studio-auth .auth-form {
   display: flex;
@@ -131,9 +133,9 @@
   grid-template-columns: repeat(2, 1fr);
   align-self: start;
   gap: 2px;
-  width: min(186px, 100%);
-  margin: 0 0 24px;
-  padding: 4px;
+  width: min(174px, 100%);
+  margin: 0 0 21px;
+  padding: 3px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-dim);
@@ -149,7 +151,7 @@
   background: transparent;
   box-shadow: none;
   color: var(--ink-muted);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 :root[data-theme] .auth-editorial .auth-mode-tabs a[aria-current='page'] {
@@ -186,7 +188,7 @@
   gap: 6px;
   margin: 0;
   color: var(--ink);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 20px;
 }
 :root[data-theme] .auth-editorial.studio-auth .auth-form input:not([type='checkbox']):not([type='radio']),
@@ -217,28 +219,28 @@
 :root[data-theme] .auth-editorial.studio-auth .auth-form > .button {
   position: relative;
   gap: 12px;
-  min-height: 58px;
+  min-height: 49px;
   margin-top: 4px;
   border: 1px solid color-mix(in srgb, var(--motion-deep) 76%, var(--accent));
   border-radius: 9px;
   background: var(--motion-deep);
   color: var(--motion-on-deep);
   box-shadow: inset 0 1px #f3fff828, 0 9px 22px -14px var(--cinema-matte);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
 }
-.auth-editorial.studio-auth .auth-social { margin-top: 22px; }
+.auth-editorial.studio-auth .auth-social { margin-top: 19px; }
 .auth-editorial.studio-auth .auth-social-divider { color: var(--ink-muted); font-size: 13px; }
 .auth-editorial.studio-auth .auth-social-buttons { display: flex; flex-direction: row; gap: 9px; margin-top: 13px; }
 .auth-editorial.studio-auth .auth-social-button {
   flex: 1;
   min-width: 0;
-  min-height: 54px;
+  min-height: 51px;
   padding-inline: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface) 54%, transparent);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.25;
   white-space: normal;
 }
@@ -249,7 +251,7 @@
   .auth-editorial .auth-masthead-brand { font-size: 13px; }
   .auth-masthead-brand .brand-symbol { width: 28px; height: 28px; }
   .auth-editorial .theme-trigger-label { display: none; }
-  :root[data-theme] .auth-editorial.studio-auth .auth-back { min-height: 38px; font-size: 11px; }
+  :root[data-theme] .auth-editorial.studio-auth .auth-back { font-size: 11px; }
   :root[data-theme] .auth-editorial.studio-auth .auth-card {
     grid-template-columns: minmax(0, 1fr);
     min-height: 0;
@@ -257,8 +259,11 @@
     margin-block: 0;
     border-radius: 18px;
   }
-  .auth-form-room { padding: 22px clamp(17px, 5vw, 30px) 28px; box-shadow: inset 0 1px var(--line); }
-  .auth-form-stack { --auth-input-height: 54px; --auth-field-spacing: 14px; }
+  :root[data-theme] .auth-editorial.studio-auth .auth-story.auth-static-art {
+    min-height: clamp(96px, min(53vw, calc(100svh - 450px)), 225px);
+  }
+  .auth-form-room { padding: 18px clamp(16px, 4.5vw, 26px) 22px; box-shadow: inset 0 1px var(--line); }
+  .auth-form-stack { --auth-input-height: 50px; --auth-field-spacing: 12px; }
   .auth-editorial.studio-auth .auth-form input::placeholder { font-size: 14px; }
   :root[data-theme] .auth-editorial .auth-mode-tabs { margin-bottom: 20px; }
   .auth-editorial .auth-masthead .theme-menu { right: -90px; width: min(310px, calc(100vw - 24px)); }

@@ -1,3 +1,11 @@
+:is(.auth-projection, .auth-static-art) {
+  --auth-scene-art: url("/visuals/auth-grassland.webp");
+}
+:root[data-theme="forest"] :is(.auth-projection, .auth-static-art) { --auth-scene-art: url("/visuals/auth-forest.webp"); }
+:root[data-theme="iceberg"] :is(.auth-projection, .auth-static-art) { --auth-scene-art: url("/visuals/auth-iceberg.webp"); }
+:root[data-theme="rift"] :is(.auth-projection, .auth-static-art) { --auth-scene-art: url("/visuals/auth-rift.webp"); }
+:root[data-theme="ocean"] :is(.auth-projection, .auth-static-art) { --auth-scene-art: url("/visuals/auth-ocean.webp"); }
+
 .auth-projection {
   --auth-shot-position: 50%;
   --auth-shot-vertical: 44%;
@@ -5,7 +13,6 @@
   --auth-dolly-y: 8px;
   --auth-memory-light: #f1e7be;
   --auth-beam: radial-gradient(ellipse at 73% 37%, #e7c88f33, transparent 40%);
-  --auth-scene-art: url("/visuals/auth-grassland.webp");
   position: relative;
   display: flex;
   min-height: 100%;
@@ -17,28 +24,24 @@
   background: var(--cinema-matte, #101c23);
 }
 :root[data-theme="forest"] .auth-projection {
-  --auth-scene-art: url("/visuals/auth-forest.webp");
   --auth-dolly-x: 10px;
   --auth-dolly-y: 15px;
   --auth-memory-light: #e3f2ad;
   --auth-beam: radial-gradient(ellipse at 34% 35%, #e4bc752c, transparent 29%);
 }
 :root[data-theme="iceberg"] .auth-projection {
-  --auth-scene-art: url("/visuals/auth-iceberg.webp");
   --auth-dolly-x: 22px;
   --auth-dolly-y: 9px;
   --auth-memory-light: #bdf3ff;
   --auth-beam: conic-gradient(from 171deg at 53% -10%, transparent, #cfe8ed3b 16deg, transparent 31deg);
 }
 :root[data-theme="rift"] .auth-projection {
-  --auth-scene-art: url("/visuals/auth-rift.webp");
   --auth-dolly-x: -3px;
   --auth-dolly-y: 23px;
   --auth-memory-light: #ffd29b;
   --auth-beam: radial-gradient(ellipse at 58% 34%, #d09b6825, transparent 31%);
 }
 :root[data-theme="ocean"] .auth-projection {
-  --auth-scene-art: url("/visuals/auth-ocean.webp");
   --auth-dolly-x: -14px;
   --auth-dolly-y: -20px;
   --auth-memory-light: #a9f5e7;

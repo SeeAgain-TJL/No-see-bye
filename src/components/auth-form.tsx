@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { OAuthProvider } from "@/core/oauth";
@@ -10,12 +9,11 @@ import { registrationCredentials, type RegistrationCredentials, type Registratio
 import { Icon } from "./icons";
 import { DecodedImage } from "./decoded-image";
 import { BrandMark } from "./brand-mark";
-import { useActiveTheme, ThemeSwitcher } from "./theme-provider";
+import { ThemeSwitcher } from "./theme-provider";
 
 type AuthPath = "/login" | "/register";
 
 export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[] }) {
-  const theme = useActiveTheme();
   const register = usePathname() === "/register";
   const searchParams = useSearchParams();
   const oauthError = Boolean(searchParams.get("error"));
@@ -41,9 +39,7 @@ export function AuthForm({ socialProviders }: { socialProviders: OAuthProvider[]
         </Link></div>
       </header>
       <div className="auth-card">
-        <div className="auth-story auth-static-art" aria-hidden="true">
-          <Image unoptimized fill src={`/visuals/auth-${theme}.webp`} alt="" fetchPriority="high" />
-        </div>
+        <div className="auth-story auth-static-art" aria-hidden="true" />
         <div className="auth-form-room">
           <div className="auth-form-stack">
             <nav className="auth-mode-tabs" aria-label="账号入口">

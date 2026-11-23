@@ -24,15 +24,24 @@ try {
     process.env.APP_ORIGIN = baseURL;
   }
   browser = await (process.env.QA_BROWSER === 'webkit' ? webkit : chromium).launch();
-  const geometries = { card: '.auth-card', image: '.auth-story img', tabs: '.auth-mode-tabs', name: 'input[autocomplete=username]', password: 'input[name=password]', visibility: '.auth-password-visibility', submit: '.auth-submit', social: '.auth-social' };
-  for (const [width, height] of [[1920,1080],[1728,1120],[1280,800],[768,900],[390,844],[320,568],[667,375]]) {
+  const geometries = { masthead: '.auth-masthead', card: '.auth-card', image: '.auth-static-art', tabs: '.auth-mode-tabs', name: 'input[autocomplete=username]', password: 'input[name=password]', visibility: '.auth-password-visibility', submit: '.auth-submit', social: '.auth-social' };
+  for (const [width, height] of [[1920,1080],[1728,1120],[1440,900],[1280,800],[768,900],[390,844],[320,568],[667,375]]) {
     const context = await browser.newContext({ baseURL, viewport: { width, height }, hasTouch: width < 768 });
     try {
+      const theme = width === 390 ? 'ocean' : 'grassland';
+      if (theme !== 'grassland') await context.addInitScript(value => localStorage.setItem('nsb-theme', value), theme);
       const page = await context.newPage();
+      const artworkRequests = new Set();
+      let documentRequests = 0;
+      page.on('request', request => {
+        if (request.resourceType() === 'document') documentRequests++;
+        const artwork = new URL(request.url()).pathname.match(/^\/visuals\/auth-([a-z]+)\.webp$/)?.[1];
+        if (artwork) artworkRequests.add(artwork);
+      });
       const tabs = page.getByRole('navigation', { name: '账号入口' });
+      const art = page.locator('.auth-static-art');
       const snapshot = async (mode) => {
         await page.locator(`main[data-auth-mode="${mode}"]`).waitFor();
-        await page.locator('.auth-story img').evaluate(img => img.decode());
         await page.evaluate(async () => { await document.fonts.ready; await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); });
         return page.evaluate(({ geometries, mode }) => {
           const boxes = Object.fromEntries(Object.entries(geometries).flatMap(([key, selector]) => {
@@ -43,20 +52,38 @@ try {
           }));
           const active = document.querySelector('.auth-mode-tabs [aria-current=page]');
           const style = getComputedStyle(active);
-          return { boxes, x:scrollX, y:scrollY, overflow: document.documentElement.scrollWidth - innerWidth,
+          const fieldGap = parseFloat(getComputedStyle(document.querySelector('.auth-form-credentials')).rowGap);
+          return { boxes, fieldGap, x:scrollX, y:scrollY, overflow: document.documentElement.scrollWidth - innerWidth,
             active: new URL(active.href).pathname === `/${mode}`, height: active.offsetHeight,
             pill: parseFloat(style.borderRadius) > 20 && style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.borderBottomWidth === '0px' };
         }, { geometries, mode });
       };
       for (const first of ['login','register']) {
         await page.goto(`/${first}`);
+        const imageSource = await art.evaluate(async el => {
+          const image = new Image();
+          image.src = getComputedStyle(el).backgroundImage.slice(5, -2);
+          await image.decode();
+          return new URL(image.src).pathname;
+        });
+        assert.equal(imageSource, `/visuals/auth-${theme}.webp`);
+        assert.deepEqual([...artworkRequests], [theme], 'the saved theme should be the only artwork requested');
         const baseline = await snapshot(first);
         const { boxes } = baseline;
-        assert(boxes.tabs.width <= 187 && boxes.name.width <= 561);
+        assert(boxes.tabs.width <= 175 && boxes.name.width <= 497);
         if (!process.env.QA_BASE && width >= 1280) {
-          assert(boxes.card.width >= .93 * width && boxes.card.width <= .95 * width, 'desktop card should use the viewport');
-          assert(boxes.card.y < 110 && boxes.card.height >= height * .81, 'avoid oversized margins above and below the card');
-          assert(boxes.name.width >= 440 && boxes.name.height >= 56 && boxes.submit.height >= 56, 'form itself should scale up');
+          const previousWidth = Math.min(.91 * width, 1570);
+          const previousHeight = Math.min(.774 * height, 827);
+          for (const scale of [boxes.card.width / previousWidth, boxes.card.height / previousHeight]) {
+            assert(scale >= 1.025 && scale <= 1.06, 'desktop composition should grow slightly from the centered layout');
+          }
+          const bottom = height - boxes.card.y - boxes.card.height;
+          assert(boxes.masthead.y >= 24 && Math.abs(bottom - boxes.masthead.y) <= 17, 'center the combined masthead and card vertically');
+          assert(Math.abs((width - boxes.card.width) / 2 - boxes.card.x) < 1, 'center the card horizontally');
+          assert(boxes.image.width >= boxes.card.width * .59 && boxes.name.height >= 54 && boxes.submit.height >= 51);
+        } else if (width <= 760) {
+          assert(boxes.image.y + boxes.image.height <= boxes.tabs.y, 'illustration should precede the stacked form on mobile');
+          assert(boxes.name.height >= 44 && boxes.submit.height >= 44);
         }
         if (!process.env.QA_BASE) assert.equal(Boolean(boxes.social), process.env.QA_SOCIAL !== 'off');
         const stable = async mode => {
@@ -70,7 +97,7 @@ try {
               assert(Math.abs(now.boxes[key][axis] - boxes[key][axis]) < .5, `${width} ${mode}: ${key}.${axis} moved`);
             }
           }
-          const extra=now.boxes.password.height + 26 + (width<=760 ? 14 : 17);
+          const extra=now.boxes.password.height + 26 + now.fieldGap;
           const actionShift=(Number(mode==='register')-Number(first==='register')) * extra;
           for(const key of ['submit','social']) if(boxes[key]) {
             assert(Math.abs(now.boxes[key].y - boxes[key].y - actionShift)<.5, `Only confirmation may shift ${key}`);
@@ -100,15 +127,22 @@ try {
           // The reveal button can be below the fold in landscape: undo its test-induced scroll.
           await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:'instant'}); });
         }
-        const image = await page.locator('.auth-story img').elementHandle();
+        const image = await art.elementHandle();
+        const requestsBeforeSwitch = documentRequests;
+        if (width === 1920 && first === 'login') {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          await stable(first);
+          assert.equal(await art.evaluate(el => el.getAnimations().length), 0, 'static artwork must not animate at rest');
+        }
         const other = first === 'login' ? 'register' : 'login';
         for (const mode of [other,first,other]) {
           await tabs.locator(`[href="/${mode}"]`).click(); await stable(mode);
         }
         await page.goBack(); await stable(first);
         await page.goForward(); await stable(other);
-        assert(await image.evaluate(el => el === document.querySelector('.auth-story img')), 'art remounted');
-        if (output && [1920,1728,390,320].includes(width)) await page.screenshot({path: path.join(output, `${other}-${width}.png`)});
+        assert(await image.evaluate(el => el === document.querySelector('.auth-static-art')), 'art remounted');
+        assert.equal(documentRequests, requestsBeforeSwitch, 'switching modes should not reload the document');
+        if (output && [1920,1440,390,320].includes(width)) await page.screenshot({path: path.join(output, `${other}-${width}.png`)});
       }
       console.log(`PASS ${width}×${height}: direct entry, selected button, repeated switches, history, stable coordinates and scroll`);
     } finally { await context.close(); }

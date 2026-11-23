@@ -9,8 +9,8 @@ import path from 'node:path';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.QA_PLAYWRIGHT_MODULE || 'playwright-core');
 const external = Boolean(process.env.QA_BASE), output = process.env.QA_SCREENSHOTS;
-const dimensions = [[540,720],[800,520],[512,512]];
-const items = dimensions.map(([width,height],i) => ({id:`print-${i}`, userId:'tester', title:['山间小屋','草地','海洋'][i], tags:[], location:'', content:'', visibility:'public', pinned:false, user:{username:'tester'}, happenedAt:'2026-11-18T10:00:00Z', assets:[{id:`img-${i}`,filename:`photo-${i}.jpg`,mime:'image/jpeg',url:`/journal-fixture-${i}.jpg`,width,height}]}));
+const dimensions = [[540,720],[800,520],[512,512],[800,450],[480,720]];
+const items = dimensions.map(([width,height],i) => ({id:`print-${i}`, userId:'tester', title:['山间小屋','草地','海洋','裂谷','冰川'][i], tags:[], location:'', content:'', visibility:'public', pinned:false, user:{username:'tester'}, happenedAt:'2026-11-18T10:00:00Z', assets:[{id:`img-${i}`,filename:`photo-${i}.jpg`,mime:'image/jpeg',url:`/journal-fixture-${i}.jpg`,width,height}]}));
 let app,server,browser;
 try {
   let baseURL = process.env.QA_BASE;
@@ -21,8 +21,8 @@ try {
   }
   if (output) await mkdir(output,{recursive:true});
   browser=await chromium.launch();
-  const samples=external ? [] : await Promise.all(dimensions.map(([w,h],i)=>require('sharp')(`public/visuals/auth-${['grassland','forest','ocean'][i]}.webp`).resize(w,h).jpeg().toBuffer()));
-  for(const width of [1920,1280,768,390,320]) {
+  const samples=external ? [] : await Promise.all(dimensions.map(([w,h],i)=>require('sharp')(`public/visuals/auth-${['grassland','forest','ocean','rift','iceberg'][i]}.webp`).resize(w,h).jpeg().toBuffer()));
+  for(const [width, columns] of [[1920,5],[1440,5],[1280,4],[768,2],[390,1],[320,1]]) {
     const ctx=await browser.newContext({baseURL,viewport:{width,height:width>=768?900:844}, reducedMotion:'reduce', hasTouch:width<760});
     const page=await ctx.newPage(); page.setDefaultTimeout(10000);
     if(!external){
@@ -84,14 +84,21 @@ try {
           assert.match(await bg.evaluate(e=>getComputedStyle(e).filter+' '+getComputedStyle(e.parentElement).filter),/blur\(/);
           if(view==='grid' && !external) {
             const mount=await card.boundingBox(), print=await fg.boundingBox();
-            const row=await page.locator('.memory-feed.grid').boundingBox();
+            const grid=page.locator('.memory-feed.grid');
+            const cards=grid.locator('.projection-contact-card');
+            const firstRow=await cards.evaluateAll(elements => {
+              const rowTop = elements[0].getBoundingClientRect().top;
+              return elements.filter(element => Math.abs(element.getBoundingClientRect().top - rowTop) < 1).length;
+            });
+            assert.equal(firstRow, columns, `${scope} at ${width}px: photos in the first row`);
             assert(Math.abs(mount.width / mount.height - .8)<.02, 'mount should scale proportionally');
             assert(Math.abs(print.width / print.height - .75)<.02, 'portrait must preserve the source ratio');
-            if (width===1920) assert(mount.width<row.width*.26, 'desktop grid should have four smaller mounts');
+            assert.equal(await card.locator('svg, .projection-contact-expand').count(),0,'opening the photo needs no overlay arrow');
             if (scope==='mine') {
               assert.equal(await page.locator('.journal-entry-actions').count(),0);
               const trigger=page.getByRole('button',{name:'更多日常操作'}).first();
-              assert((await trigger.boundingBox()).height>=44);
+              const target=await trigger.boundingBox();
+              assert(target.width>=44 && target.height>=44);
               if(width<760) await trigger.tap();
               else { await trigger.focus(); await page.keyboard.press('Enter'); }
               const menu=page.getByRole('dialog',{name:'日常操作'});
@@ -103,7 +110,16 @@ try {
             } else {
               assert.equal(await page.getByRole('button',{name:'更多日常操作'}).count(),0);
               const actions=page.getByRole('group',{name:'公开日常互动'}).first();
-              await actions.getByRole('button',{name:/^点赞/}).click();
+              const bounds=await actions.boundingBox();
+              let end=bounds.x;
+              for (const action of await actions.locator('a,button').all()) {
+                const target=await action.boundingBox();
+                assert(target.width>=44 && target.height>=44 && target.x>=end-.5 && target.x+target.width<=bounds.x+bounds.width+.5);
+                end=target.x+target.width;
+              }
+              const like=actions.getByRole('button',{name:/^点赞/});
+              if(width<760) await like.tap();
+              else await like.click();
               await actions.getByRole('button',{name:/^取消点赞/}).waitFor();
               assert(await actions.getByRole('link',{name:'评论',exact:true}).getAttribute('href') === '/memories/print-0?scope=public#comments');
             }
@@ -115,7 +131,10 @@ try {
           }
           await card.click(); await viewer.waitFor(); await viewer.locator('.immersive-stage').click(); await viewer.waitFor({state:'hidden'});
           assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-          if(output && scope==='public' && [390,1920].includes(width)){await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.screenshot({path:path.join(output,`${view}-${width}.png`)});}
+          if(output && view==='grid' && [320,390,1440,1920].includes(width)){
+            await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
+            await page.screenshot({path:path.join(output,`${scope}-${width}.png`),fullPage:true});
+          }
         }
       }
       if (!external && [1920,390].includes(width)) {
@@ -126,6 +145,8 @@ try {
         assert.equal(await page.locator('.gallery-playback-progress').count(),0);
         const grid=await page.locator('.projection-contact-grid').boundingBox(), sheet=await page.locator('.projection-contact-sheet').boundingBox();
         assert(grid.width/sheet.width<=.93,'home photo mounts should leave breathing room');
+        const tracks=await page.locator('.projection-contact-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+        assert.equal(tracks,width===1920?4:2,'home retains its own gallery density');
         if (width===1920) {
           await page.emulateMedia({reducedMotion:'no-preference'});
           const next=page.getByRole('button',{name:'第2张照片',exact:true});
