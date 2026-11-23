@@ -492,6 +492,14 @@ try {
     cookie: a.cookie, method: "PATCH",
     body: memoryInput({ visibility: "private", assetIds: [asset.id], updatedAt: updated.updatedAt }),
   })).data;
+  const engagementPath = `/api/memories/${memory.id}/engagement`;
+  const savedPath = "/api/memories?scope=public&saved=1";
+  const react = (kind, active, cookie, status = 200) => call(engagementPath, { method: "PUT", cookie, body: { kind, active }, status });
+  const comment = (content, cookie, status = 201) => call(engagementPath, { method: "POST", cookie, body: { content }, status });
+  await call(engagementPath, { status: 404 });
+  await call(`/api/memories/${memory.id}?scope=public`, { cookie: a.cookie, status: 404 });
+  await react("like", true, a.cookie, 404);
+  await comment("private entry", a.cookie, 404);
   await call(displayUrl, { status: 404, headers: { "If-None-Match": publicEtag } });
   await call(displayUrl, { cookie: b.cookie, status: 404, headers: { "If-None-Match": publicEtag } });
   await call("/api/memories/" + memory.id, {
@@ -506,6 +514,30 @@ try {
     memory.id,
   );
   await call("/api/memories/" + memory.id);
+  await react("like", true, undefined, 401);
+  await comment("guest comment", undefined, 401);
+  await call(savedPath, { status: 401 });
+  await react("pin", true, b.cookie, 400);
+  const liked = { likes: 1, comments: 0, liked: true, saved: false };
+  assert.deepEqual((await react("like", true, b.cookie)).data, liked);
+  assert.deepEqual((await react("like", true, b.cookie)).data, liked);
+  assert.deepEqual((await react("save", true, b.cookie)).data, { ...liked, saved: true });
+  assert.deepEqual((await call(savedPath, { cookie: b.cookie })).data.items.map(item => item.id), [memory.id]);
+  assert.equal((await call(savedPath, { cookie: a.cookie })).data.items.length, 0);
+  const visitorEntry = (await call("/api/memories?scope=public")).data.items[0];
+  assert.deepEqual(visitorEntry.engagement, { ...liked, liked: false });
+  assert.equal(visitorEntry.pinned, false);
+  await comment("     ", b.cookie, 400);
+  await comment("x".repeat(501), b.cookie, 400);
+  const posted = (await comment("  喜欢这张照片  ", b.cookie)).data;
+  assert.equal(posted.comment.content, "喜欢这张照片");
+  assert(!("userId" in posted.comment));
+  assert.deepEqual(posted.engagement, { ...liked, saved: true, comments: 1 });
+  assert.deepEqual((await call(engagementPath)).data.items, [posted.comment]);
+  assert.deepEqual((await call(`/api/memories/${memory.id}?scope=public`, { cookie: b.cookie })).data.engagement, posted.engagement);
+  assert.deepEqual((await react("like", false, b.cookie)).data, { likes: 0, liked: false, saved: true, comments: 1 });
+  await react("save", false, b.cookie);
+  assert.equal((await call(savedPath, { cookie: b.cookie })).data.items.length, 0);
   const full = await fetch(base + asset.url);
   assert.equal(full.status, 200);
   assert.deepEqual(Buffer.from(await full.arrayBuffer()), png);
@@ -560,6 +592,9 @@ try {
     method: "DELETE",
   });
   assert.equal((await call("/api/memories?scope=public")).data.items.length, 0);
+  await call(engagementPath, { status: 404 });
+  await react("save", true, b.cookie, 404);
+  await comment("deleted entry", a.cookie, 404);
   await call("/api/assets/" + asset.id, { status: 404 });
   await call("/api/memories/" + memory.id, { cookie: b.cookie, status: 404 });
   assert.equal(

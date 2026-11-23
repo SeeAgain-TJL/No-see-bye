@@ -29,6 +29,8 @@ model User {
   assets Asset[]
   oauthAccounts OAuthAccount[]
   passwordChallenge PasswordChallenge?
+  entryReactions EntryReaction[]
+  entryComments EntryComment[]
 }
 // Preserve the original table and records.
 model Entry {
@@ -48,8 +50,31 @@ model Entry {
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   attachments EntryAsset[]
+  reactions EntryReaction[]
+  comments EntryComment[]
   @@index([userId, deletedAt, happenedAt])
   @@index([visibility, deletedAt, happenedAt])
+}
+model EntryReaction {
+  entryId String
+  userId String
+  kind String
+  entry Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([entryId, userId, kind])
+  @@index([userId, kind])
+  @@index([entryId, kind])
+}
+model EntryComment {
+  id String @id @default(cuid())
+  entryId String
+  userId String
+  content String
+  createdAt DateTime @default(now())
+  entry Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([entryId, createdAt, id])
+  @@index([userId, createdAt])
 }
 model Asset {
   id String @id @default(cuid())

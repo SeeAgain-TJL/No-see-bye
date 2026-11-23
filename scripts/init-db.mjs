@@ -84,6 +84,20 @@ try {
       FOREIGN KEY(entryId) REFERENCES Entry(id) ON DELETE CASCADE,
       FOREIGN KEY(assetId) REFERENCES Asset(id) ON DELETE RESTRICT);
     CREATE UNIQUE INDEX IF NOT EXISTS EntryAsset_assetId_key ON EntryAsset(assetId);
+    CREATE TABLE IF NOT EXISTS EntryReaction (
+      entryId TEXT NOT NULL, userId TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('like', 'save')),
+      PRIMARY KEY(entryId, userId, kind),
+      FOREIGN KEY(entryId) REFERENCES Entry(id) ON DELETE CASCADE,
+      FOREIGN KEY(userId) REFERENCES User(id) ON DELETE CASCADE);
+    CREATE INDEX IF NOT EXISTS EntryReaction_userId_kind_idx ON EntryReaction(userId,kind);
+    CREATE INDEX IF NOT EXISTS EntryReaction_entryId_kind_idx ON EntryReaction(entryId,kind);
+    CREATE TABLE IF NOT EXISTS EntryComment (
+      id TEXT PRIMARY KEY NOT NULL, entryId TEXT NOT NULL, userId TEXT NOT NULL, content TEXT NOT NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(entryId) REFERENCES Entry(id) ON DELETE CASCADE,
+      FOREIGN KEY(userId) REFERENCES User(id) ON DELETE CASCADE);
+    CREATE INDEX IF NOT EXISTS EntryComment_entryId_createdAt_id_idx ON EntryComment(entryId,createdAt,id);
+    CREATE INDEX IF NOT EXISTS EntryComment_userId_createdAt_idx ON EntryComment(userId,createdAt);
     CREATE UNIQUE INDEX IF NOT EXISTS User_phone_key ON User(phone);
     CREATE TABLE IF NOT EXISTS RegistrationChallenge (
       id TEXT PRIMARY KEY NOT NULL, bindingHash TEXT NOT NULL, answerHash TEXT NOT NULL,
@@ -110,7 +124,7 @@ try {
     `);
   if (addedAuthMode) db.exec(`UPDATE User SET hasLocalPassword=false
     WHERE email LIKE '%@oauth.local' AND EXISTS (SELECT 1 FROM OAuthAccount WHERE userId=User.id)`);
-  db.exec("PRAGMA user_version=5; COMMIT;");
+  db.exec("PRAGMA user_version=6; COMMIT;");
   console.log("SQLite initialized (additive; existing records preserved).");
 } catch (error) {
   db.exec("ROLLBACK");

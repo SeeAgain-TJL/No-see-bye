@@ -4,6 +4,7 @@ import { prisma } from "@/core/prisma";
 import { dayRange } from "@/lib/calendar";
 import { assertCurrentSession, getUserFromRequest, optionalUser } from "@/core/auth";
 import { apiError, checkOrigin, HttpError, jsonBody } from "@/core/http";
+import { engagementDTO, engagementSelect, publicEntry } from "@/modules/memories/public-engagement.server";
 import {
   includeMemory,
   memoryDTO,
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
       scope === "public" ? await optionalUser(req) : await getUserFromRequest(req);
     const filters: Prisma.EntryWhereInput[] = [
       scope === "public"
-        ? { visibility: "public", deletedAt: null }
+        ? publicEntry
         : {
             userId: user!.userId,
             deletedAt: scope === "trash" ? { not: null } : null,
@@ -50,6 +51,10 @@ export async function GET(req: NextRequest) {
       });
     if (type === "text") filters.push({ attachments: { none: {} } });
     if (q.get("pinned") === "1") filters.push({ pinned: true });
+    if (scope === "public" && q.get("saved") === "1") {
+      if (!user) throw new HttpError(401, "登录后查看收藏");
+      filters.push({ reactions: { some: { userId: user.userId, kind: "save" } } });
+    }
     const month = q.get("month");
     const day = q.get("day");
     if (day) {
@@ -85,17 +90,16 @@ export async function GET(req: NextRequest) {
         throw new HttpError(400, "分页信息无效，请刷新页面");
       }
     }
-    const items = await prisma.entry.findMany({
-      where: { AND: filters },
-      include: includeMemory,
-      orderBy: [{ happenedAt: "desc" }, { id: "desc" }],
-      take: 13,
-    });
+    const query = { where: { AND: filters }, orderBy: [{ happenedAt: "desc" }, { id: "desc" }], take: 13 } satisfies Prisma.EntryFindManyArgs;
+    const items = scope === "public"
+      ? (await prisma.entry.findMany({ ...query, include: { ...includeMemory, ...engagementSelect(user?.userId) } }))
+        .map(({ _count, reactions, ...entry }) => ({ ...memoryDTO(entry), engagement: engagementDTO({ _count, reactions }) }))
+      : (await prisma.entry.findMany({ ...query, include: includeMemory })).map(memoryDTO);
     const more = items.length > 12;
     const visible = items.slice(0, 12);
     const last = visible.at(-1);
     let stats = null;
-    if (user && !cursor) {
+    if (user && !cursor && scope !== "public") {
       const base = { userId: user.userId, deletedAt: null };
       const [total, photos, videos, storage] = await Promise.all([
         prisma.entry.count({ where: base }),
@@ -120,7 +124,7 @@ export async function GET(req: NextRequest) {
     }
     return NextResponse.json(
       {
-        items: visible.map(memoryDTO),
+        items: visible,
         nextCursor:
           more && last
             ? Buffer.from(

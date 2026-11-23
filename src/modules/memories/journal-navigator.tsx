@@ -8,6 +8,7 @@ import type { JournalIndex } from "@/lib/journal-index";
 import type { JournalSelection } from "@/lib/journal-navigation";
 import { previewUrl } from "./media";
 import type { Memory } from "./types";
+import { memoryHref } from "./public-entry";
 
 export function JournalNavigator({ id, expanded, onClose, publicScope, ownerId, revision, items, month, type, activeFilters, onBrowse }: {
   id: string; expanded: boolean; onClose: () => void; publicScope: boolean; ownerId?: string; revision: number;
@@ -57,7 +58,7 @@ export function JournalNavigator({ id, expanded, onClose, publicScope, ownerId, 
         {items.length > 0 && <div className="jn-current-pages"><span className="jn-small-label">眼前几页</span><div>{items.slice(0, 4).map(memory => {
           const asset = memory.assets.find(item => item.mime.startsWith('image/') || item.thumbnailUrl);
           const excerpt = (memory.title || memory.content || '').trim().slice(0, 30);
-          return <Link key={memory.id} href={'/memories/' + memory.id} aria-label={`查看${dateText(memory.happenedAt)}的日常${excerpt ? '：' + excerpt : ''}`}><span className="jn-page-thumb">{asset ? <DecodedImage src={previewUrl(asset)} alt="" loading="lazy" /> : <Icon name={memory.assets.some(asset => asset.mime.startsWith('video/')) ? 'video' : 'edit'} size={19} />}</span><span><time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: 'short', day: 'numeric' })}</time>{excerpt && <small>{excerpt}</small>}</span><Icon name="arrow" size={14} /></Link>;
+          return <Link key={memory.id} href={memoryHref(memory.id, publicScope)} aria-label={`查看${dateText(memory.happenedAt)}的日常${excerpt ? '：' + excerpt : ''}`}><span className="jn-page-thumb">{asset ? <DecodedImage src={previewUrl(asset)} alt="" loading="lazy" /> : <Icon name={memory.assets.some(asset => asset.mime.startsWith('video/')) ? 'video' : 'edit'} size={19} />}</span><span><time dateTime={memory.happenedAt}>{dateText(memory.happenedAt, { month: 'short', day: 'numeric' })}</time>{excerpt && <small>{excerpt}</small>}</span><Icon name="arrow" size={14} /></Link>;
         })}</div></div>}
       </>}
   </section>;

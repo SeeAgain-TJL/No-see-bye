@@ -6,6 +6,7 @@ import { useApp } from "./providers";
 import { Icon } from "./icons";
 import { api, dateText } from "@/lib/client";
 import type { MemoryList } from "@/modules/memories/types";
+import { memoryHref } from "@/modules/memories/public-entry";
 
 export function QuickSearch() {
   const [open, setOpen] = useState(false);
@@ -75,6 +76,6 @@ function SearchDialog({ personal, close }: { personal: boolean; close: () => voi
       <button type="button" className="search-dismiss" onClick={close} aria-label="关闭搜索"><Icon name="close" size={18} /></button>
     </div>
     <form className="search-dialog-input" role="search" onSubmit={e => { e.preventDefault(); if (term) { close(); router.push(allResults); } }}><Icon name="search" size={20} /><input ref={input} type="search" enterKeyHint="search" aria-label="搜索内容、地点或标签" placeholder="内容、地点或标签" maxLength={100} value={query} onChange={e => setQuery(e.target.value)} /></form>
-    <div className="search-dialog-results" aria-live="polite">{term && (current?.error ? <p role="alert">{current.error}</p> : !current?.data ? <p>正在寻找…</p> : !current.data.items.length ? <p>没有匹配的日常，换个关键词试试。</p> : <>{current.data.items.slice(0, 7).map(item => <Link key={item.id} href={"/memories/" + item.id} onClick={close}><Icon name={item.assets.length ? "image" : "edit"} size={18} /><span><strong>{item.title || item.content?.slice(0, 40) || dateText(item.happenedAt)}</strong><small>{dateText(item.happenedAt)}{item.location ? " · " + item.location : ""}</small></span><Icon name="arrow" size={16} /></Link>)}<Link href={allResults} onClick={close}>全部结果<Icon name="arrow" size={16} /></Link></>)}</div>
+    <div className="search-dialog-results" aria-live="polite">{term && (current?.error ? <p role="alert">{current.error}</p> : !current?.data ? <p>正在寻找…</p> : !current.data.items.length ? <p>没有匹配的日常，换个关键词试试。</p> : <>{current.data.items.slice(0, 7).map(item => <Link key={item.id} href={memoryHref(item.id, scope === "public")} onClick={close}><Icon name={item.assets.length ? "image" : "edit"} size={18} /><span><strong>{item.title || item.content?.slice(0, 40) || dateText(item.happenedAt)}</strong><small>{dateText(item.happenedAt)}{item.location ? " · " + item.location : ""}</small></span><Icon name="arrow" size={16} /></Link>)}<Link href={allResults} onClick={close}>全部结果<Icon name="arrow" size={16} /></Link></>)}</div>
   </dialog>;
 }

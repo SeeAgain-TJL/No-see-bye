@@ -7,16 +7,19 @@ import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { Avatar } from "@/components/avatar";
 import { api, dateText } from "@/lib/client";
-import type { Memory } from "./types";
+import type { Memory, PublicEngagement } from "./types";
 import { MediaGrid } from "./media";
 import { MemoryEditor } from "./editor";
 import { DeleteDialog } from "./feed";
+import { PublicCommentsPanel, PublicEntryActions } from "./public-engagement";
 export function MemoryDetail({
   id,
   edit = false,
+  publicScope = false,
 }: {
   id: string;
   edit?: boolean;
+  publicScope?: boolean;
 }) {
   const { user, loading, notify } = useApp();
   const router = useRouter();
@@ -32,16 +35,21 @@ export function MemoryDetail({
   useEffect(() => {
     if (loading) return;
     const abort = new AbortController();
-    api<Memory>(`/api/memories/${id}`, { signal: abort.signal })
+    api<Memory>(`/api/memories/${id}${publicScope ? "?scope=public" : ""}`, { signal: abort.signal })
       .then((memory) => setResult({ key: requestKey, memory }))
       .catch((e) => {
         if (!abort.signal.aborted)
           setResult({ key: requestKey, error: e.message });
       });
     return () => abort.abort();
-  }, [id, loading, user, version, requestKey]);
+  }, [id, loading, user, version, requestKey, publicScope]);
   const memory = result?.memory;
-  const owner = memory?.userId === user?.id;
+  const owner = !!memory && memory.userId === user?.id;
+  const manage = owner && !publicScope;
+  const showEngagement = memory?.visibility === "public" && !memory.deletedAt && !manage;
+  function updateEngagement(engagement: PublicEngagement) {
+    setResult(old => old?.key === requestKey && old.memory ? { ...old, memory: { ...old.memory, engagement } } : old);
+  }
   async function action(name: "restore" | "delete") {
     setBusy(true);
     try {
@@ -68,7 +76,7 @@ export function MemoryDetail({
         <Icon name="lock" size={30} />
         <h1>这一页暂时无法打开</h1>
         <p>{result.error}</p>
-        <Link href="/memories" className="button secondary">
+        <Link href={publicScope ? "/memories?scope=public" : "/memories"} className="button secondary">
           回到时间线
         </Link>
       </div>
@@ -105,7 +113,7 @@ export function MemoryDetail({
         href={
           memory.deletedAt
             ? "/memories/trash"
-            : owner
+            : manage
               ? "/memories"
               : "/memories?scope=public"
         }
@@ -168,7 +176,7 @@ export function MemoryDetail({
             {memory.tags.map((t) => (
               <Link
                 key={t}
-                href={`/memories?scope=${owner ? "mine" : "public"}&q=${encodeURIComponent(t)}`}
+                href={`/memories?scope=${manage ? "mine" : "public"}&q=${encodeURIComponent(t)}`}
               >
                 # {t}
               </Link>
@@ -184,7 +192,7 @@ export function MemoryDetail({
               day: "2-digit",
             })}
           </span>
-          {owner && !memory.deletedAt && (
+          {manage && !memory.deletedAt && (
             <div className="detail-actions">
               <Link
                 className="button secondary small-button"
@@ -202,24 +210,10 @@ export function MemoryDetail({
               </button>
             </div>
           )}
-          {!owner && (
-            <button
-              className="text-link"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(window.location.href);
-                  notify("链接已复制");
-                } catch {
-                  notify("可以从地址栏复制当前链接");
-                }
-              }}
-            >
-              复制分享链接
-              <Icon name="arrow" size={16} />
-            </button>
-          )}
+          {showEngagement && <PublicEntryActions id={id} value={memory.engagement} onChange={updateEngagement} inDetail />}
         </div>
       </article>
+      {showEngagement && <PublicCommentsPanel key={requestKey} id={id} onChange={updateEngagement} />}
       {deleting && (
         <DeleteDialog
           memory={memory}
