@@ -6,6 +6,7 @@ import { DecodedImage } from "@/components/decoded-image";
 import { dateText } from "@/lib/client";
 import type { GalleryPhoto } from "@/lib/photo-gallery";
 import { previewUrl } from "./media";
+import { memoryHref } from "./public-entry";
 
 /** One print mount for the home and journal galleries. Only the matte is blurred. */
 export function CollectionCard({ photo, index, onOpen, journal, actions }: {
@@ -23,7 +24,7 @@ export function CollectionCard({ photo, index, onOpen, journal, actions }: {
       <span className="contact-print"><DecodedImage src={image} alt={memory.title || "日常照片"} width={asset.width || undefined} height={asset.height || undefined} loading="lazy" onDimensions={known ? undefined : size => setMeasured(size.width / Math.max(1, size.height))} /></span>
     </button>
     <div className="projection-contact-caption">
-      {journal ? <Link href={'/memories/' + memory.id} aria-label={'阅读日常：' + (memory.title || date)}>{caption}</Link> : caption}
+      {journal ? <Link href={memoryHref(memory.id, journal === "public")} aria-label={'阅读日常：' + (memory.title || date)}>{caption}</Link> : caption}
     </div>
     {actions}
   </article>;

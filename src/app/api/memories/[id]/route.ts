@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/core/prisma";
 import { getUserFromRequest, optionalUser } from "@/core/auth";
 import { apiError, checkOrigin, HttpError, jsonBody } from "@/core/http";
+import { engagementDTO, engagementSelect, publicEntry } from "@/modules/memories/public-engagement.server";
 import {
   includeMemory,
   memoryDTO,
@@ -13,19 +14,23 @@ export async function GET(req: NextRequest, context: Context) {
   try {
     const { id } = await context.params;
     const session = await optionalUser(req);
+    const publicOnly = req.nextUrl.searchParams.get("scope") === "public";
+    const publicMemory = await prisma.entry.findUnique({
+      where: { id, ...publicEntry },
+      include: { ...includeMemory, ...engagementSelect(session?.userId) },
+    });
+    const headers = { "Cache-Control": "private, no-store" };
+    if (publicMemory) {
+      const { reactions, _count, ...entry } = publicMemory;
+      return NextResponse.json({ ...memoryDTO(entry), engagement: engagementDTO({ reactions, _count }) }, { headers });
+    }
+    if (publicOnly || !session) throw new HttpError(404, "这段记忆不存在，或尚未公开");
     const entry = await prisma.entry.findUnique({
-      where: { id },
+      where: { id, userId: session.userId },
       include: includeMemory,
     });
-    if (
-      !entry ||
-      ((entry.deletedAt || entry.visibility !== "public") &&
-        entry.userId !== session?.userId)
-    )
-      throw new HttpError(404, "这段记忆不存在，或尚未公开");
-    return NextResponse.json(memoryDTO(entry), {
-      headers: { "Cache-Control": "private, no-store" },
-    });
+    if (!entry) throw new HttpError(404, "这段记忆不存在，或尚未公开");
+    return NextResponse.json(memoryDTO(entry), { headers });
   } catch (error) {
     return apiError(error);
   }

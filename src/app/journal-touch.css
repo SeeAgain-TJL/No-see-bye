@@ -1,11 +1,4 @@
-/* Give the editing actions their own row outside the photograph. */
-.memory-wrapper.discovery-print-wrapper:has(> .journal-entry-actions) {
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border-radius: 16px;
-}
-:root[data-theme] .discovery-print-wrapper:has(> .journal-entry-actions) .projection-contact-card { border-radius: 16px 16px 0 0; }
+/* Keep destructive actions explicit in the recycle bin. */
 .journal-entry-actions {
   position: relative;
   z-index: 2;
@@ -17,13 +10,6 @@
   padding: 5px;
   border-radius: 13px;
   background: var(--surface-dim);
-}
-.discovery-print-wrapper > .journal-entry-actions {
-  margin-top: auto;
-  padding: 7px;
-  border: 1px solid var(--line);
-  border-top: 0;
-  border-radius: 0 0 16px 16px;
 }
 :root[data-theme] .memory-card-bottom:has(> .journal-entry-actions) { height: auto; display: grid; gap: 7px; }
 :root[data-theme] .journal-experience .memory-feed.grid .memory-card:has(.journal-entry-actions) { grid-template-rows: 58px minmax(0, 1fr) auto; }
@@ -46,8 +32,6 @@
   touch-action: manipulation;
 }
 .journal-entry-actions svg { flex: none; }
-.journal-entry-actions [aria-pressed='true'] { background: var(--accent-soft); border-color: var(--line); color: var(--accent); }
-.journal-entry-actions [aria-pressed='true'] svg { fill: var(--accent); }
 .journal-entry-actions .entry-remove { color: #963e33; background: color-mix(in srgb, var(--surface) 90%, #e0a999); }
 :root[data-theme='forest'] .journal-entry-actions .entry-remove { color: #ffcebd; }
 .journal-entry-actions :is(button, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -148,7 +132,7 @@
 .journal-wall-grid .wall-preview-well { width: 100%; aspect-ratio: 6/5; height: auto; }
 .journal-wall-grid .wall-caption { min-height: 44px; padding: 10px 12px; }
 :root[data-theme] .journal-experience:not(.journal-trash) .timeline .memory-card.has-media {
-  width: min(100%, clamp(310px, calc(500px * clamp(.72, var(--entry-ratio,1.5), 1.6)), 760px));
+  width: min(94%, clamp(290px, calc(455px * clamp(.72, var(--entry-ratio,1.5), 1.6)), 690px));
 }
 :root[data-theme] .journal-experience:not(.journal-trash) .timeline .media-grid.archive-cover {
   width: calc(100% - 24px); height: auto; max-height: none; margin: 0 12px; border-radius: 9px; overflow: hidden;

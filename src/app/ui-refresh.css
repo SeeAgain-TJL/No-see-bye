@@ -78,14 +78,7 @@
 .projection-contact-caption > a { display: grid; gap: 4px; justify-self: start; max-width: 100%; color: inherit; pointer-events: auto; }
 .projection-contact-caption > a:hover h3, .projection-contact-caption > a:focus-visible time { text-decoration: underline; text-underline-offset: .2em; }
 .projection-contact-caption { padding-right: 6cqw; }
-.projection-contact-card:has(.print-options) .projection-contact-caption { padding-right: max(52px, 15cqw); }
 .projection-contact-caption time { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.print-options { position: absolute; z-index: 4; right: 5%; bottom: 3%; color: #fffaf2; }
-.print-options summary { display: grid; place-items: center; min-height: 36px; min-width: 36px; list-style: none; font: 12px/1 sans-serif; cursor: pointer; }
-.print-options summary::-webkit-details-marker { display: none; }
-.print-options > div { position: absolute; right: 0; bottom: 100%; display: grid; min-width: 110px; max-width: 200px; max-height: 140px; overflow: auto; padding: 5px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 5px 16px #0004; }
-.print-options :is(button,a) { text-align: start; padding: 7px 11px; font-size: 13px; }
-.print-options :is(button,a):hover { background: var(--accent-soft); }
 @media (max-width: 920px) { :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 540px) {
   :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid, .projection-contact-grid { grid-template-columns: minmax(0, 1fr); }

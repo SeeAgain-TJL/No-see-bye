@@ -52,8 +52,8 @@ try {
         await page.goto(`/${first}`);
         const baseline = await snapshot(first);
         const { boxes } = baseline;
-        assert(boxes.tabs.width <= 170 && boxes.name.width <= 400);
-        if (width >= 1280) assert(boxes.card.width >= 1000 && boxes.card.width <= 1401 && boxes.image.width > boxes.name.width);
+        assert(boxes.tabs.width <= 170 && boxes.name.width <= 449);
+        if (width >= 1280) assert(boxes.card.width >= 1090 && boxes.card.width <= 1481 && boxes.image.width > boxes.name.width && boxes.name.height >= 50);
         if (!process.env.QA_BASE) assert.equal(Boolean(boxes.social), process.env.QA_SOCIAL !== 'off');
         const stable = async mode => {
           const now = await snapshot(mode);

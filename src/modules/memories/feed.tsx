@@ -6,7 +6,10 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useApp } from "@/components/providers";
 import { Icon } from "@/components/icons";
 import { api, bytes, dateText } from "@/lib/client";
-import type { Memory, MemoryList } from "./types";
+import type { Memory, MemoryList, PublicEngagement } from "./types";
+import { memoryHref } from "./public-entry";
+import { PublicEntryActions } from "./public-engagement";
+import { EntryMenu } from "./entry-menu";
 import { PhotoWall } from "./photo-wall";
 import { MediaGrid, MediaViewer } from "./media";
 import { CollectionCard } from "./collection-card";
@@ -25,7 +28,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
       ? "public"
       : "mine";
   const type = params.get("type") || "all";
-  const resetPublicFilter = scope === 'public' && !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
+  const publicScope = scope === "public";
+  const savedOnly = publicScope && params.get("saved") === "1";
   const requestedView = params.get("view");
   const view = requestedView === "timeline" || (!trash && requestedView === "gallery") ? requestedView : "grid";
   const [result, setResult] = useState<{
@@ -39,7 +43,8 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
   const [viewing, setViewing] = useState<Memory | null>(null);
   const [removing, setRemoving] = useState<Memory | null>(null);
   const results = useRef<HTMLElement>(null);
-  const activeFilters = !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || type !== 'all');
+  const activeFilters = !!(params.get('day') || params.get('q') || params.get('month') || params.get('pinned') || savedOnly || type !== 'all');
+  const resetPublicFilter = publicScope && activeFilters;
   const query = new URLSearchParams(params.toString());
   query.set("scope", scope);
   query.delete("cursor");
@@ -108,7 +113,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     }
   }
   async function action(memory: Memory, action: "pin" | "restore" | "delete" | "purge") {
-    if (pending) return;
+    if (pending || publicScope || memory.userId !== user?.id) return;
     setPending(memory.id);
     try {
       if (action === "purge") {
@@ -133,6 +138,11 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     }
   }
   if (!loading && !user && scope === 'mine') return <div className="journal-experience"><JournalPrivateGate /></div>;
+  function updateEngagement(id: string, engagement: PublicEngagement) {
+    setResult(old => old?.key === key && old.data ? { ...old, data: { ...old.data,
+      items: old.data.items.flatMap(memory => memory.id !== id ? [memory] : savedOnly && !engagement.saved ? [] : [{ ...memory, engagement }]),
+    } } : old);
+  }
   return (
     <div className={'journal-experience' + (trash ? ' journal-trash' : scope === 'public' ? ' journal-discovery' : ' journal-personal')} data-journal-view={view}>
       {!trash && <JournalAtmosphere key={scope} items={data?.items || []} publicScope={scope === 'public'} ownerId={user?.id} month={params.get('month') || ''} type={type} activeFilters={activeFilters} revision={refreshKey} onBrowse={browse} />}
@@ -219,18 +229,22 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               ))}
             </div>
             <div className="toolbar-right">
-              <button
+              {publicScope ? (user ? <button
+                type="button" className={`icon-button ${savedOnly ? "selected" : ""}`}
+                aria-label="只看我的收藏" title="只看我的收藏" aria-pressed={savedOnly}
+                onClick={() => filter("saved", savedOnly ? "" : "1")}
+              ><Icon name="bookmark" size={18} /></button> : null) : <button
                 type="button"
                 className={`icon-button ${params.get("pinned") ? "selected" : ""}`}
-                aria-label={scope === 'public' ? '只看作者标记的珍藏' : '只看收藏'}
-                title={scope === 'public' ? '作者标记的珍藏' : '只看收藏'}
+                aria-label="只看收藏"
+                title="只看收藏"
                 aria-pressed={!!params.get("pinned")}
                 onClick={() =>
                   filter("pinned", params.get("pinned") ? "" : "1")
                 }
               >
                 <Icon name="pin" size={18} />
-              </button>
+              </button>}
               <div className="view-switch" role="group" aria-label="浏览方式">
                 {!trash && <button type="button" aria-label="照片墙" title="照片墙" aria-pressed={view === "gallery"} className={view === "gallery" ? "selected" : ""} onClick={() => filter("view", "gallery")}><Icon name="image" size={17} /></button>}
                 <button
@@ -323,10 +337,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
               <h2>
                 {trash
                   ? "回收站为空"
-                  : params.get("day") || params.get("q") ||
-                      params.get("month") ||
-                      params.get("pinned") ||
-                      type !== "all"
+                  : activeFilters
                     ? "没有符合条件的日常"
                     : "暂无日常"}
               </h2>
@@ -338,29 +349,22 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                 </Link>
               )}
             </div>
-          ) : view === "gallery" ? <PhotoWall memories={data.items} /> : (
+          ) : view === "gallery" ? <PhotoWall memories={data.items} publicScope={publicScope} /> : (
             <div key={key + ':' + view} className={`memory-feed ${view}`}>
               {data.items.map((m, i) => {
-                const owner = m.userId === user?.id;
-                const actions = owner && <JournalEntryActions
-                  memory={m} trash={trash} busy={!!pending}
-                  onPin={() => action(m, "pin")} onRestore={() => action(m, "restore")}
-                  onRemove={() => setRemoving(m)}
-                />;
+                const href = memoryHref(m.id, publicScope);
+                const manage = !publicScope && m.userId === user?.id;
+                const interactions = publicScope && <PublicEntryActions id={m.id} value={m.engagement} onChange={value => updateEngagement(m.id, value)} />;
+                const menu = (includeTags = false) => <EntryMenu memory={m} busy={!!pending} onPin={() => action(m, "pin")} onRemove={() => setRemoving(m)}
+                  tags={includeTags && m.tags.length > 0 && m.tags.map(tag => <button type="button" key={tag} onClick={() => filter("q", tag)}># {tag}</button>)} />;
+                const actions = manage && (trash ? <TrashEntryActions busy={!!pending} onRestore={() => action(m, "restore")} onRemove={() => setRemoving(m)} /> : menu());
                 const firstAsset = m.assets[0];
                 if (view === 'grid' && scope !== 'trash' && firstAsset?.mime.startsWith('image/')) {
-                  return <div key={m.id} id={'journal-entry-' + m.id} className="memory-wrapper discovery-print-wrapper" tabIndex={-1}>
+                  return <div key={m.id} id={'journal-entry-' + m.id} className={`memory-wrapper discovery-print-wrapper${publicScope ? ' public-print-wrapper' : ''}`} tabIndex={-1}>
                     <CollectionCard photo={{ memory: m, asset: firstAsset }} index={i} journal={scope} onOpen={() => setViewing(m)}
-                      actions={m.tags.length > 0 && <details className="print-options"
-                        onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}
-                        onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); } }}
-                        onClick={e => { if ((e.target as Element).closest('button')) e.currentTarget.open = false; }}>
-                        <summary aria-label="查看标签">标签</summary><div>
-                          {m.tags.map(tag => <button type="button" key={tag} onClick={() => filter('q', tag)}># {tag}</button>)}
-                        </div>
-                      </details>}
+                      actions={manage && menu(true)}
                     />
-                    {actions}
+                    {interactions}
                   </div>;
                 }
                 const month = dateText(m.happenedAt, {
@@ -385,11 +389,11 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                       className={`memory-card motion-surface ${m.assets.length ? "has-media" : "text-memory"}${m.title || m.content || m.tags.length ? ' has-copy' : ''}${m.title || m.content ? ' has-authored-copy' : ''}`}
                       data-motion-surface=""
                     >
-                      {view === 'grid' && <Link className="memory-card-detail" href={'/memories/' + m.id} aria-label={'打开日常：' + (m.title || dateText(m.happenedAt))} />}
+                      {view === 'grid' && <Link className="memory-card-detail" href={href} aria-label={'打开日常：' + (m.title || dateText(m.happenedAt))} />}
                       <span className="journal-card-mark" aria-hidden="true"><ThemeMotif /></span>
                       <span className="motion-spotlight" aria-hidden="true" />
                       <div className="memory-card-top">
-                        {scope === 'public' ? <Link className='discovery-card-byline' href={'/memories/' + m.id}><span className='discovery-author-initial' aria-hidden='true'>{Array.from(m.user.displayName || m.user.username)[0]}</span><span><strong>{m.user.displayName || m.user.username}</strong><time dateTime={m.happenedAt}>{dateText(m.happenedAt, { month: 'short', day: 'numeric' })} · 人间来笺</time></span></Link> : <Link
+                        {publicScope ? <Link className='discovery-card-byline' href={href}><span className='discovery-author-initial' aria-hidden='true'>{Array.from(m.user.displayName || m.user.username)[0]}</span><span><strong>{m.user.displayName || m.user.username}</strong><time dateTime={m.happenedAt}>{dateText(m.happenedAt, { month: 'short', day: 'numeric' })}</time></span></Link> : <Link
                           className="memory-date"
                           href={`/memories/${m.id}`}
                         >
@@ -404,7 +408,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                           </span>
                         </Link>}
                         <div className="badges">
-                          {m.pinned && (
+                          {!publicScope && m.pinned && (
                             <span title="已收藏">
                               <Icon name="pin" size={14} />
                             </span>
@@ -424,7 +428,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                         {view === 'grid' && m.assets.length > 0 && <span className="memory-card-imprint" aria-hidden="true"><ThemeMotif /></span>}
                         <MediaGrid assets={m.assets} compact echo={view === 'grid'} mat={!trash && view === 'timeline'} />
                         <div className="memory-card-copy">
-                          {m.title && <Link className='memory-title' href={'/memories/' + m.id}><h2>{m.title}</h2></Link>}
+                          {m.title && <Link className='memory-title' href={href}><h2>{m.title}</h2></Link>}
                           {m.content && (
                             <p className="memory-excerpt">{m.content}</p>
                           )}
@@ -456,7 +460,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
                             moodLabel(m.mood) || ""
                           )}
                         </span>
-                        {owner ? actions : view !== 'grid' ? (
+                        {publicScope ? interactions : manage ? actions : view !== 'grid' ? (
                           <Link
                             href={`/memories/${m.id}`}
                             className="text-link small"
@@ -487,7 +491,7 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
         </>
       )}
       {viewing && <MediaViewer assets={viewing.assets} initial={0} close={() => setViewing(null)} />}
-      {removing && (
+      {removing && !publicScope && (
         <DeleteDialog
           memory={removing}
           busy={pending === removing.id}
@@ -499,23 +503,15 @@ export function MemoryFeed({ trash = false }: { trash?: boolean }) {
     </div>
   );
 }
-function JournalEntryActions({ memory, trash, busy, onPin, onRestore, onRemove }: {
-  memory: Memory;
-  trash: boolean;
+function TrashEntryActions({ busy, onRestore, onRemove }: {
   busy: boolean;
-  onPin: () => void;
   onRestore: () => void;
   onRemove: () => void;
 }) {
-  return <div className="journal-entry-actions" role="group" aria-label={trash ? "回收站操作" : "日常操作"}>
-    {trash
-      ? <button type="button" disabled={busy} onClick={onRestore}><Icon name="restore" size={17} />恢复</button>
-      : <>
-        <button type="button" disabled={busy} aria-pressed={memory.pinned} onClick={onPin}><Icon name="pin" size={17} />收藏</button>
-        <Link href={`/memories/${memory.id}/edit`}><Icon name="edit" size={17} />编辑</Link>
-      </>}
+  return <div className="journal-entry-actions" role="group" aria-label="回收站操作">
+    <button type="button" disabled={busy} onClick={onRestore}><Icon name="restore" size={17} />恢复</button>
     <button type="button" className="entry-remove" disabled={busy} onClick={onRemove}>
-      <Icon name="trash" size={17} />{trash ? "永久删除" : "移到回收站"}
+      <Icon name="trash" size={17} />永久删除
     </button>
   </div>;
 }

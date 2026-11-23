@@ -33,6 +33,24 @@ export interface Memory {
   user: { username: string; displayName?: string; avatarUrl?: string | null };
   assets: MediaAsset[];
   hasLegacyMedia: boolean;
+  engagement?: PublicEngagement;
+}
+export interface PublicEngagement {
+  likes: number;
+  comments: number;
+  liked: boolean;
+  saved: boolean;
+}
+export type PublicReaction = "like" | "save";
+export interface PublicComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: string;
+}
+export interface PublicComments {
+  items: PublicComment[];
+  nextCursor: string | null;
 }
 export interface MemoryInput {
   title: string;

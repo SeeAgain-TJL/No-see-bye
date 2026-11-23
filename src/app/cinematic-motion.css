@@ -354,16 +354,6 @@
 .living-gallery .gallery-photo { outline-color: #e3ecdf37; box-shadow: 0 0 0 4px #b3ccc33b; opacity: .68; }
 .living-gallery .gallery-photo[data-current='true'] { box-shadow: 0 0 0 4px var(--cinema-edge), 0 9px 29px #070d1bdf; opacity: 1; }
 .living-gallery .gallery-photo:focus-visible { outline-color: var(--cinema-light); }
-.gallery-playback-progress { height: 2px; background: #dceff325; }
-.gallery-playback-progress > span {
-  display: block;
-  height: 100%;
-  background: var(--cinema-light);
-  transform: scaleX(0);
-  transform-origin: left;
-  animation: gallery-playback var(--gallery-hold) linear both;
-}
-@keyframes gallery-playback { to { transform: scaleX(1); } }
 
 /* The private and public covers use distinct framing around their existing living scenery. */
 :root[data-theme] .journal-living-cover {
@@ -414,7 +404,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .cinematic-opening * { transition: none; }
-  .gallery-playback-progress { display: none; }
 }
 
 @media (min-width: 1921px), (min-width: 761px) and (min-resolution: 1.5dppx) {

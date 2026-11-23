@@ -7,6 +7,7 @@ import type { JournalSelection } from "@/lib/journal-navigation";
 import { JournalCoverScene } from "./journal-cover-scene";
 import { JournalNavigator } from "./journal-navigator";
 import type { Memory } from "./types";
+import { memoryHref } from "./public-entry";
 
 /** Keep photography, section navigation and actions in separate hit areas. */
 function JournalMasthead({ publicScope = false, children, guest = false }: {
@@ -44,7 +45,7 @@ export function JournalAtmosphere({ items, publicScope, ownerId, month, type, ac
   function close() { setExpanded(false); trigger.current?.focus({ preventScroll: true }); }
   return <>
     <JournalMasthead publicScope={publicScope}>
-      {publicScope ? <button className="journal-main-action" type="button" disabled={!items.length} aria-label="从当前列表随机打开一条公开日常" onClick={() => { const memory = items[Math.floor(Math.random() * items.length)]; if (memory) router.push('/memories/' + memory.id); }}><Icon name="spark" size={16} />随机浏览</button>
+      {publicScope ? <button className="journal-main-action" type="button" disabled={!items.length} aria-label="从当前列表随机打开一条公开日常" onClick={() => { const memory = items[Math.floor(Math.random() * items.length)]; if (memory) router.push(memoryHref(memory.id, true)); }}><Icon name="spark" size={16} />随机浏览</button>
         : <Link className="journal-main-action" href="/memories/new"><Icon name="plus" size={16} />记录日常</Link>}
       <button ref={trigger} type="button" className="journal-month-action" aria-expanded={expanded} aria-controls={navigatorId} onClick={() => setExpanded(value => !value)}><Icon name="calendar" size={16} />按月浏览</button>
     </JournalMasthead>

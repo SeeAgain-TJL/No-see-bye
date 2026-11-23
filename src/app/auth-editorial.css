@@ -1,5 +1,5 @@
 :root[data-theme] .studio-auth.auth-editorial {
-  --auth-width: clamp(1040px, 82vw, 1400px);
+  --auth-width: clamp(1080px, 86vw, 1480px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -65,10 +65,10 @@
 
 :root[data-theme] .auth-editorial.studio-auth .auth-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(354px, 39%, 510px);
+  grid-template-columns: minmax(0, 1fr) clamp(370px, 40%, 550px);
   width: 100%;
   max-width: var(--auth-width);
-  min-height: clamp(520px, 70svh, 760px);
+  min-height: clamp(550px, 73svh, 780px);
   margin: 0 auto auto;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--cinema-edge) 38%, var(--line));
@@ -95,20 +95,20 @@
   display: grid;
   place-items: start center;
   min-width: 0;
-  padding: clamp(20px, calc((70svh - 520px) / 2), 100px) clamp(22px, 3.5vw, 54px);
+  padding: clamp(24px, calc((73svh - 550px) / 2), 98px) clamp(24px, 3.2vw, 50px);
   background:
     radial-gradient(ellipse at 84% 4%, color-mix(in srgb, var(--cinema-edge) 15%, transparent), transparent 60%),
     linear-gradient(148deg, var(--surface), color-mix(in srgb, var(--surface) 78%, var(--surface-dim)));
   box-shadow: inset 1px 0 color-mix(in srgb, var(--cinema-edge) 26%, var(--line));
 }
 .auth-form-stack {
-  --auth-input-height: 46px;
+  --auth-input-height: 50px;
   --auth-field-spacing: 12px;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 0;
-  max-width: 396px;
+  max-width: 448px;
 }
 :root[data-theme] .auth-editorial.studio-auth .auth-form {
   display: flex;
@@ -239,7 +239,7 @@
 }
 .auth-editorial.studio-auth .auth-social-button svg { flex-shrink: 0; }
 @media (max-width: 760px) {
-  :root[data-theme] .studio-auth.auth-editorial { padding: 0 11px 20px; }
+  :root[data-theme] .studio-auth.auth-editorial { padding: 0 8px 18px; }
   .auth-editorial .auth-masthead { max-width: 460px; min-height: 60px; margin-block: 0; }
   .auth-editorial .auth-masthead-brand { font-size: 13px; }
   .auth-masthead-brand .brand-symbol { width: 28px; height: 28px; }
@@ -252,8 +252,8 @@
     margin-block-start: 0;
     border-radius: 18px;
   }
-  .auth-form-room { padding: 18px clamp(18px, 5vw, 30px) 24px; box-shadow: inset 0 1px var(--line); }
-  .auth-form-stack { --auth-input-height: 46px; --auth-field-spacing: 10px; }
+  .auth-form-room { padding: 18px clamp(15px, 4.5vw, 26px) 22px; box-shadow: inset 0 1px var(--line); }
+  .auth-form-stack { --auth-input-height: 48px; --auth-field-spacing: 10px; }
   .auth-editorial.studio-auth .auth-form input::placeholder { font-size: 13px; }
   :root[data-theme] .auth-editorial .auth-mode-tabs { margin-bottom: 20px; }
   .auth-editorial .auth-masthead .theme-menu { right: -90px; width: min(310px, calc(100vw - 24px)); }
