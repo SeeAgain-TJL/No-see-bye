@@ -1,11 +1,9 @@
 /* Shrink the whole mount, keeping the same image-to-matte proportions. */
-.projection-contact-grid { width: 92%; margin-inline: auto; }
 :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { width: 96%; margin-inline: auto; }
 @media (min-width: 1410px) {
   :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 540px) {
-  .projection-contact-grid,
   :root[data-theme] :is(.journal-discovery, .journal-personal) .memory-feed.grid { width: min(91%, 390px); }
 }
 

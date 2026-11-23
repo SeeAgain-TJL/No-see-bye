@@ -1,5 +1,5 @@
 :root[data-theme] .studio-auth.auth-editorial {
-  --auth-width: clamp(1080px, 86vw, 1480px);
+  --auth-width: min(94vw, 1820px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -22,7 +22,7 @@
   width: 100%;
   max-width: var(--auth-width);
   min-height: 62px;
-  margin: auto auto 8px;
+  margin: 6px auto 12px;
 }
 .auth-editorial .auth-masthead-brand {
   display: inline-flex;
@@ -65,11 +65,11 @@
 
 :root[data-theme] .auth-editorial.studio-auth .auth-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(370px, 40%, 550px);
+  grid-template-columns: minmax(0, 1fr) clamp(370px, 43%, 660px);
   width: 100%;
   max-width: var(--auth-width);
-  min-height: clamp(550px, 73svh, 780px);
-  margin: 0 auto auto;
+  min-height: clamp(640px, 82svh, 920px);
+  margin: 0 auto 16px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--cinema-edge) 38%, var(--line));
   border-radius: 23px;
@@ -93,22 +93,27 @@
   position: relative;
   z-index: 23;
   display: grid;
-  place-items: start center;
+  place-items: center;
   min-width: 0;
-  padding: clamp(24px, calc((73svh - 550px) / 2), 98px) clamp(24px, 3.2vw, 50px);
+  padding: 26px clamp(22px, 2.5vw, 48px);
   background:
     radial-gradient(ellipse at 84% 4%, color-mix(in srgb, var(--cinema-edge) 15%, transparent), transparent 60%),
     linear-gradient(148deg, var(--surface), color-mix(in srgb, var(--surface) 78%, var(--surface-dim)));
   box-shadow: inset 1px 0 color-mix(in srgb, var(--cinema-edge) 26%, var(--line));
 }
 .auth-form-stack {
-  --auth-input-height: 50px;
-  --auth-field-spacing: 12px;
+  --auth-input-height: 56px;
+  --auth-field-spacing: 17px;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 0;
-  max-width: 448px;
+  max-width: 560px;
+}
+@media (min-width: 761px) {
+  /* Center a shared slot so the first two fields stay put across modes. */
+  .auth-form-stack { min-height: 448px; }
+  .auth-form-stack:has(.auth-social) { min-height: 556px; }
 }
 :root[data-theme] .auth-editorial.studio-auth .auth-form {
   display: flex;
@@ -126,9 +131,9 @@
   grid-template-columns: repeat(2, 1fr);
   align-self: start;
   gap: 2px;
-  width: max-content;
-  margin: 0 0 20px;
-  padding: 3px;
+  width: min(186px, 100%);
+  margin: 0 0 24px;
+  padding: 4px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-dim);
@@ -136,7 +141,7 @@
 :root[data-theme] .auth-editorial .auth-mode-tabs a {
   display: grid;
   place-items: center;
-  min-height: 44px;
+  min-height: 46px;
   width: auto;
   padding: 0 18px;
   border: 0;
@@ -144,7 +149,7 @@
   background: transparent;
   box-shadow: none;
   color: var(--ink-muted);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
 }
 :root[data-theme] .auth-editorial .auth-mode-tabs a[aria-current='page'] {
@@ -181,7 +186,7 @@
   gap: 6px;
   margin: 0;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 20px;
 }
 :root[data-theme] .auth-editorial.studio-auth .auth-form input:not([type='checkbox']):not([type='radio']),
@@ -208,39 +213,39 @@
   background: var(--surface);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 17%, transparent);
 }
-.auth-editorial.studio-auth .auth-form input::placeholder { color: var(--ink-muted); font-size: 14px; }
+.auth-editorial.studio-auth .auth-form input::placeholder { color: var(--ink-muted); font-size: 15px; }
 :root[data-theme] .auth-editorial.studio-auth .auth-form > .button {
   position: relative;
   gap: 12px;
-  min-height: 46px;
+  min-height: 58px;
   margin-top: 4px;
   border: 1px solid color-mix(in srgb, var(--motion-deep) 76%, var(--accent));
   border-radius: 9px;
   background: var(--motion-deep);
   color: var(--motion-on-deep);
   box-shadow: inset 0 1px #f3fff828, 0 9px 22px -14px var(--cinema-matte);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
 }
-.auth-editorial.studio-auth .auth-social { margin-top: 18px; }
-.auth-editorial.studio-auth .auth-social-divider { color: var(--ink-muted); font-size: 12px; }
+.auth-editorial.studio-auth .auth-social { margin-top: 22px; }
+.auth-editorial.studio-auth .auth-social-divider { color: var(--ink-muted); font-size: 13px; }
 .auth-editorial.studio-auth .auth-social-buttons { display: flex; flex-direction: row; gap: 9px; margin-top: 13px; }
 .auth-editorial.studio-auth .auth-social-button {
   flex: 1;
   min-width: 0;
-  min-height: 48px;
+  min-height: 54px;
   padding-inline: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface) 54%, transparent);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.25;
   white-space: normal;
 }
 .auth-editorial.studio-auth .auth-social-button svg { flex-shrink: 0; }
 @media (max-width: 760px) {
-  :root[data-theme] .studio-auth.auth-editorial { padding: 0 8px 18px; }
-  .auth-editorial .auth-masthead { max-width: 460px; min-height: 60px; margin-block: 0; }
+  :root[data-theme] .studio-auth.auth-editorial { padding: 0 8px 14px; }
+  .auth-editorial .auth-masthead { max-width: 460px; min-height: 60px; margin: 0 auto 10px; }
   .auth-editorial .auth-masthead-brand { font-size: 13px; }
   .auth-masthead-brand .brand-symbol { width: 28px; height: 28px; }
   .auth-editorial .theme-trigger-label { display: none; }
@@ -249,12 +254,12 @@
     grid-template-columns: minmax(0, 1fr);
     min-height: 0;
     max-width: 460px;
-    margin-block-start: 0;
+    margin-block: 0;
     border-radius: 18px;
   }
-  .auth-form-room { padding: 18px clamp(15px, 4.5vw, 26px) 22px; box-shadow: inset 0 1px var(--line); }
-  .auth-form-stack { --auth-input-height: 48px; --auth-field-spacing: 10px; }
-  .auth-editorial.studio-auth .auth-form input::placeholder { font-size: 13px; }
+  .auth-form-room { padding: 22px clamp(17px, 5vw, 30px) 28px; box-shadow: inset 0 1px var(--line); }
+  .auth-form-stack { --auth-input-height: 54px; --auth-field-spacing: 14px; }
+  .auth-editorial.studio-auth .auth-form input::placeholder { font-size: 14px; }
   :root[data-theme] .auth-editorial .auth-mode-tabs { margin-bottom: 20px; }
   .auth-editorial .auth-masthead .theme-menu { right: -90px; width: min(310px, calc(100vw - 24px)); }
   .auth-editorial .immersive-motion-root {
